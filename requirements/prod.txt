@@ -1,0 +1,5 @@
+-r base.txt
+
+fastapi
+asyncpg
+uvicorn

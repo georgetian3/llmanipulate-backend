@@ -1,0 +1,10 @@
+-r base.txt
+
+fastapi[standard]
+
+
+# typing, linting, formatting etc
+black
+flake8
+mypy
+isort
