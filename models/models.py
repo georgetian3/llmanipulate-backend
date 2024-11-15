@@ -16,7 +16,7 @@ class NewTask(SQLModel, table=False):
 
 class Task(NewTask, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    # user: Optional["User"] = Relationship(back_populates="tasks")
+    user: Optional["User"] = Relationship(back_populates="tasks")
 
 
 class NewUser(SQLModel, table=False):
@@ -29,4 +29,4 @@ class NewUser(SQLModel, table=False):
 class User(NewUser, table=True):
     id: Optional[int] = Field(primary_key=True)
     user_code: str = Field(unique=True, nullable=False)
-    # tasks: List[Task] = Relationship(back_populates="user")
+    tasks: List[Task] = Relationship(back_populates="user")
