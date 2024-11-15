@@ -1,5 +1,6 @@
 import uuid
 from typing import List
+from sqlalchemy.orm import joinedload
 
 from sqlalchemy import select
 
@@ -18,4 +19,6 @@ class UserService(BaseService):
 
     async def get_all_users(self) -> List[User]:
         async with self._database.get_session() as session:
-            return list((await session.execute(select(User))).scalars())
+            return list((await session.execute(select(User).options(joinedload(User.tasks)))).scalars())
+
+
