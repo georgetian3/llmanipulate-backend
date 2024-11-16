@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import asdict
 
+import nest_asyncio
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,13 +9,12 @@ from sqlmodel import SQLModel
 
 from config import DatabaseConfig
 
-import nest_asyncio
 nest_asyncio.apply()
+
 
 class Database:
 
     def __init__(self, config: DatabaseConfig):
-        print(config)
         url = URL.create(**{k.lower(): v for k, v in asdict(config).items()})
         self._engine = create_async_engine(url, echo=False)
         self._async_session_maker: sessionmaker = sessionmaker(  # type: ignore
@@ -33,8 +33,10 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
+
 _DATABASE = Database(DatabaseConfig())
-asyncio.run(_DATABASE.create()) 
+asyncio.run(_DATABASE.create())
+
 
 def get_session():
     return _DATABASE.get_session()

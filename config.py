@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from dotenv import load_dotenv
 
@@ -10,8 +10,11 @@ class NoDefault: ...
 
 class MissingEnvironmentVariable(Exception): ...
 
-T = TypeVar('T')
-def get_env(variable: str, default: Generic[T] = NoDefault()) -> str | T:
+
+T = TypeVar("T")
+
+
+def get_env(variable: str, default: T | NoDefault = NoDefault()) -> str | T:
     try:
         return os.environ[variable]
     except KeyError:
@@ -21,11 +24,13 @@ def get_env(variable: str, default: Generic[T] = NoDefault()) -> str | T:
             )
         return default
 
+
 def int_or_none(x: Any) -> int | None:
     try:
         return int(x)
-    except Exception as e:
+    except Exception:
         return None
+
 
 load_dotenv()
 
@@ -44,9 +49,3 @@ class DatabaseConfig:
 class ServerConfig:
     PORT: int = int(get_env("SERVER_PORT", 8000))
     WORKERS: int = int(get_env("SERVER_WORKERS", 1))
-
-
-@dataclass
-class Config:
-    DATABASE: DatabaseConfig = field(default_factory=DatabaseConfig)
-    SERVER: ServerConfig = field(default_factory=ServerConfig)

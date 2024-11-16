@@ -15,6 +15,7 @@ async def create_task(new_task: NewTask) -> Task:
         await session.refresh(task)
     return task
 
+
 async def get_all_tasks() -> List[Task]:
     async with get_session() as session:
         return list(

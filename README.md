@@ -10,10 +10,13 @@ All requirements are stored in `requirements/`.
 # Development
 
 1. Install dependencies: `pip install -r requirements/local.txt`
-2. Ensure all environment variables referred to in `config.py` are defined in `.env`. A minimal `.env` is:
-```
+2. Ensure all environment variables referred to in `config.py` are defined in `.env`. A minimal `.env` using a local SQLite3 database is:
 
 ```
+DATABASE_DATABASE=llmanipulate.sqlite3
+DATABASE_DRIVERNAME='sqlite+aiosqlite'
+```
+
 3. Run development server: `fastapi dev main.py`
 
 
