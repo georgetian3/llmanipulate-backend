@@ -28,15 +28,19 @@ from sqlmodel import Field, Relationship, SQLModel
 #     # exclude=True if we want to remove this field when converting into JSON, i.e. returning via API
 #     password_hash: str = Field(nullable=False, exclude=True)
 
-class NewUser(SQLModel, table=False):
+class BaseUser(SQLModel, table=False):
     demographics: dict = Field(default_factory=dict, sa_column=Column(JSON))
     personality: dict = Field(default_factory=dict, sa_column=Column(JSON))
     task_type: str = Field(nullable=False)
     agent_type: str = Field(nullable=False)
 
+class NewUser(SQLModel, table=False):
+    creator_id: str # ensure only admin can create user
 
-class User(NewUser, table=True):  # contains fields common for all user-related models
+
+class User(BaseUser, table=True):  # contains fields common for all user-related models
     id: str = Field(primary_key=True)
+    is_admin: bool
 
 
 class Response(SQLModel, table=True):  # We probably want a table to store user responses?
@@ -48,6 +52,11 @@ class Response(SQLModel, table=True):  # We probably want a table to store user 
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
+class LLMPrompt(BaseModel):
+    # TODO: complete model
+    user_id: str
+    prompt: str
 
 class LLMResponse(BaseModel):
+    # TODO: complete model
     response: str

@@ -22,6 +22,8 @@ from models.models import NewUser, User
 
 
 async def create_user(new_user: NewUser) -> User:
+    # TODO: clarify user creation process
+    # check if creator is admin before creating
     user = User(
         **new_user.model_dump(),
         id=str(uuid.uuid4()),
