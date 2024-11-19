@@ -21,13 +21,6 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 
-
-# class NewUser(
-#     BaseUser, table=False
-# ):  # only fields need are used when creating a new user
-#     password: str = Field()
-
-
 # class User(BaseUser, table=True):  # the actual model to be stored in the db
 #     id: Optional[int] = Field(primary_key=True)
 #     user_code: str = Field(unique=True, nullable=False)
@@ -35,21 +28,21 @@ from sqlmodel import Field, Relationship, SQLModel
 #     # exclude=True if we want to remove this field when converting into JSON, i.e. returning via API
 #     password_hash: str = Field(nullable=False, exclude=True)
 
-class BaseUser(
-    SQLModel, table=False
-):  # contains fields common for all user-related models
+class NewUser(SQLModel, table=False):
     demographics: dict = Field(default_factory=dict, sa_column=Column(JSON))
     personality: dict = Field(default_factory=dict, sa_column=Column(JSON))
     task_type: str = Field(nullable=False)
     agent_type: str = Field(nullable=False)
-    is_admin: bool = Field(nullable=False)
-    username: str = Field(unique=True)
+
+
+class User(NewUser, table=True):  # contains fields common for all user-related models
+    id: str = Field(primary_key=True)
 
 
 class Response(SQLModel, table=True):  # We probably want a table to store user responses?
     id: Optional[int] = Field(primary_key=True, exclude=True)
     task_id: int = Field(foreign_key="task.id")
-    user_id: int = Field(foreign_key="user.id")
+    user_id: str = Field(foreign_key="user.id")
     time_created: datetime
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))

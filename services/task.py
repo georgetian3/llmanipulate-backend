@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from models.database import get_session
-from models.models import NewTask, Task
+# from models.models import NewTask, Task
 
 
 # async def create_task(new_task: NewTask) -> Task:

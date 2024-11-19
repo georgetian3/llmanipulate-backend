@@ -21,17 +21,15 @@ from models.models import NewUser, User
 #         return False
 
 
-# async def create_user(new_user: NewUser) -> User:
-#     user = User(
-#         **new_user.model_dump(),
-#         user_code=str(uuid.uuid4()),
-#         password_hash=hash_password(new_user.password)
-#     )
-#     async with get_session() as session:
-#         session.add(user)
-#         await session.commit()
-#         await session.refresh(user)
-#     return user
+async def create_user(new_user: NewUser) -> User:
+    user = User(
+        **new_user.model_dump(),
+        id=str(uuid.uuid4()),
+    )
+    async with get_session() as session:
+        session.add(user)
+        await session.commit()
+    return user
 
 
 # async def get_all_users() -> list[User]:
