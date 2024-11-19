@@ -49,3 +49,7 @@ class DatabaseConfig:
 class ServerConfig:
     PORT: int = int(get_env("SERVER_PORT", 8000))
     WORKERS: int = int(get_env("SERVER_WORKERS", 1))
+
+@dataclass
+class AuthConfig:
+    ADMIN_PASSWORD: str = get_env('ADMIN_PASSWORD')

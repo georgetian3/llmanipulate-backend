@@ -17,7 +17,7 @@ DATABASE_DATABASE=llmanipulate.sqlite3
 DATABASE_DRIVERNAME='sqlite+aiosqlite'
 ```
 
-3. Run development server: `fastapi dev main.py`
+3. Run development server: `fastapi dev apis/apis.py`
 
 ## Design Principles
 
