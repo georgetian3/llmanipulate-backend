@@ -41,5 +41,5 @@ class LLMResponse(BaseModel):
     response: str
 
 
-class ErrorResponse(BaseModel):
+class Error(BaseModel):
     detail: str

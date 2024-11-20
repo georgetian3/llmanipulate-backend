@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Header, HTTPException, status
 
 from models.database import get_session
-from models.models import ErrorResponse, User
+from models.models import Error, User
 
 NOT_AUTHENTICATED = "Not authenticated"
 NOT_ADMIN = "Admin privileges required"
@@ -16,7 +16,7 @@ NOT_ADMIN_HTTP_EXCEPTION = HTTPException(
 )
 
 
-def auth_required(need_admin: bool):
+def check_auth(need_admin: bool):
     async def _auth_required(user_id: Annotated[str, Header]):
         async with get_session() as session:
             user = await session.get(User, user_id)
@@ -29,6 +29,6 @@ def auth_required(need_admin: bool):
 
 
 AUTH_RESPONSES = {
-    exception.status_code: {"model": ErrorResponse, "description": exception.detail}
+    exception.status_code: {"model": Error, "description": exception.detail}
     for exception in (NOT_AUTHENTICATED_HTTP_EXCEPTION, NOT_ADMIN_HTTP_EXCEPTION)
 }

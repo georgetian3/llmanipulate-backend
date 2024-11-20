@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends
 
 import services.user
-from apis.utils import AUTH_RESPONSES, auth_required
+from apis.utils import AUTH_RESPONSES, check_auth
 from models.models import NewUser, User
 
 user_router = APIRouter()
 
 
 @user_router.put(
-    "/user",
+    "/users",
     response_model=User,
     responses=AUTH_RESPONSES,
-    dependencies=[Depends(auth_required(True))],
+    dependencies=check_auth(False),
 )
 async def create_user(new_user: NewUser):
     return await services.user.create_user(new_user)
@@ -21,7 +21,7 @@ async def create_user(new_user: NewUser):
     "/users",
     response_model=list[User],
     responses=AUTH_RESPONSES,
-    dependencies=[Depends(auth_required(True))],
+    dependencies=[Depends(check_auth(True))],
 )
 async def get_all_users():
     return await services.user.get_all_users()

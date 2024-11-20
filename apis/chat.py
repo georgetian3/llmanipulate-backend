@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from apis.utils import NOT_AUTHENTICATED, auth_required
+from apis.utils import NOT_AUTHENTICATED, check_auth
 from models.models import LLMPrompt, LLMResponse
 from services.chat import get_llm_response
 
@@ -16,7 +16,7 @@ async def chat_endpoint(ws: WebSocket):
             prompt = await ws.receive_json()
             try:
                 prompt = LLMPrompt.model_validate_json(prompt)
-                await auth_required(False)
+                await check_auth(False)
                 response = await get_llm_response(prompt)
             except ValidationError as e:
                 response = LLMResponse(error=f'Request validation error: {e}')
