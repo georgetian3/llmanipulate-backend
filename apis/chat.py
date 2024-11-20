@@ -1,7 +1,8 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from models.models import LLMPrompt
+from apis.utils import NOT_AUTHENTICATED, auth_required
+from models.models import LLMPrompt, LLMResponse
 from services.chat import get_llm_response
 
 chat_router = APIRouter()
@@ -15,10 +16,12 @@ async def chat_endpoint(ws: WebSocket):
             prompt = await ws.receive_json()
             try:
                 prompt = LLMPrompt.model_validate_json(prompt)
+                await auth_required(False)
+                response = await get_llm_response(prompt)
             except ValidationError as e:
-                await ws.send_json(e.__dict__)
-                continue
-            response = await get_llm_response(prompt)
+                response = LLMResponse(error=f'Request validation error: {e}')
+            except HTTPException:
+                response = LLMResponse(error=NOT_AUTHENTICATED)
             await ws.send_json(response.model_dump())
     except WebSocketDisconnect:
-        print("Disconnected")
+        ...

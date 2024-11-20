@@ -37,6 +37,7 @@ class LLMPrompt(BaseModel):
 
 class LLMResponse(BaseModel):
     # TODO: complete model
+    error: str | None = None
     response: str
 
 
