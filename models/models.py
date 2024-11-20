@@ -32,6 +32,7 @@ class Response(
 class LLMPrompt(BaseModel):
     # TODO: complete model
     user_id: str
+    task_id: int
     prompt: str
 
 
@@ -41,5 +42,5 @@ class LLMResponse(BaseModel):
     response: str
 
 
-class Error(BaseModel):
+class ErrorResponse(BaseModel):
     detail: str

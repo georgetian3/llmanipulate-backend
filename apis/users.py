@@ -11,7 +11,7 @@ user_router = APIRouter()
     "/users",
     response_model=User,
     responses=AUTH_RESPONSES,
-    dependencies=check_auth(False),
+    dependencies=[Depends(check_auth(False))],
 )
 async def create_user(new_user: NewUser):
     return await services.user.create_user(new_user)
