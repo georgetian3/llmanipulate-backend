@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from config import DatabaseConfig
+from models.models import *
 
 nest_asyncio.apply()
 
@@ -24,6 +25,7 @@ class Database:
     async def create(self):
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
+            print("created db")
 
     async def reset(self):
         async with self._engine.begin() as conn:

@@ -1,13 +1,11 @@
-
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
 from models.models import LLMPrompt
 from services.chat import get_llm_response
 
-
 chat_router = APIRouter()
+
 
 @chat_router.websocket("/chat")
 async def chat_endpoint(ws: WebSocket):
@@ -23,4 +21,4 @@ async def chat_endpoint(ws: WebSocket):
             response = await get_llm_response(prompt)
             await ws.send_json(response.model_dump())
     except WebSocketDisconnect:
-        print('Disconnected')
+        print("Disconnected")
