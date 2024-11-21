@@ -4,3 +4,4 @@ asyncpg
 nest_asyncio
 argon2-cffi
 greenlet
+pytz

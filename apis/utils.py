@@ -16,7 +16,7 @@ NOT_ADMIN_HTTP_EXCEPTION = HTTPException(
 )
 
 
-def auth_required(need_admin: bool):
+def check_auth(need_admin: bool):
     async def _auth_required(user_id: Annotated[str, Header]):
         async with get_session() as session:
             user = await session.get(User, user_id)

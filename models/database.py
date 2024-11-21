@@ -25,7 +25,6 @@ class Database:
     async def create(self):
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
-            print("created db")
 
     async def reset(self):
         async with self._engine.begin() as conn:
