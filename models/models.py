@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
-
+import pytz
 
 class NewUser(SQLModel, table=False):
     demographics: dict = Field(default_factory=dict, sa_column=Column(JSON))
@@ -17,16 +17,17 @@ class User(NewUser, table=True):  # contains fields common for all user-related 
     is_admin: bool
 
 
-class Response(
-    SQLModel, table=True
-):  # We probably want a table to store user responses?
-    id: int | None = Field(primary_key=True, exclude=True)
+class NewResponse(SQLModel, table=False):
     task_id: int
-    user_id: str = Field(foreign_key="user.id")
-    time_created: datetime
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
+
+
+class Response(NewResponse, table=True):
+    id: int | None = Field(primary_key=True, exclude=True)
+    user_id: str = Field(foreign_key="user.id")
+    time_created: datetime
 
 
 class LLMPrompt(BaseModel):

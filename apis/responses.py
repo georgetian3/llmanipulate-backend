@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+from fastapi import APIRouter, Depends, Header
 
 from apis.utils import AUTH_RESPONSES, check_auth
 import services.responses
-from models.models import Response
+from models.models import NewResponse, Response
 
 response_router = APIRouter()
 
@@ -13,8 +14,8 @@ response_router = APIRouter()
     responses=AUTH_RESPONSES,
     dependencies=[Depends(check_auth(False))]
 )
-async def create_response(response: Response):
-    await services.responses.create_response(response)
+async def create_response(user_id: Annotated[str, Header], response: NewResponse):
+    return await services.responses.create_response(user_id, response)
 
 @response_router.get(
     "/responses",
