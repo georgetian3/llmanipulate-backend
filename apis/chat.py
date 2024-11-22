@@ -6,6 +6,7 @@ from models.models import LLMInput, LLMResponse
 from services.chat import get_llm_response, config_agent
 from services.responses import create_response
 
+
 chat_router = APIRouter()
 
 
@@ -62,3 +63,4 @@ async def chat_endpoint(ws: WebSocket):
                     await ws.send_json(response.model_dump())
             except WebSocketDisconnect:
                 ..."""
+

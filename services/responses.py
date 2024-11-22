@@ -39,3 +39,4 @@ async def save_response(agent: Agent, response_id: int) -> bool:
         await session.refresh(existing_response)
 
     return True
+
