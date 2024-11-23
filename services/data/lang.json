@@ -1,0 +1,244 @@
+{
+    "welcome": {
+        "en": "Welcome to our experiment",
+        "zh": "欢迎参加我们的实验"
+    },
+    "login": {
+        "en": "Login",
+        "zh": "登录"
+    },
+    "username": {
+        "en": "Username",
+        "zh": "用户"
+    },
+    "usercode": {
+        "en": "Please enter your code here",
+        "zh": "请输入您的密码"
+    },
+    "password": {
+        "en": "Password",
+        "zh": "密码"
+    },
+    "tasks": {
+        "en": "Tasks",
+        "zh": "任务"
+    },
+    "select_task": {
+        "en": "Please select one of the following tasks",
+        "zh": "请选择以下任务之一"
+    },
+    "thank_you": {
+        "en": "Thank you for partipating in our experiment! ",
+        "zh": "感谢您参加我们的实验！"
+    },
+    "tasks_completed": {
+        "en": "You have completed all the tasks. As a final step, please complete the following questionnaire and come back to this screen: {survey_link}",
+        "zh": "您已完成所有任务。作为最后一步，请完成以下问卷并返回此页面: {survey_link}"
+    },
+    "complete_survey": {
+        "en": "You have completed the experiment, please fill in the following survey: ",
+        "zh": "你已经完成实验，请填写问卷："
+    },
+    "link": {
+        "en": "Link",
+        "zh": "链接"
+    },
+    "survey_completed": {
+        "en": "I have completed the survey",
+        "zh": "我已填写问卷"
+    },
+    "experiment_complete": {
+        "en": "Experiment tasks completed",
+        "zh": "实验任务已完成"
+    },
+    "debrief": {
+        "en": "<center style='font-weight: bold; color: #6558d3; font-size: 22px; text-align: center; align-self: center;'>Aim of This Experiment</center>",
+        "zh": "<center style='font-weight: bold; color: #6558d3; font-size: 22px; text-align: center; align-self: center;'>实验内容说明</center>"
+    },
+    "select_user": {
+        "en": "Select a user",
+        "zh": "选择用户"
+    },
+    "chat": {
+        "en": "Chat",
+        "zh": "聊天"
+    },
+    "type_message": {
+        "en": "Type your message",
+        "zh": "输入您的消息"
+    },
+    "send": {
+        "en": "Send",
+        "zh": "发送"
+    },
+    "exit_chat": {
+        "en": "End Chat",
+        "zh": "推出聊天"
+    },
+    "switch_language": {
+        "en": "Switch to Chinese",
+        "zh": "切换为英文"
+    },
+    "continue": {
+        "en": "Continue",
+        "zh": "继续"
+    },
+    "initial_choice": {
+        "en": "Please make an initial choice to start the conversation",
+        "zh": "请做出初始选择以开始对话"
+    },
+    "hint": {
+        "en": "Hint",
+        "zh": "提示"
+    },
+    "like": {
+        "en": "Like",
+        "zh": "喜欢"
+    },
+    "dislike": {
+        "en": "Dislike",
+        "zh": "不喜欢"
+    },
+    "select": {
+        "en": "Select",
+        "zh": "选择"
+    },
+    "completed": {
+        "en": "Completed",
+        "zh": "已完成"
+    },
+    "submit": {
+        "en": "Submit",
+        "zh": "提交"
+    },
+    "submit_scores": {
+        "en": "Submit Scores",
+        "zh": "提交分数"
+    },
+    "decide_choice": {
+        "en": "Decide on Choice",
+        "zh": "去做选择"
+    },
+    "back_to_tasks": {
+        "en": "Go back to tasks",
+        "zh": "回去任务页面"
+    },
+    "agree_to_guide": {
+        "en": "I Agree",
+        "zh": "我同意"
+    },
+    "disagree_to_guide": {
+        "en": "I Disagree",
+        "zh": "我不同意"
+    },
+    "preference_guide": {
+        "en": "The following options show some ways to deal with this problem. Please read them carefully and make your preference score for each option. Please slide the slider to indicate your preference for each option.",
+        "zh": "以下选项展示了如何应对这个问题的一些方法，请你仔细阅读，对每个选项做出你的倾向性评分。请滑动滑块以表明您对每个选项的偏好。"
+    },
+    "preference_label": {
+        "en": "Preference for this option",
+        "zh": "对此选项的偏好"
+    },
+    "confidence_label": {
+        "en": "Confidence in the above scores",
+        "zh": "对以上分数的确定程度"
+    },
+    "familiarity_label": {
+        "en": "Familiarity with the topic of this query",
+        "zh": "对此查询话题的熟悉程度"
+    },
+    "scale_label": {
+        "en": "On a scale of 1 to 10",
+        "zh": "在1到10的范围内"
+    },
+    "user_message": {
+        "en": "What's your opinion?",
+        "zh": "你有什么建议？"
+    },
+    "user_scores": {
+        "en": "From 1 to 10, I have the following preferences for each option: {preferences}. In addition, I rate my familiarity with this topic as {fam_score} from 10 and confidence in my scores {conf_score} from 10.",
+        "zh": "在 1 到 10 的范围内，我对每个选项有以下偏好：{preferences}。我对这个话题的熟悉度评分为 {fam_score}，对自己偏好的确定程度分为 {conf_score}。"
+    },
+    "user_message_change": {
+        "en": "I have changed my scores as follows: {score_changes}.",
+        "zh": "我更改了我的分数如下：{score_changes}。"
+    },
+    "chat_placeholder": {
+        "en": "Please ask your AI assistant about the problem you are facing based on the background information provided",
+        "zh": "请根据所提供的背景信息，向您AI助手咨询您面临的问题"
+    },
+    "confidence": {
+        "en": "Confidence",
+        "zh": "确定程度"
+    },
+    "familiarity": {
+        "en": "Familiarity",
+        "zh": "熟悉程度"
+    },
+    "option": {
+        "en": "Option",
+        "zh": "选项"
+    },
+    "see_details": {
+        "en": "See Details",
+        "zh": "查看详情"
+    },
+    "login_success": {
+        "en": "Login successful",
+        "zh": "登录成功"
+    },
+    "login_fail": {
+        "en": "Login failed (wrong code)",
+        "zh": "登录失败 (密码错误)"
+    },
+    "chat_requirement": {
+        "en": "Please complete at least {min_turns} rounds",
+        "zh": "请与助手聊天至少{min_turns}轮"
+    },
+    "msg_requirement": {
+        "en": "Message cannot be blank",
+        "zh": "消息不能为空"
+    },
+    "ready_to_submit": {
+        "en": "You have reached {min_turns}. You can submit your scores from now!",
+        "zh": "已达到{min_turns}轮。从现在可以提交分数了！"
+    },
+    "BFI": {
+        "Extraversion": {
+            "en": "Extraversion",
+            "zh": "外向性"
+        },
+        "Agreeableness": {
+            "en": "Agreeableness",
+            "zh": "宜人性"
+        },
+        "Conscientiousness": {
+            "en": "Conscientiousness",
+            "zh": "尽责性"
+        },
+        "Emotional Stability": {
+            "en": "Emotional Stability",
+            "zh": "情绪稳定性"
+        },
+        "Openness": {
+            "en": "Openness",
+            "zh": "开放性"
+        },
+        "High": {
+            "en": "High",
+            "zh": "高"
+        },
+        "Low": {
+            "en": "Low",
+            "zh": "低"
+        },
+        "Moderate": {
+            "en": "Moderate",
+            "zh": "中等"
+        }
+    },
+    "is": {
+        "en": " is ",
+        "zh": "是"
+    }
+}

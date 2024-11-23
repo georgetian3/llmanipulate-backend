@@ -30,15 +30,14 @@ class Response(NewResponse, table=True):
     time_created: datetime
 
 
-class LLMPrompt(BaseModel):
+class LLMInput(BaseModel):
     # TODO: complete model
     user_id: str
     task_id: int
-    prompt: str
+    message: str
 
 
 class LLMResponse(BaseModel):
-    # TODO: complete model
     error: str | None = None
     response: str
 
