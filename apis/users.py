@@ -9,9 +9,10 @@ user_router = APIRouter()
 
 @user_router.put(
     "/users",
+    description="Creates a new non-admin user. Requires an admin's user_id for authentication.",
     response_model=User,
     responses=AUTH_RESPONSES,
-    dependencies=[Depends(check_auth(False))],
+    dependencies=[Depends(check_auth(True))],
 )
 async def create_user(new_user: NewUser):
     return await services.user.create_user(new_user)

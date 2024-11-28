@@ -39,7 +39,7 @@ async def chat_endpoint(ws: WebSocket):
             except Exception as e:
                 response = LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="")
 
-            await ws.send_json(response.dict())
+            await ws.send_json(response.model_dump())
 
     except WebSocketDisconnect:
         print("WebSocket disconnected")
