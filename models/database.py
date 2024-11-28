@@ -1,11 +1,16 @@
+import asyncio
 from dataclasses import asdict
 
+import nest_asyncio
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from config import DatabaseConfig
+from models.models import *
+
+nest_asyncio.apply()
 
 
 class Database:
@@ -28,3 +33,11 @@ class Database:
 
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
+
+
+_DATABASE = Database(DatabaseConfig())
+asyncio.run(_DATABASE.create())
+
+
+def get_session():
+    return _DATABASE.get_session()
