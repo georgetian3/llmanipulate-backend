@@ -12,7 +12,7 @@ async def create_response(user_id: str, response: NewResponse) -> Response:
     try:
         response = Response(
             user_id=user_id,
-            task_name=response.task_name,
+            task_id=response.task_id,
             initial_scores=response.initial_scores,
             conv_history=response.conv_history,
             final_scores=response.final_scores,
