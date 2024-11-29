@@ -18,7 +18,7 @@ class User(NewUser, table=True):  # contains fields common for all user-related 
 
 
 class NewResponse(SQLModel, table=False):
-    task_name: str
+    task_id: int
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
@@ -33,7 +33,7 @@ class Response(NewResponse, table=True):
 class LLMInput(BaseModel):
     # TODO: complete model
     user_id: str
-    task_id: str
+    task_id: int
     message: str
 
 
