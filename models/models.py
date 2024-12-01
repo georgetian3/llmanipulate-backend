@@ -31,10 +31,10 @@ class Response(NewResponse, table=True):
 
 
 class LLMInput(BaseModel):
-    # TODO: complete model
     user_id: str
     task_id: str
     message: str
+    map: dict
 
 
 class LLMResponse(BaseModel):
