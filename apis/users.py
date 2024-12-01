@@ -26,3 +26,12 @@ async def create_user(new_user: NewUser):
 )
 async def get_all_users():
     return await services.user.get_all_users()
+
+@user_router.get(
+    "/users/{user_id}",
+    response_model=User,
+    responses=AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(False))],
+)
+async def get_user(user_id: str):
+    return await services.user.get_user(user_id)

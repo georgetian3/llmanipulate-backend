@@ -60,3 +60,14 @@ async def get_all_users() -> list[User]:
     """
     async with get_session() as session:
         return list((await session.execute(select(User))).scalars())
+
+async def get_user(user_id: str):
+    """
+    :param user_id: the id of the user to be fetched
+    :return: the `User` object with the given id
+    """
+    async with get_session() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        if result is None:
+            return {"error": "User not found"}
+        return result.scalar()

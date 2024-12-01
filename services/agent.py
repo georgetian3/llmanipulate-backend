@@ -2,7 +2,7 @@ import json
 from openai import OpenAI
 
 API_URL = "http://115.182.62.174:18888/v1"
-API_KEY = ""
+API_KEY = open("API_KEY", "r").read()
 
 class Agent:
     def __init__(self):
@@ -44,20 +44,22 @@ class Agent:
     def generate(self, msg):
         res = ""
         self.add_message(msg)
-        while True:
-            try:
-                chat = self.model.chat.completions.create(
-                    model=self.model_name, messages=self.messages
-                )
-                res = chat.choices[0].message.content
-                response = {"role": "assistant", "content": res}
-                res = json.loads(res)
-                self.add_message(response)
-                res = {"role": "assistant", "content": res["response"]}
-                # res = {"role": "assistant", "content": res}
-                break
-            except Exception as e:
-                print(e)
+        # while True:
+        #     try:
+        #         chat = self.model.chat.completions.create(
+        #             model=self.model_name, messages=self.messages
+        #         )
+        #         res = chat.choices[0].message.content
+        #         response = {"role": "assistant", "content": res}
+        #         res = json.loads(res)
+        #         self.add_message(response)
+        #         res = {"role": "assistant", "content": res["response"]}
+        #         # res = {"role": "assistant", "content": res}
+        #         break
+        #     except Exception as e:
+        #         print(e)
+        res = {"role": "assistant", "content": f"The number of messages is {len(self.messages)}"}
+        self.add_message(res)
 
         return res
 
