@@ -38,12 +38,12 @@ load_dotenv()
 
 @dataclass
 class DatabaseConfig:
-    HOST: str | None = get_env("DATABASE_HOST", "localhost")
-    PORT: int = int_or_none(get_env("DATABASE_PORT", 5432))
-    DATABASE: str = get_env("DATABASE_DATABASE", "myapp_db")
-    USERNAME: str = get_env("DATABASE_USERNAME", "myapp_user")
-    PASSWORD: str = get_env("DATABASE_PASSWORD", "secure_password")
-    DRIVERNAME: str = get_env("DATABASE_DRIVERNAME", "postgresql+asyncpg")
+    HOST: str | None = get_env("DATABASE_HOST", None)
+    PORT: int = int_or_none(get_env("DATABASE_PORT", None))
+    DATABASE: str = get_env("DATABASE_DATABASE", None)
+    USERNAME: str = get_env("DATABASE_USERNAME", None)
+    PASSWORD: str = get_env("DATABASE_PASSWORD", None)
+    DRIVERNAME: str = get_env("DATABASE_DRIVERNAME", None)
 
 
 

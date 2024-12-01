@@ -17,7 +17,7 @@ response_router = APIRouter()
 async def create_response(user_id: Annotated[str, Header], response: NewResponse):
     return await services.responses.create_response(user_id, response)
 
-@response_router.get("/responses_by_user", responses=AUTH_RESPONSES, dependencies=[Depends(check_auth(True))] )
+@response_router.get("/responses_by_user", responses=AUTH_RESPONSES, dependencies=[Depends(check_auth(False))] )
 async def get_responses_by_user(user_id: Annotated[str, Header]):
     return await services.responses.get_responses_by_users(user_id)
 @response_router.get( "/responses", responses=AUTH_RESPONSES, dependencies=[Depends(check_auth(True))] )

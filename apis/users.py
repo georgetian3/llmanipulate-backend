@@ -31,7 +31,7 @@ async def get_all_users():
     "/users/{user_id}",
     response_model=User,
     responses=AUTH_RESPONSES,
-    dependencies=[Depends(check_auth(True))],
+    dependencies=[Depends(check_auth(False))],
 )
 async def get_user(user_id: str):
     return await services.user.get_user(user_id)
