@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 from models.models import LLMResponse, LLMInput, User
 from services.agent import Agent
 from services.task import Task
+from services.responses import save_response
 
 
 
@@ -29,9 +30,7 @@ async def config_agent(llmp_input: LLMInput):
 
     tasks = json.loads(open("services/data/tasks.json", "r").read())
     task_by_type = tasks.get(task_type)
-    task_by_id = next((task for task in task_by_type if task["task_id"] == int(task_id)), None)
-
-
+    task_by_id = next((task for task in task_by_type if task["task_id"] == task_id), None)
 
     task.set_attributes(
         _id=task_by_id["task_id"],
@@ -41,7 +40,6 @@ async def config_agent(llmp_input: LLMInput):
         hidden_incentive=task_by_id["hidden_incentive"],
         lang=language
     )
-
     agent_type = user.agent_type
     agent.set_attributes(model_name, agent_type, language, user_personality)
     agent.set_task(task)
@@ -49,10 +47,11 @@ async def config_agent(llmp_input: LLMInput):
     return agent
 
 
-async def get_llm_response(llm_input: LLMInput, agent: Agent) -> LLMResponse:
+async def get_llm_response(llm_input: LLMInput, agent: Agent, response_id: int) -> LLMResponse:
     msg = {"role": "user", "content": llm_input.message}
 
     response_content = agent.generate(msg).get("content")
+    await save_response(agent, response_id)
 
     return LLMResponse(response=response_content)
 

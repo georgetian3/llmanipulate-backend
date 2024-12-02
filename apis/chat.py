@@ -15,20 +15,24 @@ async def chat_endpoint(ws: WebSocket):
     await ws.accept()
 
     agent = None
+    response_id = None
 
     try:
         while True:
             try:
                 data = await ws.receive_json()
+
                 if agent is None:
                     # Initialize agent only once on the first message
                     llm_input = LLMInput(**data)
                     agent = await config_agent(llm_input)
+                    response_id = await create_response(llm_input.user_id, llm_input.task_id)
 
                 else:
                     # Parse subsequent messages without reinitializing the agent
                     llm_input = LLMInput(**data)
-                response = await get_llm_response(llm_input, agent)
+
+                response = await get_llm_response(llm_input, agent, response_id)
 
             except ValidationError as e:
                 response = LLMResponse(error=f"Request validation error: {str(e)}", response="")
