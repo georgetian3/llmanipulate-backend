@@ -80,3 +80,13 @@ async def delete_user(user_id) -> bool:
         results = await session.execute(delete(User).where(User.id == user_id))
         await session.commit()
     return results.rowcount > 0
+async def get_user(user_id: str):
+    """
+    :param user_id: the id of the user to be fetched
+    :return: the `User` object with the given id
+    """
+    async with get_session() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        if result is None:
+            return {"error": "User not found"}
+        return result.scalar()

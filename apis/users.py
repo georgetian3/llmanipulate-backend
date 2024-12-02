@@ -56,3 +56,48 @@ async def delete_user(user_id_to_be_deleted: str):
     deleted = await services.user.delete_user(user_id_to_be_deleted)
     if not deleted:
         raise NOT_FOUND_HTTP_EXCEPTION
+@user_router.get(
+    "/users/{user_id}",
+    response_model=User,
+    responses=AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(False))],
+)
+async def get_user(user_id: str):
+    return await services.user.get_user(user_id)
+
+
+@user_router.patch(
+    "/users",
+    status_code=202,
+    response_description="Successfully updated user",
+    responses={
+        NOT_FOUND_HTTP_EXCEPTION.status_code: {"model": ErrorResponse, "description": NOT_FOUND_HTTP_EXCEPTION.detail}
+    } | AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(True))]
+)
+async def update_user(user: PartialUser):
+    updated = await services.user.update_user(user)
+    if not updated:
+        raise NOT_FOUND_HTTP_EXCEPTION
+    
+@user_router.delete(
+    "/users/{user_id_to_be_deleted}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_description="Successfully deleted user",
+    responses={
+        NOT_FOUND_HTTP_EXCEPTION.status_code: {"model": ErrorResponse, "description": NOT_FOUND_HTTP_EXCEPTION.detail}
+    } | AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(True))]
+)
+async def delete_user(user_id_to_be_deleted: str):
+    deleted = await services.user.delete_user(user_id_to_be_deleted)
+    if not deleted:
+        raise NOT_FOUND_HTTP_EXCEPTION
+@user_router.get(
+    "/users/{user_id}",
+    response_model=User,
+    responses=AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(False))],
+)
+async def get_user(user_id: str):
+    return await services.user.get_user(user_id)

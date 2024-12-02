@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-logging.LogRecord
+#logging.LogRecord
 
 
 class UtcFormatter(logging.Formatter):

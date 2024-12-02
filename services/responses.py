@@ -1,42 +1,61 @@
 import datetime
 
+from sqlalchemy.future import select
+
 from models.database import get_session
-from models.models import Response
-from services.agent import Agent
+from models.models import Response, NewResponse
 from datetime import datetime
 
 
 
-async def create_response(user_id,task_id) -> id:
+async def create_response(user_id: str, response: NewResponse) -> Response:
     try:
-        response = Response(user_id=user_id, task_id=task_id, time_created=datetime.now())
+        response = Response(
+            user_id=user_id,
+            task_id=response.task_id,
+            initial_scores=response.initial_scores,
+            conv_history=response.conv_history,
+            final_scores=response.final_scores,
+            time_created=datetime.utcnow()
+        )
         async with get_session() as session:
             session.add(response)
-
             await session.commit()
-
             await session.refresh(response)
+        return response
 
-        return response.id
     except Exception as e:
         print(f"Error saving response to database: {e}")
         return None
 
-async def save_response(agent: Agent, response_id: int) -> bool:
+
+async def get_responses_by_users(user_id: str):
     async with get_session() as session:
-        conv_history = {str(i + 1): message for i, message in enumerate(agent.messages[1:])}
+        try:
+            # Use select() for querying in async mode
+            stmt = select(Response).where(Response.user_id == user_id)
+            result = await session.execute(stmt)
+            responses = result.scalars().all()
 
-        existing_response = await session.get(Response, response_id)
+            if not responses:
+                return {"error": "No responses found for the given user_id"}
 
-        if existing_response:
-            existing_response.conv_history = conv_history
-            session.add(existing_response)
-        else:
-            raise ValueError(f"Response with ID {response_id} not found.")
+            # Return the responses as a list of dictionaries
+            return responses
 
-        await session.commit()
+        except Exception as e:
+            return {"error": f"Error fetching responses from database: {str(e)}"}
+async def get_responses():
+    async with get_session() as session:
+        try:
+            stmt = select(Response)
+            result = await session.execute(stmt)
+            responses = result.scalars().all()
 
-        await session.refresh(existing_response)
+            if not responses:
+                return {"error": "No responses found"}
 
-    return True
+            return responses
 
+        except Exception as e:
+            return {"error": f"Error fetching responses from database: {str(e)}"}
