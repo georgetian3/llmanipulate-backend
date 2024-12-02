@@ -2,11 +2,11 @@ import asyncio
 import logging
 import uuid
 
-from sqlalchemy import select, func
+from sqlalchemy import delete, select, func, update
 
 from config import AuthConfig
 from models.database import get_session
-from models.models import NewUser, User
+from models.models import NewUser, PartialUser, User
 from services.logging import get_logger
 
 logger = get_logger()
@@ -60,7 +60,26 @@ async def get_all_users() -> list[User]:
     """
     async with get_session() as session:
         return list((await session.execute(select(User))).scalars())
+    
+async def update_user(user: PartialUser) -> bool:
+    # only update fields that are not `id` nor `None`
+    updated_fields = user.model_dump(exclude={'id'}, exclude_none=True)
+    if not updated_fields: # nothing to update
+        return True
+    async with get_session() as session:
+        results = await session.execute(
+            update(User)
+                .where(User.id == user.id)
+                .values(**updated_fields)
+        )
+        await session.commit()
+    return results.rowcount > 0
 
+async def delete_user(user_id) -> bool:
+    async with get_session() as session:
+        results = await session.execute(delete(User).where(User.id == user_id))
+        await session.commit()
+    return results.rowcount > 0
 async def get_user(user_id: str):
     """
     :param user_id: the id of the user to be fetched
