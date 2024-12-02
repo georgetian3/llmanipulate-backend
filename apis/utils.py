@@ -7,12 +7,16 @@ from models.models import ErrorResponse, User
 
 NOT_AUTHENTICATED = "Not authenticated"
 NOT_ADMIN = "Admin privileges required"
+NOT_FOUND = "Object not found"
 
 NOT_AUTHENTICATED_HTTP_EXCEPTION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED, detail=NOT_AUTHENTICATED
 )
 NOT_ADMIN_HTTP_EXCEPTION = HTTPException(
     status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ADMIN
+)
+NOT_FOUND_HTTP_EXCEPTION = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND, detail=NOT_FOUND
 )
 
 
