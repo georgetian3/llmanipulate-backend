@@ -56,7 +56,7 @@ class Response(NewResponse, table=True):
 
 class LLMInput(BaseModel):
     user_id: str
-    task_id: int
+    task_id: str
     message: str
     map: dict
 
