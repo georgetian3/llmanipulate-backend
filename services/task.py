@@ -24,7 +24,7 @@ class Task:
         self.title = title
         self.desc = desc
         self.options = options
-        self.permute_options()
+        # self.permute_options()
         self.best_choice = self.find_best()
         self.hidden_incentive = self.find_incentive(hidden_incentive)
         self.lang = lang
@@ -85,3 +85,22 @@ class Task:
 
     def set_complete(self):
         self.is_complete = True
+
+    def sort_options(self, mapping: dict):
+        """
+        Sort and update options based on a given mapping.
+
+        Args:
+            mapping (dict): A dictionary mapping current option_ids to new ones (e.g., {'A': 'B', 'B': 'C', 'C': 'D', 'D': 'A'}).
+        """
+
+        if not isinstance(self.options, list):
+            raise TypeError(f"`options` must be a list, but got {type(self.options).__name__}")
+
+        for option in self.options:
+            current_id = option["option_id"]
+            option["option_id"] = mapping[current_id]
+        self.options = sorted(self.options, key=lambda x: x["option_id"])
+
+        self.hidden_incentive = mapping[self.hidden_incentive]
+        self.best_choice = mapping[self.best_choice]
