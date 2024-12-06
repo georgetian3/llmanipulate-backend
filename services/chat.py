@@ -8,6 +8,17 @@ from models.models import LLMResponse, LLMInput, User
 from services.agent import Agent
 from services.task import Task
 
+lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["BFI"]
+def parse_personality(personality, lang):
+    p_str = []
+    for key, value in personality.items():
+        level = (
+            f"{'High' if value >= 5.5 else ('Moderate' if value >= 3 else 'Low')}"
+        )
+        p_str.append(
+            f"{lang_dict[level][lang]}{' ' if lang == 'en' else ''}{lang_dict[key][lang]}"
+        )
+    return ", ".join(p_str)
 
 
 async def config_agent(llmp_input: LLMInput):
@@ -22,6 +33,7 @@ async def config_agent(llmp_input: LLMInput):
 
     language = user.demographics.get("lang")
     user_personality = user.personality
+
 
     task = Task()
     task_type = user.task_type
@@ -72,6 +84,7 @@ async def config_agent(llmp_input: LLMInput):
 
 
     agent_type = user.agent_type
+    user_personality = parse_personality(user_personality, language)
     agent.set_attributes(model_name, agent_type, language, user_personality)
     agent.set_task(task)
     agent.fill_prompt()
