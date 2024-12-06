@@ -40,7 +40,7 @@ class PartialUser(BaseModel):
     agent_type: str | None = Field(None)
 
 class NewResponse(SQLModel, table=False):
-    task_id: str
+    task_name: str
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
