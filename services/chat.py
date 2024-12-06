@@ -15,7 +15,6 @@ async def config_agent(llmp_input: LLMInput):
 
     model_name = "gpt-3.5-turbo"
     response = {}
-
     async with get_session() as session:
         query = select(User).where(User.id == llmp_input.user_id)
         result = await session.execute(query)
@@ -28,7 +27,7 @@ async def config_agent(llmp_input: LLMInput):
     task_type = user.task_type
     task_id = llmp_input.task_id
 
-    tasks = json.loads(open("services/data/tasks.json", "r").read())
+    tasks = json.loads(open("services/data/tasks.json", "r", encoding="utf-8").read())
     task_by_type = tasks.get(task_type)
     task_by_id = next((task for task in task_by_type if task["task_id"] == int(task_id)), None)
 

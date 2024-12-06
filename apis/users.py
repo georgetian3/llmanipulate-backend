@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 import services.user
-from apis.utils import AUTH_RESPONSES, check_auth
-from models.models import NewUser, User
+from apis.utils import AUTH_RESPONSES, NOT_FOUND_HTTP_EXCEPTION, check_auth
+from models.models import ErrorResponse, NewUser, User, PartialUser
+
 
 user_router = APIRouter()
 
@@ -36,3 +37,4 @@ async def get_user(user_id: str):
     if User is None:
         return {"message": "User not found"}
     return User
+

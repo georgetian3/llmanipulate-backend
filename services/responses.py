@@ -47,6 +47,7 @@ async def get_responses_by_users(user_id: str):
 
         except Exception as e:
             return {"error": f"Error fetching responses from database: {str(e)}"}
+          
 async def get_responses():
     async with get_session() as session:
         try:

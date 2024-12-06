@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Request,Depends
-
 from apis.chat import chat_router
 from apis.responses import response_router
 from apis.users import user_router
@@ -15,14 +14,14 @@ api.include_router(chat_router)
 api.include_router(user_router)
 api.include_router(admin_router)
 
-
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with your frontend domain
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 @api.get("/")
 async def root():
     return {"message": "Welcome to the LLManipulate Backend ;)"}

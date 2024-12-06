@@ -1,10 +1,11 @@
+from copy import deepcopy
 from datetime import datetime
 from typing import List
-
 from pydantic import BaseModel, conint
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, Relationship
 import pytz
+
 
 
 
@@ -30,9 +31,16 @@ class User(NewUser, table=True):
 
 
 
+# PartialUser is used in updating a user where `id` is the only required field to be sent in the request
+class PartialUser(BaseModel):
+    id: str
+    demographics: dict | None = Field(None)
+    personality: dict | None = Field(None)
+    task_type: str | None = Field(None)
+    agent_type: str | None = Field(None)
 
 class NewResponse(SQLModel, table=False):
-    task_name: str
+    task_id: str
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
@@ -48,7 +56,7 @@ class Response(NewResponse, table=True):
 
 class LLMInput(BaseModel):
     user_id: str
-    task_id: str
+    task_id: int
     message: str
     map: dict
 

@@ -4,7 +4,7 @@ lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["B
 from services.task import lang_dict
 
 API_URL = "http://115.182.62.174:18888/v1"
-API_KEY = ""
+API_KEY = open("API_KEY", "r").read()
 
 class Agent:
     def __init__(self):
@@ -64,7 +64,6 @@ class Agent:
                 break
             except Exception as e:
                 print(e)
-
         return res
 
     def empty_messages(self):
