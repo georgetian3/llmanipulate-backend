@@ -9,6 +9,7 @@ from services.agent import Agent
 from services.task import Task
 
 lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["BFI"]
+
 def parse_personality(personality, lang):
     p_str = []
     for key, value in personality.items():

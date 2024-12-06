@@ -19,6 +19,7 @@ class Agent:
         self.agent_type = agent_type
         self.user_personality = user_personality
         print("user_personality: ", self.user_personality)
+
         self.pt_template = open(
             f"services/data/prompts/{language}/LLM_{agent_type}.md", encoding="utf-8"
         ).read()
@@ -37,6 +38,8 @@ class Agent:
         )
         print(" prompt: ", self.prompt)
         print(" personality: ", self.user_personality)
+        print("USER PERSONALITY: ", self.user_personality)
+
         self.messages.append({"role": "system", "content": self.prompt})
 
     def set_prompt(self, prompt):
@@ -69,14 +72,4 @@ class Agent:
     def empty_messages(self):
         self.messages = []
 
-def parse_personality(personality, lang):
 
-    p_str = []
-    for key, value in personality.items():
-        level = (
-            f"{'High' if value >= 5.5 else ('Moderate' if value >= 3 else 'Low')}"
-        )
-        p_str.append(
-            f"{lang_dict[level][lang]}{' ' if lang == 'en' else ''}{lang_dict[key][lang]}"
-        )
-    return ", ".join(p_str)
