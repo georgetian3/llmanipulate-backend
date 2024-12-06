@@ -1,10 +1,12 @@
 import json
 from openai import OpenAI
+
 lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["BFI"]
 from services.task import lang_dict
 
 API_URL = "http://115.182.62.174:18888/v1"
 API_KEY = open("API_KEY", "r").read()
+
 
 class Agent:
     def __init__(self):
@@ -15,7 +17,7 @@ class Agent:
 
     def set_attributes(self, model_name, agent_type, language, user_personality):
         self.model_name = model_name
-        self.model = OpenAI(api_key=API_KEY)
+        self.model = OpenAI(base_url=API_URL, api_key=API_KEY)
         self.agent_type = agent_type
         self.user_personality = user_personality
         print("user_personality: ", self.user_personality)
@@ -71,5 +73,3 @@ class Agent:
 
     def empty_messages(self):
         self.messages = []
-
-
