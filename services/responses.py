@@ -8,10 +8,11 @@ from datetime import datetime
 
 
 
-async def create_response(user_id: str, response: NewResponse) -> Response:
+async def create_response(response: NewResponse) -> Response:
     try:
+        print("Request Data Received: 2,3", response.dict())
         response = Response(
-            user_id=user_id,
+            user_id=response.user_id,
             task_name=response.task_name,
             initial_scores=response.initial_scores,
             conv_history=response.conv_history,
@@ -22,6 +23,7 @@ async def create_response(user_id: str, response: NewResponse) -> Response:
             session.add(response)
             await session.commit()
             await session.refresh(response)
+        print("Response saved to database:", response.dict())
         return response
 
     except Exception as e:

@@ -11,7 +11,8 @@ from services.logging import get_logger
 
 logger = get_logger()
 
-
+AGENT_TYPE_MAPPING= {0:"Neutral", 1:"Neutral_Goal", 2:"Manipulator"}
+TASK_TYPE_MAPPING = {0: "Emotional", 1:"Financial"}
 async def _create_user(user: User) -> User:
     if user.id is None:
         user.id = str(uuid.uuid4())
@@ -28,7 +29,15 @@ async def create_user(new_user: NewUser) -> User:
     :param new_user: the new user to be created
     :return: newly created `User` object
     """
-    return await _create_user(User(**new_user.model_dump(), is_admin=False))
+    print(new_user.model_dump(), "new_user.model_dump()")
+    user = User(
+        demographics=new_user.demographics,
+        personality=new_user.personality,
+        task_type=TASK_TYPE_MAPPING[new_user.task_type],
+        agent_type=AGENT_TYPE_MAPPING[new_user.agent_type],
+        is_admin=False
+    )
+    return await _create_user(user)
 
 
 async def create_admin(id: str = None) -> User:
@@ -60,3 +69,13 @@ async def get_all_users() -> list[User]:
     """
     async with get_session() as session:
         return list((await session.execute(select(User))).scalars())
+
+async def get_user(user_id: str) -> User:
+    """
+    :param user_id: the user's id
+    :return: the `User` object with the given id
+    """
+    async with get_session() as session:
+        query = select(User).where(User.id == user_id)
+        result = await session.execute(query)
+        return result.scalar_one_or_none()

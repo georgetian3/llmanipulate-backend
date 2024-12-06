@@ -82,9 +82,11 @@ async def config_agent(llmp_input: LLMInput):
 async def get_llm_response(llm_input: LLMInput, agent: Agent) -> LLMResponse:
     msg = {"role": "user", "content": llm_input.message}
 
-    response_content = agent.generate(msg).get("content")
+    full_response = agent.generate(msg).get("content")
+    response = full_response.get("response")
+    del full_response["response"]
 
-    return LLMResponse(response=response_content)
+    return LLMResponse(response=response, agent_data=full_response)
 
 
 

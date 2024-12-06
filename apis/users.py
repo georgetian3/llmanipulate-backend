@@ -26,3 +26,13 @@ async def create_user(new_user: NewUser):
 )
 async def get_all_users():
     return await services.user.get_all_users()
+
+@user_router.get(
+    "/users/{user_id}",
+    response_model=User
+)
+async def get_user(user_id: str):
+    User =  await services.user.get_user(user_id)
+    if User is None:
+        return {"message": "User not found"}
+    return User
