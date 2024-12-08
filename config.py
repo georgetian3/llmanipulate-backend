@@ -45,7 +45,10 @@ class DatabaseConfig:
     PASSWORD: str = get_env("DATABASE_PASSWORD", None)
     DRIVERNAME: str = get_env("DATABASE_DRIVERNAME", None)
 
-
+@dataclass
+class AgentConfig:
+    API_URL: str = get_env("API_URL")
+    API_KEY: str = get_env("API_KEY")
 
 
 @dataclass

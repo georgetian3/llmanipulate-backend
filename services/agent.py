@@ -1,8 +1,6 @@
-import json
 from openai import OpenAI
+from config import AgentConfig
 
-API_URL = "http://115.182.62.174:18888/v1"
-API_KEY = open("API_KEY", "r").read()
 
 class Agent:
     def __init__(self):
@@ -13,7 +11,7 @@ class Agent:
 
     def set_attributes(self, model_name, agent_type, language, user_personality):
         self.model_name = model_name
-        self.model = OpenAI(api_key=API_KEY)
+        self.model = OpenAI(api_key=AgentConfig.API_KEY)
         self.agent_type = agent_type
         self.user_personality = user_personality
         self.pt_template = open(
