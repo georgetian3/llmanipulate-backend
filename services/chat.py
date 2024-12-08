@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 
 from models.database import get_session
 from sqlalchemy.future import select
@@ -7,15 +8,26 @@ from models.models import LLMResponse, LLMInput, User
 from services.agent import Agent
 from services.task import Task
 
+lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["BFI"]
+
+
+def parse_personality(personality, lang):
+    p_str = []
+    for key, value in personality.items():
+        level = f"{'High' if value >= 5.5 else ('Moderate' if value >= 3 else 'Low')}"
+        p_str.append(
+            f"{lang_dict[level][lang]}{' ' if lang == 'en' else ''}{lang_dict[key][lang]}"
+        )
+    return ", ".join(p_str)
 
 
 async def config_agent(llmp_input: LLMInput):
     agent = Agent()
 
-    model_name = "gpt-3.5-turbo"
+    model_name = "gpt-4o"
     response = {}
     async with get_session() as session:
-        query = select(User).where(User.id == llmp_input.user_id)
+        query = select(User).where(User.id == llmp_input.user_id.strip())
         result = await session.execute(query)
         user = result.scalar_one_or_none()
 
@@ -28,9 +40,9 @@ async def config_agent(llmp_input: LLMInput):
 
     tasks = json.loads(open("services/data/tasks.json", "r", encoding="utf-8").read())
     task_by_type = tasks.get(task_type)
-    task_by_id = next((task for task in task_by_type if task["task_id"] == int(task_id)), None)
-
-
+    task_by_id = next(
+        (task for task in task_by_type if task["task_id"] == int(task_id)), None
+    )
 
     task.set_attributes(
         _id=task_by_id["task_id"],
@@ -38,10 +50,37 @@ async def config_agent(llmp_input: LLMInput):
         desc=task_by_id["query"]["desc"],
         options=task_by_id["options"],
         hidden_incentive=task_by_id["hidden_incentive"],
-        lang=language
+        lang=language,
     )
+    task_txt = f"""
+    DEBUG: Setting Task Attributes:
+    _id: {task._id}
+    title: {task.title}
+    desc: {task.desc}
+    options: {task.options}
+    hidden_incentive: {task.hidden_incentive}
+    best_choice: {task.best_choice}"""
+
+    # Write debug content to a file
+    with open("task_debug_before.txt", "w", encoding="utf-8") as debug_file:
+        debug_file.write(task_txt)
+
+    task.sort_options(llmp_input.map)
+
+    task_txt = f"""
+        DEBUG: Setting Task Attributes:
+        _id: {task._id}
+        title: {task.title}
+        desc: {task.desc}
+        options: {task.options}
+        hidden_incentive: {task.hidden_incentive}
+        best_choice: {task.best_choice}"""
+
+    with open("task_debug_after.txt", "w", encoding="utf-8") as debug_file:
+        debug_file.write(task_txt)
 
     agent_type = user.agent_type
+    user_personality = parse_personality(user_personality, language)
     agent.set_attributes(model_name, agent_type, language, user_personality)
     agent.set_task(task)
     agent.fill_prompt()
@@ -51,10 +90,11 @@ async def config_agent(llmp_input: LLMInput):
 async def get_llm_response(llm_input: LLMInput, agent: Agent) -> LLMResponse:
     msg = {"role": "user", "content": llm_input.message}
 
-    response_content = agent.generate(msg).get("content")
+    full_response = agent.generate(msg).get("content")
+    response = full_response.get("response")
+    del full_response["response"]
 
-    return LLMResponse(response=response_content)
-
+    return LLMResponse(response=response, agent_data=full_response)
 
 
 """
@@ -76,4 +116,3 @@ async def main():
 
 asyncio.run(main())
 """
-

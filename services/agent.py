@@ -1,3 +1,4 @@
+import json
 from openai import OpenAI
 from config import AgentConfig
 
@@ -11,12 +12,15 @@ class Agent:
 
     def set_attributes(self, model_name, agent_type, language, user_personality):
         self.model_name = model_name
-        self.model = OpenAI(api_key=AgentConfig.API_KEY)
+        self.model = OpenAI(base_url=AgentConfig.API_URL, api_key=AgentConfig.API_KEY)
         self.agent_type = agent_type
         self.user_personality = user_personality
+        print("user_personality: ", self.user_personality)
+
         self.pt_template = open(
             f"services/data/prompts/{language}/LLM_{agent_type}.md", encoding="utf-8"
         ).read()
+        self.lang = language
 
     def set_task(self, task):
         self.task = task
@@ -29,6 +33,10 @@ class Agent:
             hidden_incentive=self.task.hidden_incentive,
             personality=self.user_personality,
         )
+        print(" prompt: ", self.prompt)
+        print(" personality: ", self.user_personality)
+        print("USER PERSONALITY: ", self.user_personality)
+
         self.messages.append({"role": "system", "content": self.prompt})
 
     def set_prompt(self, prompt):
@@ -42,23 +50,20 @@ class Agent:
     def generate(self, msg):
         res = ""
         self.add_message(msg)
-        # while True:
-        #     try:
-        #         chat = self.model.chat.completions.create(
-        #             model=self.model_name, messages=self.messages
-        #         )
-        #         res = chat.choices[0].message.content
-        #         response = {"role": "assistant", "content": res}
-        #         res = json.loads(res)
-        #         self.add_message(response)
-        #         res = {"role": "assistant", "content": res["response"]}
-        #         # res = {"role": "assistant", "content": res}
-        #         break
-        #     except Exception as e:
-        #         print(e)
-        res = {"role": "assistant", "content": f"The number of messages is {len(self.messages)}"}
-        self.add_message(res)
-
+        while True:
+            try:
+                chat = self.model.chat.completions.create(
+                    model=self.model_name, messages=self.messages
+                )
+                res = chat.choices[0].message.content
+                response = {"role": "assistant", "content": res}
+                res = json.loads(res)
+                self.add_message(response)
+                res = {"role": "assistant", "content": res}
+                # res = {"role": "assistant", "content": res}
+                break
+            except Exception as e:
+                print(e)
         return res
 
     def empty_messages(self):

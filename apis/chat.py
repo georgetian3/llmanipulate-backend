@@ -27,13 +27,16 @@ async def chat_endpoint(ws: WebSocket):
 
                 else:
                     # Parse subsequent messages without reinitializing the agent
+                    print("LLLM INPUT DATA:", data)
                     llm_input = LLMInput(**data)
+
                 response = await get_llm_response(llm_input, agent)
+                print("RESPONSE DATA:", response.model_dump())
 
             except ValidationError as e:
-                response = LLMResponse(error=f"Request validation error: {str(e)}", response="")
+                response = LLMResponse(error=f"Request validation error: {str(e)}", response="", agent_data={})
             except Exception as e:
-                response = LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="")
+                response = LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={})
 
             await ws.send_json(response.model_dump())
 

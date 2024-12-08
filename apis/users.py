@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 import services.user
-from apis.utils import AUTH_RESPONSES, check_auth
-from models.models import NewUser, User
+from apis.utils import AUTH_RESPONSES, NOT_FOUND_HTTP_EXCEPTION, check_auth
+from models.models import ErrorResponse, NewUser, User, PartialUser
+
 
 user_router = APIRouter()
 
@@ -29,9 +30,11 @@ async def get_all_users():
 
 @user_router.get(
     "/users/{user_id}",
-    response_model=User,
-    responses=AUTH_RESPONSES,
-    dependencies=[Depends(check_auth(False))],
+    response_model=User
 )
 async def get_user(user_id: str):
-    return await services.user.get_user(user_id)
+    User =  await services.user.get_user(user_id)
+    if User is None:
+        return {"message": "User not found"}
+    return User
+
