@@ -25,7 +25,6 @@ async def config_agent(llmp_input: LLMInput):
     agent = Agent()
 
     model_name = "gpt-4o"
-    response = {}
     async with get_session() as session:
         query = select(User).where(User.id == llmp_input.user_id.strip())
         result = await session.execute(query)
@@ -52,32 +51,6 @@ async def config_agent(llmp_input: LLMInput):
         hidden_incentive=task_by_id["hidden_incentive"],
         lang=language,
     )
-    task_txt = f"""
-    DEBUG: Setting Task Attributes:
-    _id: {task._id}
-    title: {task.title}
-    desc: {task.desc}
-    options: {task.options}
-    hidden_incentive: {task.hidden_incentive}
-    best_choice: {task.best_choice}"""
-
-    # Write debug content to a file
-    with open("task_debug_before.txt", "w", encoding="utf-8") as debug_file:
-        debug_file.write(task_txt)
-
-    task.sort_options(llmp_input.map)
-
-    task_txt = f"""
-        DEBUG: Setting Task Attributes:
-        _id: {task._id}
-        title: {task.title}
-        desc: {task.desc}
-        options: {task.options}
-        hidden_incentive: {task.hidden_incentive}
-        best_choice: {task.best_choice}"""
-
-    with open("task_debug_after.txt", "w", encoding="utf-8") as debug_file:
-        debug_file.write(task_txt)
 
     agent_type = user.agent_type
     user_personality = parse_personality(user_personality, language)
