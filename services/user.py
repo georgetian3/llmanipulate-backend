@@ -29,7 +29,6 @@ async def create_user(new_user: NewUser) -> User:
     :param new_user: the new user to be created
     :return: newly created `User` object
     """
-    print(new_user.model_dump(), "new_user.model_dump()")
     user = User(
         demographics=new_user.demographics,
         personality=new_user.personality,
