@@ -6,13 +6,15 @@ from apis.users import user_router
 from apis.admin_view import admin_router, setup_admin
 from fastapi.middleware.cors import CORSMiddleware
 
+from config import ServerConfig
+
 
 
 api = FastAPI()
 
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  
+    allow_origins=["http://localhost:3000", ServerConfig.FRONTEND_URL],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
