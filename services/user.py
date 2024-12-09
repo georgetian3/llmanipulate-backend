@@ -1,5 +1,3 @@
-import asyncio
-import logging
 import uuid
 
 from sqlalchemy import delete, select, func, update
@@ -58,9 +56,6 @@ async def init_admin() -> None:
     if admin_count == 0:
         logger.info(f'No admin account, creating a new one')
         create_admin()
-
-asyncio.run(init_admin())
-
 
 async def get_all_users() -> list[User]:
     """

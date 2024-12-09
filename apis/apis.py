@@ -9,10 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import ServerConfig
 from models.database import _DATABASE
+from services.user import init_admin
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     await _DATABASE.create()
+    await init_admin()
     yield
 
 api = FastAPI(lifespan=lifespan)
