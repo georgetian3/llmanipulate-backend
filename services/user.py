@@ -70,7 +70,7 @@ async def get_all_users() -> list[User]:
     async with get_session() as session:
         return list((await session.execute(select(User))).scalars())
 
-async def get_user(user_id: str) -> User:
+async def get_user(user_id: str) -> User | None:
     """
     :param user_id: the user's id
     :return: the `User` object with the given id

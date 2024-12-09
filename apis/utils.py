@@ -36,3 +36,8 @@ AUTH_RESPONSES = {
     exception.status_code: {"model": ErrorResponse, "description": exception.detail}
     for exception in (NOT_AUTHENTICATED_HTTP_EXCEPTION, NOT_ADMIN_HTTP_EXCEPTION)
 }
+
+ALL_RESPONSES = {
+    exception.status_code: {"model": ErrorResponse, "description": exception.detail}
+    for exception in (NOT_AUTHENTICATED_HTTP_EXCEPTION, NOT_ADMIN_HTTP_EXCEPTION, NOT_FOUND_HTTP_EXCEPTION)
+}
