@@ -31,10 +31,7 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
-
 _DATABASE = Database(DatabaseConfig())
-asyncio.run(_DATABASE.create())
-
 
 @asynccontextmanager
 async def get_session():
