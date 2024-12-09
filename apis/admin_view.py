@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import URL
 from dataclasses import dataclass
 from starlette.requests import Request
+from models.database import _DATABASE
 from models.models import User, Response, NewUser
 from services.user import create_user
 import asyncio
@@ -80,17 +81,7 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
-
-# Build the database URI dynamically
-# db_config = DatabaseConfig()
-# DATABASE_URL = db_config.get_uri()
-# engine = create_async_engine(DATABASE_URL, echo=True)
-# SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-database = Database(DatabaseConfig())
-asyncio.run(database.create())
-engine = database._engine
-SessionLocal = database._async_session_maker
-
+SessionLocal = _DATABASE._async_session_maker
 
 # Define admin views
 class UserAdmin(ModelView, model=User):
@@ -145,12 +136,12 @@ admin_router = APIRouter()
 
 
 def setup_admin(app: FastAPI):
-    admin = Admin(app=app, engine=engine)
+    admin = Admin(app=app, engine=_DATABASE._engine)
     admin.add_view(UserAdmin)
     admin.add_view(ResponseAdmin)
 
 
 @admin_router.on_event("startup")
 async def create_tables():
-    async with engine.begin() as conn:
+    async with _DATABASE._engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
