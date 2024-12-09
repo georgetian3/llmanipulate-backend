@@ -2,18 +2,13 @@ import asyncio
 from dataclasses import asdict
 from contextlib import asynccontextmanager
 
-import nest_asyncio
-from sqlalchemy import URL, create_engine
+from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from config import DatabaseConfig
 from models.models import *
-
-# Apply nest_asyncio only for local development or testing
-nest_asyncio.apply()
-
 
 class Database:
 
