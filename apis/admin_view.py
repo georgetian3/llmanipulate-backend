@@ -140,8 +140,3 @@ def setup_admin(app: FastAPI):
     admin.add_view(UserAdmin)
     admin.add_view(ResponseAdmin)
 
-
-@admin_router.on_event("startup")
-async def create_tables():
-    async with _DATABASE._engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
