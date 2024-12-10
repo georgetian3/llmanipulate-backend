@@ -91,7 +91,6 @@ class UserAdmin(ModelView, model=User):
         User.is_admin,
         User.task_type,
         User.agent_type,
-        User.demographics,
         User.personality,
         "response_count",
     ]
