@@ -55,6 +55,7 @@ class AgentConfig:
 class ServerConfig:
     PORT: int = int(get_env("SERVER_PORT", 8000))
     WORKERS: int = int(get_env("SERVER_WORKERS", 1))
+    FRONTEND_URL: str = get_env("FRONTEND_URL")
 
 @dataclass
 class AuthConfig:

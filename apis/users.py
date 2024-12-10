@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
 import services.user
-from apis.utils import AUTH_RESPONSES, NOT_FOUND_HTTP_EXCEPTION, check_auth
+from apis.utils import ALL_RESPONSES, AUTH_RESPONSES, NOT_FOUND_HTTP_EXCEPTION, check_auth
 from models.models import ErrorResponse, NewUser, User, PartialUser
 
 
@@ -30,11 +30,12 @@ async def get_all_users():
 
 @user_router.get(
     "/users/{user_id}",
-    response_model=User
+    response_model=User,
+    responses=ALL_RESPONSES,
 )
 async def get_user(user_id: str):
-    User =  await services.user.get_user(user_id)
-    if User is None:
-        return {"message": "User not found"}
-    return User
+    user = await services.user.get_user(user_id)
+    if user is None:
+        raise NOT_FOUND_HTTP_EXCEPTION
+    return user
 

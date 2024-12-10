@@ -15,7 +15,6 @@ class Agent:
         self.model = OpenAI(base_url=AgentConfig.API_URL, api_key=AgentConfig.API_KEY)
         self.agent_type = agent_type
         self.user_personality = user_personality
-        print("user_personality: ", self.user_personality)
 
         self.pt_template = open(
             f"services/data/prompts/{language}/LLM_{agent_type}.md", encoding="utf-8"
@@ -33,10 +32,6 @@ class Agent:
             hidden_incentive=self.task.hidden_incentive,
             personality=self.user_personality,
         )
-        print(" prompt: ", self.prompt)
-        print(" personality: ", self.user_personality)
-        print("USER PERSONALITY: ", self.user_personality)
-
         self.messages.append({"role": "system", "content": self.prompt})
 
     def set_prompt(self, prompt):
@@ -63,7 +58,7 @@ class Agent:
                 # res = {"role": "assistant", "content": res}
                 break
             except Exception as e:
-                print(e)
+                ...
         return res
 
     def empty_messages(self):
