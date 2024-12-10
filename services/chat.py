@@ -12,6 +12,7 @@ lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["B
 def parse_personality(personality, lang):
     p_str = []
     for key, value in personality.items():
+        value = int(value)
         level = f"{'High' if value >= 5.5 else ('Moderate' if value >= 3 else 'Low')}"
         p_str.append(
             f"{lang_dict[level][lang]}{' ' if lang == 'en' else ''}{lang_dict[key][lang]}"
@@ -26,7 +27,7 @@ async def config_agent(llmp_input: LLMInput):
     async with get_session() as session:
         user = await session.get(User, llmp_input.user_id)
     if user is None:
-        raise Exception('User not found')
+        raise Exception("User not found")
 
     language = user.demographics.get("lang")
     user_personality = user.personality
