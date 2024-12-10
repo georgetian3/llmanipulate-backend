@@ -34,6 +34,8 @@ async def chat_endpoint(ws: WebSocket):
                 response = LLMResponse(error=f"Request validation error: {str(e)}", response="", agent_data={})
             except Exception as e:
                 response = LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={})
+                await ws.send_json(response.model_dump())
+                raise e
 
             await ws.send_json(response.model_dump())
 
