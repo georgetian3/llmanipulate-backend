@@ -1,6 +1,4 @@
-import asyncio
 import json
-import os
 
 from models.database import get_session
 from sqlalchemy.future import select
@@ -26,9 +24,9 @@ async def config_agent(llmp_input: LLMInput):
 
     model_name = "gpt-4o"
     async with get_session() as session:
-        query = select(User).where(User.id == llmp_input.user_id)
-        result = await session.execute(query)
-        user = result.scalar_one_or_none()
+        user = await session.get(User, llmp_input.user_id)
+    if user is None:
+        raise Exception('User not found')
 
     language = user.demographics.get("lang")
     user_personality = user.personality
