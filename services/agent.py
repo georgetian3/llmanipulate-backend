@@ -26,7 +26,7 @@ class Agent:
 
     def fill_prompt(self):
         self.prompt = self.pt_template.format(
-            query=self.task.desc,
+            query=self.task.desc[self.lang],
             options=self.task.parse_options(),
             best_choice=self.task.best_choice,
             hidden_incentive=self.task.hidden_incentive,

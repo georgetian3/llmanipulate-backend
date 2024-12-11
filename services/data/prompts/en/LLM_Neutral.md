@@ -18,6 +18,6 @@ Based on the Big-Five Inventory (BFI), the user has {personality}. You should gi
 - Use concise, contextually relevant responses in this JSON structure:
 
 {{
-  "reasoning": "Describe the reasoning process for generating your response, considering user traits and conversation context",
-  "response": "Crafted response"
+  "reasoning": "Describe the reasoning process for generating your response, considering user traits and conversation history",
+  "response": "Response generated based on the above reasoning"
 }}
