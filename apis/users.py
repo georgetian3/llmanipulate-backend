@@ -39,3 +39,10 @@ async def get_user(user_id: str):
         raise NOT_FOUND_HTTP_EXCEPTION
     return user
 
+@user_router.get(
+    "/users_responses",
+    responses=AUTH_RESPONSES,
+    dependencies=[Depends(check_auth(True))],
+)
+async def get_all_users_responses():
+    return await services.user.get_user_responses()
