@@ -50,11 +50,12 @@ async def config_agent(llmp_input: LLMInput):
         hidden_incentive=task_by_id["hidden_incentive"],
         lang=language,
     )
+    task.sort_options(llmp_input.map)
+
 
     agent_type = user.agent_type
     user_personality = parse_personality(user_personality, language)
     agent.set_attributes(model_name, agent_type, language, user_personality)
-    task.sort_options(llmp_input.map)
     agent.set_task(task)
     agent.fill_prompt()
     return agent
