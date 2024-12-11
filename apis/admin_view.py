@@ -97,6 +97,8 @@ class UserAdmin(ModelView, model=User):
 
     form_edit_rules = ["demographics", "personality", "task_type", "agent_type"]
     form_create_rules = ["demographics", "personality", "task_type", "agent_type"]
+    form_edit_rules = ["demographics", "personality", "task_type", "agent_type"]
+
     form_args = {
         "demographics": {"default": {"lang": "en", "name": "John Test"}},
         "personality": {
