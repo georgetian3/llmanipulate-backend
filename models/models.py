@@ -58,7 +58,7 @@ class LLMInput(BaseModel):
     user_id: str
     task_id: str
     message: str
-    map: dict
+    map: list
 
 
 class LLMResponse(BaseModel):

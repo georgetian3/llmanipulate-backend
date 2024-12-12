@@ -86,13 +86,14 @@ class Task:
     def set_complete(self):
         self.is_complete = True
 
-    def sort_options(self, mapping: dict):
+    def sort_options(self, list_ids: list):
         """
         Sort and update options based on a given mapping.
 
         Args:
-            mapping (dict): A dictionary mapping current option_ids to new ones (e.g., {'A': 'B', 'B': 'C', 'C': 'D', 'D': 'A'}).
+            input_mapping (dict): A dictionary mapping current option_ids to original ones (e.g., {'A': 'B', 'B': 'C', 'C': 'D', 'D': 'A'}).
         """
+        mapping = {'A':list_ids[0], 'B':list_ids[1], 'C':list_ids[2], 'D':list_ids[3]}
 
         if not isinstance(self.options, list):
             raise TypeError(f"`options` must be a list, but got {type(self.options).__name__}")
@@ -100,6 +101,8 @@ class Task:
         for option in self.options:
             current_id = option["option_id"]
             option["option_id"] = mapping[current_id]
+
+
         self.options = sorted(self.options, key=lambda x: x["option_id"])
 
         self.hidden_incentive = mapping[self.hidden_incentive]

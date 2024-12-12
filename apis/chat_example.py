@@ -23,7 +23,7 @@ async def websocket():
                     "user_id": user_id,
                     "task_id": task_id,
                     "message": message_text,
-                    "map": {"A":"B", "B":"C", "C":"D", "D":"A"} # This is the random mapping from the frontend
+                    "map":["B","C","D","A"]
                 }
 
                 print(f"COMMUNICATION || Sending: {message}")

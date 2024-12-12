@@ -1,22 +1,21 @@
-import datetime
-
 from sqlalchemy.future import select
 
 from models.database import get_session
 from models.models import Response, NewResponse
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 
 
 async def create_response(response: NewResponse) -> Response:
     try:
+        CHINA_TIMEZONE = timedelta(hours=8)
         response = Response(
             user_id=response.user_id,
             task_name=response.task_name,
             initial_scores=response.initial_scores,
             conv_history=response.conv_history,
             final_scores=response.final_scores,
-            time_created=datetime.utcnow()
+            time_created=datetime.utcnow() + CHINA_TIMEZONE
         )
         async with get_session() as session:
             session.add(response)
