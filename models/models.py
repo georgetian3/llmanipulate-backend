@@ -14,9 +14,9 @@ class NewUser(SQLModel, table=False):
     personality: dict = Field(default_factory=dict, sa_column=Column(JSON))
     agent_type: conint(ge=0, le=2) = Field(default_factory=int)
     task_type: conint(ge=0, le=1) = Field(default_factory=int)
+    id: str = Field(primary_key=True)
 
 class User(NewUser, table=True):
-    id: str = Field(primary_key=True)
     is_admin: bool
     agent_type: str = Field(default_factory=str)
     task_type: str = Field(default_factory=str)
