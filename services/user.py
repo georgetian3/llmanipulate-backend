@@ -27,17 +27,21 @@ TASK_TITLES_BY_CATEGORY = {
     }
 
 
-async def _create_user(user: User) -> User:
+async def _create_user(user: User) -> User | None:
     if user.id is None:
         user.id = str(uuid.uuid4())
     async with get_session() as session:
         session.add(user)
-        await session.commit()
+        try:
+            await session.commit()
+        except Exception as e:
+            logger.warning(f"Cannot create new user {user.model_dump()}: {str(e)}")
+            return None
         await session.refresh(user)
     return user
 
 
-async def create_user(new_user: NewUser) -> User:
+async def create_user(new_user: NewUser) -> User | None:
     """
     Creates a user
     :param new_user: the new user to be created
@@ -49,6 +53,7 @@ async def create_user(new_user: NewUser) -> User:
         task_type=TASK_TYPE_MAPPING[int(new_user.task_type)],
         agent_type=AGENT_TYPE_MAPPING[int(new_user.agent_type)],
         is_admin=False,
+        id=new_user.id
     )
     return await _create_user(user)
 

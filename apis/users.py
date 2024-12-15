@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 
 import services.user
-from apis.utils import ALL_RESPONSES, AUTH_RESPONSES, NOT_FOUND_HTTP_EXCEPTION, check_auth
-from models.models import ErrorResponse, NewUser, User, PartialUser
+from apis.utils import AUTH_RESPONSES, HTTP_400_EXCEPTION, NOT_FOUND_HTTP_EXCEPTION, check_auth, create_error_response
+from models.models import NewUser, User
 
 
 user_router = APIRouter()
@@ -12,11 +12,14 @@ user_router = APIRouter()
     "/users",
     description="Creates a new non-admin user. Requires an admin's user_id for authentication.",
     response_model=User,
-    responses=AUTH_RESPONSES,
+    responses=AUTH_RESPONSES | create_error_response(HTTP_400_EXCEPTION),
     dependencies=[Depends(check_auth(True))],
 )
 async def create_user(new_user: NewUser):
-    return await services.user.create_user(new_user)
+    user = await services.user.create_user(new_user)
+    if user is None:
+        raise HTTP_400_EXCEPTION
+    return user
 
 
 @user_router.get(
@@ -31,7 +34,7 @@ async def get_all_users():
 @user_router.get(
     "/users/{user_id}",
     response_model=User,
-    responses=ALL_RESPONSES,
+    responses=AUTH_RESPONSES | create_error_response(NOT_FOUND_HTTP_EXCEPTION),
 )
 async def get_user(user_id: str):
     user = await services.user.get_user(user_id)
