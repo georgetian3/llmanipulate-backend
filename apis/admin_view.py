@@ -81,18 +81,20 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
+
 SessionLocal = _DATABASE._async_session_maker
+
 
 # Define admin views
 class UserAdmin(ModelView, model=User):
     column_list = [
         User.id,
+        "response_count",
         User.demographics,
         User.is_admin,
         User.task_type,
         User.agent_type,
         User.personality,
-        "response_count",
     ]
 
     form_edit_rules = ["demographics", "personality", "task_type", "agent_type"]
@@ -141,4 +143,3 @@ def setup_admin(app: FastAPI):
     admin = Admin(app=app, engine=_DATABASE._engine)
     admin.add_view(UserAdmin)
     admin.add_view(ResponseAdmin)
-
