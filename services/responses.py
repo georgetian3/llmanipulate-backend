@@ -9,19 +9,31 @@ from datetime import datetime, timedelta, timezone
 async def create_response(response: NewResponse) -> Response:
     try:
         CHINA_TIMEZONE = timedelta(hours=8)
-        response = Response(
-            user_id=response.user_id,
-            task_name=response.task_name,
-            initial_scores=response.initial_scores,
-            conv_history=response.conv_history,
-            final_scores=response.final_scores,
-            time_created=datetime.utcnow() + CHINA_TIMEZONE
-        )
         async with get_session() as session:
-            session.add(response)
+            result = await session.execute(
+                select(Response).filter_by(user_id=response.user_id, task_name=response.task_name)
+            )
+            existing_response = result.scalars().first()
+
+            # If the response exists, return it without creating a new one
+            if existing_response:
+                return existing_response
+
+            # Create a new response if none exists
+            new_response = Response(
+                user_id=response.user_id,
+                task_name=response.task_name,
+                initial_scores=response.initial_scores,
+                conv_history=response.conv_history,
+                final_scores=response.final_scores,
+                time_created=datetime.utcnow() + CHINA_TIMEZONE
+            )
+
+            session.add(new_response)
             await session.commit()
-            await session.refresh(response)
-        return response
+            await session.refresh(new_response)
+
+            return new_response
 
     except Exception as e:
         return None
