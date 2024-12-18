@@ -50,7 +50,7 @@ async def chat_endpoint(ws: WebSocket):
             await ws.send_json(response.model_dump())
             
 
-    except WebSocketDisconnect:
-        ...
+    except WebSocketDisconnect as e:
+        logger.info(f'Websocket disconnect: {e}')
     except Exception as e:
         logger.exception(f'Unexpected exception in chat endpoint: {e}')
