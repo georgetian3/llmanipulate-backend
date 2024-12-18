@@ -31,18 +31,27 @@ async def chat_endpoint(ws: WebSocket):
                     llm_input = LLMInput(**data)
 
                 response = await get_llm_response(llm_input, agent)
+                await ws.send_json(response.model_dump())
 
             except ValidationError as e:
-                response = LLMResponse(error=f"Request validation error: {str(e)}", response="", agent_data={})
+                logger.exception(f"Unexpected validation error in chat endpoint: {e}")
+                response = LLMResponse(
+                    error=f"Request validation error: {str(e)}",
+                    response="",
+                    agent_data={},
+                )
             except Exception as e:
-                response = LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={})
+                logger.exception(f"Unexpected exception in chat endpoint: {e}")
+                response = LLMResponse(
+                    error=f"An unexpected error occurred: {str(e)}",
+                    response="",
+                    agent_data={},
+                )
                 await ws.send_json(response.model_dump())
-                raise e
-
-            await ws.send_json(response.model_dump())
+                # raise e
 
     except WebSocketDisconnect:
         ...
-    except Exception as e:
-        logger.exception(f'Unexpected exception in chat endpoint: {e}')
-        ws.send_json(LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={}).model_dump())
+    # except Exception as e:
+    #     logger.exception(f'Unexpected exception in chat endpoint: {e}')
+    #     ws.send_json(LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={}).model_dump())
