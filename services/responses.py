@@ -2,9 +2,11 @@ from sqlalchemy.future import select
 
 from models.database import get_session
 from models.models import Response, NewResponse
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
+from services.logging import get_logger
 
+logger = get_logger(__name__)
 
 async def create_response(response: NewResponse) -> Response:
     try:
@@ -36,6 +38,7 @@ async def create_response(response: NewResponse) -> Response:
             return new_response
 
     except Exception as e:
+        logger.exception(f'Create response exception: {e}')
         return None
 
 

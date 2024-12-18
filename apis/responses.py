@@ -11,7 +11,7 @@ response_router = APIRouter()
 
 @response_router.post( "/submit_response", response_model=Response)
 async def create_response(new_response: NewResponse):
-    response =  await services.responses.create_response(new_response)  # Call the service function
+    response = await services.responses.create_response(new_response)  # Call the service function
     if not response:
         raise HTTPException(status_code=500, detail="Error saving response to database")
     return response

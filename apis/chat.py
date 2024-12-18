@@ -4,7 +4,9 @@ from pydantic import ValidationError
 # from apis.utils import NOT_AUTHENTICATED, check_auth
 from models.models import LLMInput, LLMResponse
 from services.chat import get_llm_response, config_agent
+from services.logging import get_logger
 
+logger = get_logger(__name__)
 
 chat_router = APIRouter()
 
@@ -41,3 +43,6 @@ async def chat_endpoint(ws: WebSocket):
 
     except WebSocketDisconnect:
         ...
+    except Exception as e:
+        logger.exception(f'Unexpected exception in chat endpoint: {e}')
+        ws.send_json(LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={}).model_dump())
