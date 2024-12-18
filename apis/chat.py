@@ -31,7 +31,6 @@ async def chat_endpoint(ws: WebSocket):
                     llm_input = LLMInput(**data)
 
                 response = await get_llm_response(llm_input, agent)
-                await ws.send_json(response.model_dump())
 
             except ValidationError as e:
                 logger.exception(f"Unexpected validation error in chat endpoint: {e}")
@@ -47,8 +46,9 @@ async def chat_endpoint(ws: WebSocket):
                     response="",
                     agent_data={},
                 )
-                await ws.send_json(response.model_dump())
-                # raise e
+
+            await ws.send_json(response.model_dump())
+            
 
     except WebSocketDisconnect:
         ...
