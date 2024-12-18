@@ -52,6 +52,5 @@ async def chat_endpoint(ws: WebSocket):
 
     except WebSocketDisconnect:
         ...
-    # except Exception as e:
-    #     logger.exception(f'Unexpected exception in chat endpoint: {e}')
-    #     ws.send_json(LLMResponse(error=f"An unexpected error occurred: {str(e)}", response="", agent_data={}).model_dump())
+    except Exception as e:
+        logger.exception(f'Unexpected exception in chat endpoint: {e}')
