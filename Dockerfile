@@ -37,4 +37,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD uvicorn apis.apis:api --host=0.0.0.0 --port=8000 --forwarded-allow-ips='*' --proxy-headers
+CMD fastapi run apis --host=0.0.0.0 --port=8000 --forwarded-allow-ips='*' --proxy-headers

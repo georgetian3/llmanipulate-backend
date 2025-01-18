@@ -5,8 +5,5 @@ fastapi[standard]
 pytest
 pytest-asyncio
 # typing, linting, formatting etc
-black
-flake8
-mypy
-isort
+ruff
 aiosqlite

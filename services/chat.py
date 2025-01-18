@@ -1,7 +1,6 @@
 import json
 
 from models.database import get_session
-from sqlalchemy.future import select
 from models.models import LLMResponse, LLMInput, User
 from services.agent import Agent
 from services.task import Task

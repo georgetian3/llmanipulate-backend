@@ -1,62 +1,32 @@
-import os
-from dataclasses import dataclass
-from typing import Any, TypeVar
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from dotenv import load_dotenv
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
+    database_host: str | None = None
+    database_port: int | None = None
+    database_name: str | None = None
+    database_username: str | None = None
+    database_password: str | None = None
+    database_driver: str | None = None
 
-class NoDefault: ...
+    api_url: str
+    api_key: str
 
+    frontend_url: str
 
-class MissingEnvironmentVariable(Exception): ...
+    admin_id: str | None = None
 
+    secret: str
 
-T = TypeVar("T")
+    redis_host: str
+    redis_port: int
 
+    oauth_google_client_id: str | None = None
+    oauth_google_client_secret: str | None = None
+    oauth_github_client_id: str | None = None
+    oauth_github_client_secret: str | None = None
+    oauth_facebook_client_id: str | None = None
+    oauth_facebook_client_secret: str | None = None
 
-def get_env(variable: str, default: T | NoDefault = NoDefault()) -> str | T:
-    try:
-        return os.environ[variable]
-    except KeyError:
-        if isinstance(default, NoDefault):
-            raise MissingEnvironmentVariable(
-                f"Missing environment variable: {variable}"
-            )
-        return default
-
-
-def int_or_none(x: Any) -> int | None:
-    try:
-        return int(x)
-    except Exception:
-        return None
-
-
-load_dotenv()
-
-
-
-@dataclass
-class DatabaseConfig:
-    HOST: str | None = get_env("DATABASE_HOST", None)
-    PORT: int = int_or_none(get_env("DATABASE_PORT", None))
-    DATABASE: str = get_env("DATABASE_DATABASE", None)
-    USERNAME: str = get_env("DATABASE_USERNAME", None)
-    PASSWORD: str = get_env("DATABASE_PASSWORD", None)
-    DRIVERNAME: str = get_env("DATABASE_DRIVERNAME", None)
-
-@dataclass
-class AgentConfig:
-    API_URL: str = get_env("API_URL")
-    API_KEY: str = get_env("API_KEY")
-
-
-@dataclass
-class ServerConfig:
-    PORT: int = int(get_env("SERVER_PORT", 8000))
-    WORKERS: int = int(get_env("SERVER_WORKERS", 1))
-    FRONTEND_URL: str = get_env("FRONTEND_URL")
-
-@dataclass
-class AuthConfig:
-    ADMIN_ID: str | None = get_env("ADMIN_ID", None)
+config = Config()

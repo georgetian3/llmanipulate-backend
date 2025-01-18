@@ -1,19 +1,29 @@
-import asyncio
-from dataclasses import asdict
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
+from config import config
+
+from fastapi import Depends
+from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-from config import DatabaseConfig
 from models.models import *
+from models.user import OAuthAccount
 
 class Database:
 
-    def __init__(self, config: DatabaseConfig):
-        self._url = URL.create(**{k.lower(): v for k, v in asdict(config).items()})
+    def __init__(self):
+        self._url = URL.create(
+            host=config.database_host,
+            port=config.database_port,
+            database=config.database_name,
+            username=config.database_username,
+            password=config.database_password,
+            drivername=config.database_driver
+        )
         self._engine = create_async_engine(self._url)
         self._async_session_maker: sessionmaker = sessionmaker(
             self._engine, class_=AsyncSession
@@ -31,7 +41,7 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
-_DATABASE = Database(DatabaseConfig())
+_DATABASE = Database()
 
 @asynccontextmanager
 async def get_session():
@@ -43,3 +53,23 @@ async def get_session():
         raise
     finally:
         await session.close()
+
+@asynccontextmanager
+async def get_session():
+    session = _DATABASE.get_session()
+    try:
+        yield session
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with _DATABASE._async_session_maker() as session:
+        yield session
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLModelUserDatabaseAsync(session, User, OAuthAccount)

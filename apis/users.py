@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 import services.user
 from apis.utils import AUTH_RESPONSES, HTTP_400_EXCEPTION, NOT_FOUND_HTTP_EXCEPTION, check_auth, create_error_response
-from models.models import NewUser, User
+from models.user import User, UserCreate
 
 
 user_router = APIRouter()
@@ -15,7 +15,7 @@ user_router = APIRouter()
     responses=AUTH_RESPONSES | create_error_response(HTTP_400_EXCEPTION),
     dependencies=[Depends(check_auth(True))],
 )
-async def create_user(new_user: NewUser):
+async def create_user(new_user: UserCreate):
     user = await services.user.create_user(new_user)
     if user is None:
         raise HTTP_400_EXCEPTION

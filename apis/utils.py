@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import Header, HTTPException, status
-from pydantic import BaseModel
 
 from models.database import get_session
 from models.models import ErrorResponse, User

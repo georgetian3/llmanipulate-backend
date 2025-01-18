@@ -1,7 +1,5 @@
-import sys
 from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import ValidationError
 
 from apis.utils import AUTH_RESPONSES, check_auth
 import services.responses
