@@ -1,7 +1,8 @@
 import json
 
 from models.database import get_session
-from models.models import LLMResponse, LLMInput, User
+from models.models import LLMResponse, LLMInput
+from models.user import User
 from services.agent import Agent
 from services.task import Task
 

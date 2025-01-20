@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
 
-from apis.chat import chat_router
-from apis.responses import response_router
-from apis.users import user_router
+from apis.chat import router as chat_router
+from apis.responses import router as response_router
+from apis.users import router as user_router
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import config
@@ -40,7 +40,7 @@ api.include_router(user_router)
 
 
 
-if None not in (config.oauth_google_client_id, config.oauth_google_client_secret):
+if config.oauth_google_client_id and config.oauth_google_client_secret:
     api.include_router(
         fastapi_users.get_oauth_router(
             GoogleOAuth2(
@@ -53,7 +53,7 @@ if None not in (config.oauth_google_client_id, config.oauth_google_client_secret
         tags=["auth"],
     )
 
-if None not in (config.oauth_facebook_client_id, config.oauth_facebook_client_secret):
+if config.oauth_facebook_client_id and config.oauth_facebook_client_secret:
     api.include_router(
         fastapi_users.get_oauth_router(
             FacebookOAuth2(
@@ -68,7 +68,7 @@ if None not in (config.oauth_facebook_client_id, config.oauth_facebook_client_se
         tags=["auth"],
     )
 
-if None not in (config.oauth_github_client_id, config.oauth_github_client_secret):
+if config.oauth_github_client_id and config.oauth_github_client_secret:
     api.include_router(
         fastapi_users.get_oauth_router(
             GitHubOAuth2(
@@ -77,7 +77,7 @@ if None not in (config.oauth_github_client_id, config.oauth_github_client_secret
                 ["user:email"],
             ),
             auth_backend,
-            config.SECRET,
+            config.secret,
         ),
         prefix="/auth/github",
         tags=["auth"],

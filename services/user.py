@@ -194,7 +194,7 @@ bearer_transport = BearerTransport(tokenUrl="auth/login")
 def get_redis_strategy() -> RedisStrategy:
     return RedisStrategy(
         redis.asyncio.from_url(
-            f"redis://{config.REDIS_HOST}:{config.REDIS_PORT}", decode_responses=True
+            f"redis://{config.redis_host}:{config.redis_port}", decode_responses=True
         ),
         lifetime_seconds=3600,
     )
@@ -219,7 +219,7 @@ get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
-async def create_user(user: UserCreate) -> User:
+async def create_user(user: UserCreate) -> User | None:
     try:
         async with get_async_session_context() as session:
             async with get_user_db_context(session) as user_db:
@@ -229,4 +229,4 @@ async def create_user(user: UserCreate) -> User:
                     return user
     except UserAlreadyExists:
         logger.info(f"User {user.email} already exists")
-        raise
+        

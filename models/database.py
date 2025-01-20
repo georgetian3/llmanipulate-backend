@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from models.models import *
-from models.user import OAuthAccount
+from models.user import OAuthAccount, User
 
 class Database:
 
@@ -42,17 +42,6 @@ class Database:
         return self._async_session_maker()
 
 _DATABASE = Database()
-
-@asynccontextmanager
-async def get_session():
-    session = _DATABASE.get_session()
-    try:
-        yield session
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        await session.close()
 
 @asynccontextmanager
 async def get_session():

@@ -1,16 +1,17 @@
 from sqlalchemy.future import select
 
 from models.database import get_session
-from models.models import Response, NewResponse
-from datetime import datetime, timedelta
+from datetime import UTC, datetime
 
+from models.response import Response, ResponseCreate
+from models.user import User
 from services.logging import get_logger
 
 logger = get_logger(__name__)
 
-async def create_response(response: NewResponse) -> Response:
+async def create_response(response_create: ResponseCreate, user: User) -> Response | None:
     try:
-        CHINA_TIMEZONE = timedelta(hours=8)
+        response = Response(response_create, user_id=user.id)
         async with get_session() as session:
             result = await session.execute(
                 select(Response).filter_by(user_id=response.user_id, task_name=response.task_name)
@@ -28,7 +29,7 @@ async def create_response(response: NewResponse) -> Response:
                 initial_scores=response.initial_scores,
                 conv_history=response.conv_history,
                 final_scores=response.final_scores,
-                time_created=datetime.utcnow() + CHINA_TIMEZONE
+                time_created=datetime.now(UTC)
             )
 
             session.add(new_response)

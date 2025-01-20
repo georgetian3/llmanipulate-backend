@@ -8,10 +8,10 @@ from services.logging import get_logger
 
 logger = get_logger(__name__)
 
-chat_router = APIRouter()
+router = APIRouter()
 
 
-@chat_router.websocket("/chat")
+@router.websocket("/chat")
 async def chat_endpoint(ws: WebSocket):
     await ws.accept()
 

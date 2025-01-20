@@ -1,51 +1,57 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, HTTPException, status
 
+from models.response import Response
 import services.user
-from apis.utils import AUTH_RESPONSES, HTTP_400_EXCEPTION, NOT_FOUND_HTTP_EXCEPTION, check_auth, create_error_response
 from models.user import User, UserCreate
 
 
-user_router = APIRouter()
+router = APIRouter()
 
 
-@user_router.put(
+
+CREATE_USER_EXCEPTION = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail='User email already taken'
+)
+@router.put(
     "/users",
     description="Creates a new non-admin user. Requires an admin's user_id for authentication.",
     response_model=User,
-    responses=AUTH_RESPONSES | create_error_response(HTTP_400_EXCEPTION),
-    dependencies=[Depends(check_auth(True))],
 )
 async def create_user(new_user: UserCreate):
     user = await services.user.create_user(new_user)
     if user is None:
-        raise HTTP_400_EXCEPTION
+        raise CREATE_USER_EXCEPTION
     return user
 
 
-@user_router.get(
+@router.get(
     "/users",
     response_model=list[User],
-    responses=AUTH_RESPONSES,
-    dependencies=[Depends(check_auth(True))],
 )
 async def get_all_users():
     return await services.user.get_all_users()
 
-@user_router.get(
+
+GET_USER_EXCEPTION = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="User not found"
+)
+@router.get(
     "/users/{user_id}",
     response_model=User,
-    responses=AUTH_RESPONSES | create_error_response(NOT_FOUND_HTTP_EXCEPTION),
 )
 async def get_user(user_id: str):
     user = await services.user.get_user(user_id)
     if user is None:
-        raise NOT_FOUND_HTTP_EXCEPTION
+        raise GET_USER_EXCEPTION
     return user
 
-@user_router.get(
+
+
+@router.get(
     "/users_responses",
-    responses=AUTH_RESPONSES,
-    dependencies=[Depends(check_auth(True))],
+    response_model=list[Response]
 )
 async def get_all_users_responses():
     return await services.user.get_user_responses()
