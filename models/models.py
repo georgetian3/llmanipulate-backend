@@ -7,6 +7,9 @@ from sqlmodel import Field, SQLModel, Relationship
 import pytz
 
 
+class Demographic(SQLModel, table=False):
+    age: int | None
+    sex: bool # TODO: update DEI
 
 
 class NewUser(SQLModel, table=False):
@@ -28,8 +31,6 @@ class User(NewUser, table=True):
     def response_count(self) -> int:
         """Return the count of responses linked to the user."""
         return len(self.responses)
-
-
 
 # PartialUser is used in updating a user where `id` is the only required field to be sent in the request
 class PartialUser(BaseModel):
