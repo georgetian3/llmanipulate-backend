@@ -1,29 +1,24 @@
-from typing import Literal, Self
-from pydantic import BaseModel, model_validator
+import json
+from typing import Any, Literal, Self
+from pydantic import BaseModel, Field, RootModel, model_validator
+from pydantic_extra_types.language_code import LanguageAlpha2
 
+ID = str
 
-ID = str | int
+class Translations(BaseModel):
+    languages: dict[LanguageAlpha2, str]
+    default: LanguageAlpha2
 
+    @model_validator(mode="after")
+    def check_default_exists(self) -> Self:
+        if self.default not in self.languages:
+            raise ValueError(f"Default language '{self.default}' does not exist")
+        return self
 
 class BaseComponent(BaseModel):
     id: ID
-    label: dict[str, str] # mapping of lang to label
+    label: Translations
     optional: bool = False
-
-class Description(BaseComponent):
-    ...
-
-class Multichoice(BaseComponent):
-    type: Literal["multichoice"]
-    label: str
-    choices: list[str]
-
-class Slider(BaseComponent):
-    type: Literal["slider"]
-    label: str
-    min: int = 1
-    max: int = 10
-    step: int = 1
 
 class Participant(BaseComponent):
     participant_id: int
@@ -43,71 +38,72 @@ class Chat(BaseComponent):
     label: str
     participants: list[Participant]
     # 
-    order: list[ID] | None 
+    order: list[ID] | None
+
+class Choice(BaseComponent):
+    choices: list[Translations]
+    shuffle: bool = Field(default=False, description="If `true`, choices are displayed in a random order to the user")
+
+class SingleChoice(Choice):
+    type: Literal["single_choice"]
+
+class MultiChoice(Choice):
+    type: Literal["multi_choice"]
+
+
+class Slider(BaseComponent):
+    type: Literal["slider"]
+    steps: int = Field(ge=1)
+    labels: list[Translations] | None = None
+
+    @model_validator(mode="after")
+    def validate_labels(self) -> Self:
+        if self.labels is None:
+            self.labels = [Translations(languages={"en": str(i)}, default="en") for i in range(self.steps)]
+        if len(self.labels) > 0 and len(self.labels) != self.steps:
+            raise ValueError(f"Number of labels ({self.labels}) must equal number of steps ({self.steps})")
+        return self
+
 
 class FreeText(BaseComponent):
     type: Literal["free_text"]
-    label: str = ""
+    regex: str | None = Field(default=None, description="The regular expression pattern that the user's input must match. `null` performs no matching.")
+
+ComponentType = SingleChoice | MultiChoice | Slider | FreeText
 
 class ComponentGroup(BaseModel):
-    label: str = ""
-    components: list[BaseComponent]
+    label: Translations | None = None
+    components: list[ComponentType]
 
 class TaskPage(BaseModel):
-    label: str = ""
-    component_groups: list[ComponentGroup]
-    rows: int | None = None
-    cols: int | None = None
+    label: Translations | None = None
+    component_groups: list[ComponentGroup] = []
+    columns: int = Field(default=1, description="The number of columns used to display the component groups")
+
+class ConstraintAction:
+    next_page: str | None = None # None means go to next page
+
+class Constraint:
+    condition: list[dict[str, Any]] = []
+    action: ConstraintAction = ConstraintAction()
 
 class TaskConfig(BaseModel):
-    name: str
+    id: str
+    name: Translations
+    description: Translations | None = None
     pages: list[TaskPage]
-    constraints: list[Constraint]
+    # constraints: list[Constraint]
 
     @model_validator(mode='after')
     def check_ids_unique(self) -> Self:
-        ids = []
+        ids = set()
         for page in self.pages:
-            ids = [*ids, *(component.id for component in page.components)]
-        id_set = set(ids)
-        if id_set == set([None]):
-            return self
-        if len(ids) != len(id_set):
-            raise ValueError("Each every component in each task must have a unique ID or none at all.")
+            for group in page.component_groups:
+                for component in group.components:
+                    if component.id in ids:
+                        raise ValueError(f"Every component must have a unique ID, duplicated ID: {component.id}")
+                    ids.add(component.id)
         return self
 
-def test():
-    task_config = {
-        'name': 'test task',
-        'pages': [
-            {
-                'components': [
-                    {
-                        'type': 'slider',
-                        'label': 'test slider',
-                        'min': 1,
-                        'max': 10,
-                    },
-                    {
-                        "id": 1,
-                        'type': 'multichoice',
-                        'label': 'test mulcichoice',
-                        'choices': ['a', 'v']
-                    },
-                ]
-            }
-        ]
-    }
-
-    response = {
-        "a": {
-            "choice": 0
-        },
-        "b": {
-            "postiion": 4
-        }
-    }
-    tc = TaskConfig.model_validate(task_config)
-    print(tc)
-
-test()
+print(json.dumps(TaskConfig.model_json_schema(), indent=2))
+# test()
