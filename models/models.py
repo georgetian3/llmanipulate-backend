@@ -6,6 +6,8 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, Relationship
 import pytz
 
+from models.task_config import TaskConfig
+
 
 class Demographic(SQLModel, table=False):
     age: int | None
@@ -71,3 +73,10 @@ class LLMResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+# class Task(SQLModel, table=True):
+#     creator: int
+#     config: TaskConfig = Field(sa_column=Column(JSON))
+
+# class TaskResponse(SQLModel, table=True):
+#     task: int = Field(foreign_key="task.id")
