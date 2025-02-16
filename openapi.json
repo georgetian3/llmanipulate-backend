@@ -1,0 +1,1021 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/submit_response": {
+      "post": {
+        "summary": "Create Response",
+        "operationId": "create_response",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewResponse"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/responses_by_user": {
+      "get": {
+        "summary": "Get Responses By User",
+        "operationId": "get_responses_by_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/responses": {
+      "get": {
+        "summary": "Get Responses",
+        "operationId": "get_responses",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Create User",
+        "description": "Creates a new non-admin user. Requires an admin's user_id for authentication.",
+        "operationId": "create_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get All Users",
+        "operationId": "get_all_users",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "title": "Response Get All Users Users Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User",
+        "operationId": "get_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users_responses": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get All Users Responses",
+        "operationId": "get_all_users_responses",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin privileges required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task",
+        "operationId": "get_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConfig"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ComponentGroup": {
+        "properties": {
+          "columns": {
+            "type": "integer",
+            "title": "Columns",
+            "description": "The number of columns used to display the children of this component",
+            "default": 1
+          },
+          "label": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "components": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoice"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiChoice"
+                },
+                {
+                  "$ref": "#/components/schemas/Slider"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeText"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Components"
+          }
+        },
+        "type": "object",
+        "required": [
+          "components"
+        ],
+        "title": "ComponentGroup"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse"
+      },
+      "FreeText": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "free_text"
+            ],
+            "const": "free_text",
+            "title": "Type",
+            "default": "free_text"
+          },
+          "regex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regex",
+            "description": "The regular expression pattern that the user's input must match. `null` performs no matching."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "FreeText"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MultiChoice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional",
+            "default": false
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/Translations"
+            },
+            "type": "array",
+            "title": "Choices"
+          },
+          "shuffle": {
+            "type": "boolean",
+            "title": "Shuffle",
+            "description": "If `true`, choices are displayed in a random order to the user",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "multi_choice"
+            ],
+            "const": "multi_choice",
+            "title": "Type",
+            "default": "multi_choice"
+          },
+          "min_choices": {
+            "type": "integer",
+            "title": "Min Choices",
+            "default": 0
+          },
+          "max_choices": {
+            "type": "integer",
+            "title": "Max Choices",
+            "default": 99999
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "choices"
+        ],
+        "title": "MultiChoice"
+      },
+      "NewResponse": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "title": "Task Name"
+          },
+          "initial_scores": {
+            "type": "object",
+            "title": "Initial Scores"
+          },
+          "conv_history": {
+            "type": "object",
+            "title": "Conv History"
+          },
+          "final_scores": {
+            "type": "object",
+            "title": "Final Scores"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "user_id"
+        ],
+        "title": "NewResponse"
+      },
+      "NewUser": {
+        "properties": {
+          "demographics": {
+            "type": "object",
+            "title": "Demographics"
+          },
+          "personality": {
+            "type": "object",
+            "title": "Personality"
+          },
+          "agent_type": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Agent Type"
+          },
+          "task_type": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Task Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "NewUser"
+      },
+      "Response": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "title": "Task Name"
+          },
+          "initial_scores": {
+            "type": "object",
+            "title": "Initial Scores"
+          },
+          "conv_history": {
+            "type": "object",
+            "title": "Conv History"
+          },
+          "final_scores": {
+            "type": "object",
+            "title": "Final Scores"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "time_created": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "user_id",
+          "time_created"
+        ],
+        "title": "Response"
+      },
+      "SingleChoice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional",
+            "default": false
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/Translations"
+            },
+            "type": "array",
+            "title": "Choices"
+          },
+          "shuffle": {
+            "type": "boolean",
+            "title": "Shuffle",
+            "description": "If `true`, choices are displayed in a random order to the user",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "single_choice"
+            ],
+            "const": "single_choice",
+            "title": "Type",
+            "default": "single_choice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "choices"
+        ],
+        "title": "SingleChoice"
+      },
+      "Slider": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "slider"
+            ],
+            "const": "slider",
+            "title": "Type",
+            "default": "slider"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Steps"
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Translations"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Labels"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "steps"
+        ],
+        "title": "Slider"
+      },
+      "TaskConfig": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/TaskPage"
+            },
+            "type": "array",
+            "title": "Pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "pages"
+        ],
+        "title": "TaskConfig"
+      },
+      "TaskPage": {
+        "properties": {
+          "columns": {
+            "type": "integer",
+            "title": "Columns",
+            "description": "The number of columns used to display the component groups",
+            "default": 1
+          },
+          "label": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "component_groups": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentGroup"
+            },
+            "type": "array",
+            "title": "Component Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_groups"
+        ],
+        "title": "TaskPage"
+      },
+      "Translations": {
+        "properties": {
+          "languages": {
+            "patternProperties": {
+              "^\\w{2}$": {
+                "type": "string"
+              }
+            },
+            "type": "object",
+            "title": "Languages",
+            "examples": [
+              {
+                "en": "This is the english translation.",
+                "zh": "这是中文翻译。"
+              }
+            ]
+          },
+          "default": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\w{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default",
+            "description": "Default language to display. Must must be in `languages`. Will display an arbitrary language if left `null`.",
+            "examples": [
+              "en",
+              "zh"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "languages"
+        ],
+        "title": "Translations"
+      },
+      "User": {
+        "properties": {
+          "demographics": {
+            "type": "object",
+            "title": "Demographics"
+          },
+          "personality": {
+            "type": "object",
+            "title": "Personality"
+          },
+          "agent_type": {
+            "type": "string",
+            "title": "Agent Type"
+          },
+          "task_type": {
+            "type": "string",
+            "title": "Task Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "is_admin": {
+            "type": "boolean",
+            "title": "Is Admin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "is_admin"
+        ],
+        "title": "User"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

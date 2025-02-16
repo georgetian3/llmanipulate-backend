@@ -5,3 +5,4 @@ greenlet
 pytz
 openai
 sqladmin
+pydantic-extra-types[pycountry]

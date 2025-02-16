@@ -6,7 +6,12 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, Relationship
 import pytz
 
+from models.task_config import TaskConfig
 
+
+class Demographic(SQLModel, table=False):
+    age: int | None
+    sex: bool # TODO: update DEI
 
 
 class NewUser(SQLModel, table=False):
@@ -28,8 +33,6 @@ class User(NewUser, table=True):
     def response_count(self) -> int:
         """Return the count of responses linked to the user."""
         return len(self.responses)
-
-
 
 # PartialUser is used in updating a user where `id` is the only required field to be sent in the request
 class PartialUser(BaseModel):
@@ -70,3 +73,10 @@ class LLMResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+# class Task(SQLModel, table=True):
+#     creator: int
+#     config: TaskConfig = Field(sa_column=Column(JSON))
+
+# class TaskResponse(SQLModel, table=True):
+#     task: int = Field(foreign_key="task.id")
