@@ -3,7 +3,7 @@ import json
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
-from apis.chat import chat_router
+from apis.chat import router
 from apis.responses import response_router
 from apis.users import user_router
 from apis.admin_view import admin_router, setup_admin
@@ -34,7 +34,7 @@ api.add_middleware(
 setup_admin(api)
 
 api.include_router(response_router)
-api.include_router(chat_router, tags=["chat"])
+api.include_router(router, tags=["chat"])
 api.include_router(user_router, tags=["users"])
 api.include_router(admin_router)
 api.include_router(task_router, tags=["tasks"])
