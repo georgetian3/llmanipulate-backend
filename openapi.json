@@ -137,6 +137,48 @@
         }
       }
     },
+    "/chat/{id}": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Get Chat",
+        "operationId": "get_chat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "put": {
         "tags": [
@@ -477,6 +519,116 @@
   },
   "components": {
     "schemas": {
+      "Chat": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": {
+            "type": "boolean",
+            "title": "Optional",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "chat"
+            ],
+            "const": "chat",
+            "title": "Type",
+            "default": "chat"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/Participant"
+            },
+            "type": "array",
+            "title": "Participants",
+            "default": []
+          },
+          "order": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "Chat"
+      },
+      "ChatHistory": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "messages"
+        ],
+        "title": "ChatHistory"
+      },
+      "ChatMessage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sender",
+          "message",
+          "timestamp"
+        ],
+        "title": "ChatMessage"
+      },
       "ComponentGroup": {
         "properties": {
           "columns": {
@@ -509,6 +661,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/FreeText"
+                },
+                {
+                  "$ref": "#/components/schemas/Chat"
                 }
               ]
             },
@@ -542,7 +697,14 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -598,7 +760,14 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -709,6 +878,24 @@
         ],
         "title": "NewUser"
       },
+      "Participant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Participant"
+      },
       "Response": {
         "properties": {
           "task_name": {
@@ -752,7 +939,14 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -797,7 +991,14 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -865,6 +1066,7 @@
               "$ref": "#/components/schemas/TaskPage"
             },
             "type": "array",
+            "minItems": 1,
             "title": "Pages"
           }
         },

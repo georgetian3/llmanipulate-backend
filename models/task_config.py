@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 import json
 from typing import Any, Literal, Self
 from pydantic import BaseModel, Field, RootModel, model_validator
@@ -23,28 +24,38 @@ class ColumnsMixin(BaseModel):
 
 class BaseComponent(BaseModel):
     id: ID
-    label: Translations
+    label: Translations | None
     optional: bool = False
 
-class Participant(BaseComponent):
-    participant_id: int
+class Participant(BaseModel):
+    id: ID
+    name: str
 
 class Human(Participant):
-    type: Literal["human"]
-    user_id: str
+    type: Literal["human"] = "human"
 
 class Agent(Participant):
-    type: Literal["agent"]
+    type: Literal["agent"] = "agent"
     endpoint: str
     api_key: str
     prompt: str
 
+
+class ChatMessage(BaseModel):
+    id: ID
+    sender: ID
+    message: str
+    timestamp: datetime
+
+class ChatHistory(BaseModel):
+    id: str
+    messages: list[ChatMessage]
+
 class Chat(BaseComponent):
-    type: Literal["chat"]
-    label: str
-    participants: list[Participant]
-    # 
-    order: list[ID] | None
+    type: Literal["chat"] = "chat"
+    label: Translations | None = None
+    participants: list[Participant] = []
+    order: list[ID] | None = []
 
 class Choice(BaseComponent):
     choices: list[Translations]
@@ -87,7 +98,7 @@ class FreeText(BaseComponent):
 
 class ComponentGroup(ColumnsMixin):
     label: Translations | None = None
-    components: list[SingleChoice | MultiChoice | Slider | FreeText]
+    components: list[SingleChoice | MultiChoice | Slider | FreeText | Chat]
 
 class TaskPage(ColumnsMixin):
     label: Translations | None = None
@@ -105,7 +116,7 @@ class TaskConfig(BaseModel):
     id: str
     name: Translations
     description: Translations | None = None
-    pages: list[TaskPage]
+    pages: list[TaskPage] = Field(min_length=1)
     # constraints: list[Constraint]
 
     @model_validator(mode='after')
@@ -128,11 +139,12 @@ sample_task_config = TaskConfig(
     description=Translations(languages={"en": "test", "zh": "测试描述"}, default="zh"),
     pages=[
         TaskPage(
-            label=Translations(languages={"en": "page label"}),
+            label=Translations(languages={"en": "Page title"}),
+            columns=1,
             component_groups=[
                 ComponentGroup(
-                    label=Translations(languages={"en": "Component group label"}),
-                    columns=2,
+                    label=Translations(languages={"en": "Component group 1"}),
+                    columns=4,
                     components=[
                         Slider(
                             id="s1",
@@ -148,22 +160,89 @@ sample_task_config = TaskConfig(
                         ),
                         MultiChoice(
                             id="mc1",
-                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"})],
+                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"}), Translations(languages={"en": "4"})],
                             label=Translations(languages={"en": "Multi Choice", "zh": "滑动"}, default="en"),
                             shuffle=True,
                         ),
                         FreeText(
                             id="f1",
-                            label=Translations(languages={"en": "Free text", "zh": "滑动"}, default="en"),
+                            label=Translations(languages={"en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)", "zh": "滑动"}, default="en"),
                             regex=".*f.*"
-                        )
+                        ),
+                    ]
+                ),
+                ComponentGroup(
+                    label=Translations(languages={"en": "Component group 2"}),
+                    columns=2,
+                    components=[
+                        Slider(
+                            id="s12",
+                            steps=3,
+                            label=Translations(languages={"en": "Slider", "zh": "滑动"}, default="en"),
+                            labels=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"})],
+                        ),
+                        SingleChoice(
+                            id="sc12",
+                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"})],
+                            label=Translations(languages={"en": "Single Choice", "zh": "滑动"}, default="en"),
+                            shuffle=True,
+                        ),
+                        MultiChoice(
+                            id="mc12",
+                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"}), Translations(languages={"en": "4"})],
+                            label=Translations(languages={"en": "Multi Choice", "zh": "滑动"}, default="en"),
+                            shuffle=True,
+                        ),
+                        FreeText(
+                            id="f12",
+                            label=Translations(languages={"en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)", "zh": "滑动"}, default="en"),
+                            regex=".*f.*"
+                        ),
+                    ]
+                ),
+                ComponentGroup(
+                    label=Translations(languages={"en": "Component group 3"}),
+                    columns=1,
+                    components=[
+                        Slider(
+                            id="s13",
+                            steps=3,
+                            label=Translations(languages={"en": "Slider", "zh": "滑动"}, default="en"),
+                            labels=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"})],
+                        ),
+                        SingleChoice(
+                            id="sc13",
+                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"})],
+                            label=Translations(languages={"en": "Single Choice", "zh": "滑动"}, default="en"),
+                            shuffle=True,
+                        ),
+                        MultiChoice(
+                            id="mc13",
+                            choices=[Translations(languages={"en": "1"}), Translations(languages={"en": "2"}), Translations(languages={"en": "3"}), Translations(languages={"en": "4"})],
+                            label=Translations(languages={"en": "Multi Choice", "zh": "滑动"}, default="en"),
+                            shuffle=True,
+                        ),
+                        FreeText(
+                            id="f13",
+                            label=Translations(languages={"en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)", "zh": "滑动"}, default="en"),
+                            regex=".*f.*"
+                        ),
                     ]
                 )
             ]
         ),
         TaskPage(
-            label=Translations(languages={"en": "page label"}),
+            label=Translations(languages={"en": "Page title"}),
+            columns=2,
             component_groups=[
+                ComponentGroup(
+                    columns=1,
+                    components=[
+                        Chat(
+                            id="chat"
+                        )
+                    ]
+                ),
                 ComponentGroup(
                     label=Translations(languages={"en": "Component group label"}),
                     columns=2,
@@ -188,12 +267,230 @@ sample_task_config = TaskConfig(
                         ),
                         FreeText(
                             id="f2",
-                            label=Translations(languages={"en": "Free text", "zh": "滑动"}, default="en"),
+                            label=Translations(languages={"en": "Free text *with* **markdown** [test](h)", "zh": "滑动"}, default="en"),
                             regex=".*f.*"
-                        )
+                        ),
+
                     ]
                 )
             ]
         )
+    ]
+)
+
+
+sample_chat_history = ChatHistory(
+    id="sample chat history",
+    messages=[
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 1, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 2, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
+            timestamp=datetime(2025, 1, 1, 1, 1, 3, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='2',
+            sender='2',
+            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
+            timestamp=datetime(2025, 1, 1, 1, 1, 4, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='2',
+            sender='2',
+            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
+            timestamp=datetime(2025, 1, 1, 1, 1, 4, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='1',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
+        ),
+        ChatMessage(
+            id='1',
+            sender='2',
+            message="test",
+            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
+        ),
     ]
 )

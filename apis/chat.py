@@ -5,13 +5,20 @@ from pydantic import ValidationError
 from models.models import LLMInput, LLMResponse
 from services.chat import get_llm_response, config_agent
 from services.logging import get_logger
+from models.task_config import ChatHistory, sample_chat_history
 
 logger = get_logger(__name__)
 
-chat_router = APIRouter()
+router = APIRouter()
 
+@router.get(
+    "/chat/{id}",
+    response_model=ChatHistory
+)
+async def get_chat(id: str):
+    return sample_chat_history
 
-@chat_router.websocket("/chat")
+@router.websocket("/chat")
 async def chat_endpoint(ws: WebSocket):
     await ws.accept()
 
