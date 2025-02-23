@@ -8,12 +8,15 @@ from services.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 async def create_response(response: NewResponse) -> Response:
     try:
         CHINA_TIMEZONE = timedelta(hours=8)
         async with get_session() as session:
             result = await session.execute(
-                select(Response).filter_by(user_id=response.user_id, task_name=response.task_name)
+                select(Response).filter_by(
+                    user_id=response.user_id, task_name=response.task_name
+                )
             )
             existing_response = result.scalars().first()
 
@@ -28,7 +31,7 @@ async def create_response(response: NewResponse) -> Response:
                 initial_scores=response.initial_scores,
                 conv_history=response.conv_history,
                 final_scores=response.final_scores,
-                time_created=datetime.utcnow() + CHINA_TIMEZONE
+                time_created=datetime.utcnow() + CHINA_TIMEZONE,
             )
 
             session.add(new_response)
@@ -38,7 +41,7 @@ async def create_response(response: NewResponse) -> Response:
             return new_response
 
     except Exception as e:
-        logger.exception(f'Create response exception: {e}')
+        logger.exception(f"Create response exception: {e}")
         return None
 
 
@@ -58,7 +61,8 @@ async def get_responses_by_users(user_id: str):
 
         except Exception as e:
             return {"error": f"Error fetching responses from database: {str(e)}"}
-          
+
+
 async def get_responses():
     async with get_session() as session:
         try:

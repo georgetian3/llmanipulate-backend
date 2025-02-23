@@ -1,20 +1,22 @@
 import datetime
 import logging
 
-#logging.LogRecord
-
 
 class UtcFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
-        dt = datetime.datetime.fromtimestamp(record.created).astimezone(datetime.timezone.utc)
+        dt = datetime.datetime.fromtimestamp(record.created).astimezone(
+            datetime.timezone.utc
+        )
         if datefmt:
             return dt.strftime(datefmt)
-        return dt.isoformat(timespec='milliseconds')
+        return dt.isoformat(timespec="milliseconds")
+
 
 _formatter = UtcFormatter(
     fmt="%(levelname)s %(asctime)s.%(msecs)03dZ %(pathname)s:%(lineno)s %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S"
+    datefmt="%Y-%m-%dT%H:%M:%S",
 )
+
 
 def get_logger(name: str | None = None) -> logging.Logger:
     logger = logging.getLogger(name)

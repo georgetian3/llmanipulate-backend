@@ -35,7 +35,6 @@ def int_or_none(x: Any) -> int | None:
 load_dotenv()
 
 
-
 @dataclass
 class DatabaseConfig:
     HOST: str | None = get_env("DATABASE_HOST", None)
@@ -44,6 +43,7 @@ class DatabaseConfig:
     USERNAME: str = get_env("DATABASE_USERNAME", None)
     PASSWORD: str = get_env("DATABASE_PASSWORD", None)
     DRIVERNAME: str = get_env("DATABASE_DRIVERNAME", None)
+
 
 @dataclass
 class AgentConfig:
@@ -56,6 +56,7 @@ class ServerConfig:
     PORT: int = int(get_env("SERVER_PORT", 8000))
     WORKERS: int = int(get_env("SERVER_WORKERS", 1))
     FRONTEND_URL: str = get_env("FRONTEND_URL")
+
 
 @dataclass
 class AuthConfig:

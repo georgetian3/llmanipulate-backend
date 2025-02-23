@@ -14,17 +14,19 @@ from config import ServerConfig
 from models.database import _DATABASE
 from services.user import init_admin
 
+
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     await _DATABASE.create()
     await init_admin()
     yield
 
+
 api = FastAPI(lifespan=lifespan)
 
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", ServerConfig.FRONTEND_URL],  
+    allow_origins=["http://localhost:3000", ServerConfig.FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,6 +45,7 @@ api.include_router(task_router, tags=["tasks"])
 @api.get("/")
 async def root():
     return {"message": "Welcome to the LLManipulate Backend ;)"}
+
 
 """
 Simplify operation IDs so that generated API clients have simpler function
