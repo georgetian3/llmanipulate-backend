@@ -19,7 +19,6 @@ class UserUpdate(schemas.BaseUserUpdate):
 
 
 class User(SQLModelBaseUserDB, table=True):
-
     oauth_accounts: list["OAuthAccount"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"lazy": "joined"}
     )
@@ -29,7 +28,6 @@ class User(SQLModelBaseUserDB, table=True):
     agent_type: int = Field(default_factory=int, ge=0, le=2)
     task_type: int = Field(default_factory=int, ge=0, le=1)
 
-
     responses: list["Response"] = Relationship(back_populates="user")
 
     @property
@@ -38,7 +36,5 @@ class User(SQLModelBaseUserDB, table=True):
         return len(self.responses)
 
 
-
 class OAuthAccount(SQLModelBaseOAuthAccount, table=True):
     user: User | None = Relationship(back_populates="oauth_accounts")
-

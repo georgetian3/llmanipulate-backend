@@ -1,20 +1,25 @@
+from datetime import UTC, datetime
+
 from sqlalchemy.future import select
 
 from models.database import get_session
-from datetime import UTC, datetime
-
 from models.response import Response, ResponseCreate
 from models.user import User
 from services.logging import get_logger
 
 logger = get_logger(__name__)
 
-async def create_response(response_create: ResponseCreate, user: User) -> Response | None:
+
+async def create_response(
+    response_create: ResponseCreate, user: User
+) -> Response | None:
     try:
         response = Response(response_create, user_id=user.id)
         async with get_session() as session:
             result = await session.execute(
-                select(Response).filter_by(user_id=response.user_id, task_name=response.task_name)
+                select(Response).filter_by(
+                    user_id=response.user_id, task_name=response.task_name
+                )
             )
             existing_response = result.scalars().first()
 
@@ -29,7 +34,7 @@ async def create_response(response_create: ResponseCreate, user: User) -> Respon
                 initial_scores=response.initial_scores,
                 conv_history=response.conv_history,
                 final_scores=response.final_scores,
-                time_created=datetime.now(UTC)
+                time_created=datetime.now(UTC),
             )
 
             session.add(new_response)
@@ -39,7 +44,7 @@ async def create_response(response_create: ResponseCreate, user: User) -> Respon
             return new_response
 
     except Exception as e:
-        logger.exception(f'Create response exception: {e}')
+        logger.exception(f"Create response exception: {e}")
         return None
 
 
@@ -59,7 +64,8 @@ async def get_responses_by_users(user_id: str):
 
         except Exception as e:
             return {"error": f"Error fetching responses from database: {str(e)}"}
-          
+
+
 async def get_responses():
     async with get_session() as session:
         try:

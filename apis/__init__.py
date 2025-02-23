@@ -1,21 +1,20 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.routing import APIRoute
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
+from httpx_oauth.clients.facebook import FacebookOAuth2
+from httpx_oauth.clients.github import GitHubOAuth2
+from httpx_oauth.clients.google import GoogleOAuth2
 
 from apis.chat import router as chat_router
 from apis.responses import router as response_router
 from apis.users import router as user_router
-from fastapi.middleware.cors import CORSMiddleware
-
 from config import config
 from models.database import _DATABASE
 from models.user import UserCreate, UserRead, UserUpdate
 from services.user import auth_backend, fastapi_users
 
-from httpx_oauth.clients.facebook import FacebookOAuth2
-from httpx_oauth.clients.github import GitHubOAuth2
-from httpx_oauth.clients.google import GoogleOAuth2
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
@@ -23,11 +22,12 @@ async def lifespan(api: FastAPI):
     # await init_admin()
     yield
 
+
 api = FastAPI(lifespan=lifespan)
 
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", config.frontend_url],  
+    allow_origins=["http://localhost:3000", config.frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,7 +37,6 @@ api.add_middleware(
 api.include_router(response_router)
 api.include_router(chat_router)
 api.include_router(user_router)
-
 
 
 if config.oauth_google_client_id and config.oauth_google_client_secret:

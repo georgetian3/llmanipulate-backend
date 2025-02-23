@@ -1,6 +1,8 @@
 import asyncio
-import websockets
 import json
+
+import websockets
+
 
 # Run this script to test the WebSocket server
 async def websocket():
@@ -23,7 +25,7 @@ async def websocket():
                     "user_id": user_id,
                     "task_id": task_id,
                     "message": message_text,
-                    "map":["B","C","D","A"]
+                    "map": ["B", "C", "D", "A"],
                 }
 
                 print(f"COMMUNICATION || Sending: {message}")

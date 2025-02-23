@@ -1,16 +1,13 @@
 import json
+
 from openai import OpenAI
+
 from config import config
 
 
-
 class BaseAgent:
+    async def get_response(self) -> None: ...
 
-
-    async def get_response(self) -> None:
-        ...
-
-    
 
 class Agent:
     def __init__(self):

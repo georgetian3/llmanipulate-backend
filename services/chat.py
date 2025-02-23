@@ -1,7 +1,7 @@
 import json
 
 from models.database import get_session
-from models.models import LLMResponse, LLMInput
+from models.models import LLMInput, LLMResponse
 from models.user import User
 from services.agent import Agent
 from services.task import Task
@@ -51,7 +51,6 @@ async def config_agent(llmp_input: LLMInput):
         lang=language,
     )
     task.sort_options(llmp_input.map)
-
 
     agent_type = user.agent_type
     user_personality = parse_personality(user_personality, language)

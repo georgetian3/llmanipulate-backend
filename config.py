@@ -1,7 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     database_host: str | None = None
     database_port: int | None = None
@@ -28,5 +29,6 @@ class Config(BaseSettings):
     oauth_github_client_secret: str | None = None
     oauth_facebook_client_id: str | None = None
     oauth_facebook_client_secret: str | None = None
+
 
 config = Config()

@@ -1,7 +1,7 @@
-
 from datetime import datetime
+
 from sqlalchemy import JSON, Column
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
 
 from models.user import User
 
@@ -11,7 +11,6 @@ class ResponseCreate(SQLModel):
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
-
 
 
 class Response(ResponseCreate, table=True):

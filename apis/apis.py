@@ -1,18 +1,19 @@
-from contextlib import asynccontextmanager
 import json
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
+from apis.admin_view import admin_router, setup_admin
 from apis.chat import router
 from apis.responses import response_router
-from apis.users import user_router
-from apis.admin_view import admin_router, setup_admin
 from apis.tasks import router as task_router
-from fastapi.middleware.cors import CORSMiddleware
-
+from apis.users import user_router
 from config import ServerConfig
 from models.database import _DATABASE
 from services.user import init_admin
+
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
@@ -20,11 +21,12 @@ async def lifespan(api: FastAPI):
     await init_admin()
     yield
 
+
 api = FastAPI(lifespan=lifespan)
 
 api.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", ServerConfig.FRONTEND_URL],  
+    allow_origins=["http://localhost:3000", ServerConfig.FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,6 +45,7 @@ api.include_router(task_router, tags=["tasks"])
 @api.get("/")
 async def root():
     return {"message": "Welcome to the LLManipulate Backend ;)"}
+
 
 """
 Simplify operation IDs so that generated API clients have simpler function
