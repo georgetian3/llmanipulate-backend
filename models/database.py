@@ -6,12 +6,17 @@ from config import config
 from fastapi import Depends
 from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import URL
+import sqlalchemy
+import sqlalchemy.dialects
+import sqlalchemy.dialects.postgresql
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from models.models import *
-from models.user import OAuthAccount, User
+
+
+
 
 class Database:
 
@@ -30,6 +35,16 @@ class Database:
         )
 
     async def create(self):
+        url = self._url._replace(database=None)
+        # No need to create DB for sqlite
+        if 'sqlite' not in url.drivername:
+            async with create_async_engine(url).execution_options(isolation_level="AUTOCOMMIT").connect() as conn:
+                try:
+                    await conn.execute(sqlalchemy.text(f"CREATE DATABASE {self._url.database}"))
+                    logger.info(f"Database {self._url.database} created ")
+                except Exception as e:
+                    if "already exists" not in str(e):
+                        logger.exception("Error creating database")
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
 
