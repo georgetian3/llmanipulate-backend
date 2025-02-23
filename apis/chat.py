@@ -11,12 +11,11 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
-@router.get(
-    "/chat/{id}",
-    response_model=ChatHistory
-)
+
+@router.get("/chat/{id}", response_model=ChatHistory)
 async def get_chat(id: str):
     return sample_chat_history
+
 
 @router.websocket("/chat")
 async def chat_endpoint(ws: WebSocket):
@@ -47,7 +46,7 @@ async def chat_endpoint(ws: WebSocket):
             )
             await ws.send_json(response.model_dump())
         except WebSocketDisconnect as e:
-            logger.info(f'Websocket disconnect: {e}')
+            logger.info(f"Websocket disconnect: {e}")
             return
         except Exception as e:
             logger.exception(f"Unexpected exception in chat endpoint: {e}")

@@ -9,9 +9,10 @@ from models.task_config import TaskConfig
 TaskID = int
 UserID = int
 
+
 class Demographic(SQLModel, table=False):
     age: int | None
-    sex: bool # TODO: update DEI
+    sex: bool  # TODO: update DEI
 
 
 class NewUser(SQLModel, table=False):
@@ -20,6 +21,7 @@ class NewUser(SQLModel, table=False):
     agent_type: conint(ge=0, le=2) = Field(default_factory=int)
     task_type: conint(ge=0, le=1) = Field(default_factory=int)
     id: str = Field(primary_key=True)
+
 
 class User(NewUser, table=True):
     is_admin: bool
@@ -34,6 +36,7 @@ class User(NewUser, table=True):
         """Return the count of responses linked to the user."""
         return len(self.responses)
 
+
 # PartialUser is used in updating a user where `id` is the only required field to be sent in the request
 class PartialUser(BaseModel):
     id: str
@@ -42,13 +45,13 @@ class PartialUser(BaseModel):
     task_type: str | None = Field(None)
     agent_type: str | None = Field(None)
 
+
 class NewResponse(SQLModel, table=False):
     task_name: str
     initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
     final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
     user_id: str = Field(foreign_key="user.id")
-
 
 
 class Response(NewResponse, table=True):
@@ -70,9 +73,9 @@ class LLMResponse(BaseModel):
     agent_data: dict
 
 
-
 class ErrorResponse(BaseModel):
     detail: str
+
 
 class Task(SQLModel, table=True):
     id: int | None = Field(primary_key=True)
@@ -80,11 +83,13 @@ class Task(SQLModel, table=True):
     config: TaskConfig = Field(sa_column=Column(JSON))
     public: bool = False
 
+
 class TaskParticipants(SQLModel, table=True):
     task: TaskID = Field(primary_key=True, foreign_key="task.id")
     user: UserID = Field(primary_key=True, foreign_key="user.id")
 
+
 class TaskResponse(SQLModel, table=True):
     task: TaskID = Field(foreign_key="task.id")
     creator: int = Field(foreign_key="user.id")
-    response: dict[Hashable, ]
+    response: dict[Hashable,]

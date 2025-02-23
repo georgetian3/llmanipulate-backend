@@ -61,7 +61,6 @@ class DatabaseConfig:
 
 
 class Database:
-
     def __init__(self, config: DatabaseConfig):
         url = URL.create(**{k.lower(): v for k, v in asdict(config).items()})
         self._engine = create_async_engine(url, echo=False)
