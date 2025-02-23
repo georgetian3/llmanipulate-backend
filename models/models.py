@@ -1,13 +1,13 @@
-from copy import deepcopy
 from datetime import datetime
-from typing import List
+from typing import Hashable, List
 from pydantic import BaseModel, conint
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel, Relationship
-import pytz
 
 from models.task_config import TaskConfig
 
+TaskID = int
+UserID = int
 
 class Demographic(SQLModel, table=False):
     age: int | None
@@ -74,9 +74,17 @@ class LLMResponse(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
 
-# class Task(SQLModel, table=True):
-#     creator: int
-#     config: TaskConfig = Field(sa_column=Column(JSON))
+class Task(SQLModel, table=True):
+    id: int | None = Field(primary_key=True)
+    creator: int = Field(foreign_key="user.id")
+    config: TaskConfig = Field(sa_column=Column(JSON))
+    public: bool = False
 
-# class TaskResponse(SQLModel, table=True):
-#     task: int = Field(foreign_key="task.id")
+class TaskParticipants(SQLModel, table=True):
+    task: TaskID = Field(primary_key=True, foreign_key="task.id")
+    user: UserID = Field(primary_key=True, foreign_key="user.id")
+
+class TaskResponse(SQLModel, table=True):
+    task: TaskID = Field(foreign_key="task.id")
+    creator: int = Field(foreign_key="user.id")
+    response: dict[Hashable, ]
