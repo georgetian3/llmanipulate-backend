@@ -17,7 +17,7 @@ DATABASE_DATABASE=llmanipulate.sqlite3
 DATABASE_DRIVERNAME='sqlite+aiosqlite'
 ```
 
-3. Run development server: `fastapi dev apis/apis.py`
+3. Run development server: `fastapi dev apis`
 
 ## Design Principles
 
@@ -27,9 +27,4 @@ DATABASE_DRIVERNAME='sqlite+aiosqlite'
 
 ## Linting, formatting, typechecking
 
-```
-black .
-flake8 .
-isort .
-mypy .
-```
+Use [Ruff](https://docs.astral.sh/ruff/)
