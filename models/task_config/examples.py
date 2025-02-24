@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from models.models import ChatHistory, ChatMessage
+from models.models import ChatHistoryRead, ChatMessage
 from models.task_config.base_component import Translations
 from models.task_config.chat import Chat
 from models.task_config.task_config import (
@@ -259,8 +259,8 @@ sample_task_config = TaskConfig(
 )
 
 
-sample_chat_history = ChatHistory(
-    id="sample chat history",
+sample_chat_history = ChatHistoryRead(
+    id=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
     messages=[
         ChatMessage(
             sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),

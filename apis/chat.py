@@ -1,22 +1,22 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from models.models import ChatHistory, LLMInput, LLMResponse
+from models.models import ChatHistoryRead, LLMInput, LLMResponse
 from models.task_config.examples import sample_chat_history
 from services.chat import config_agent, get_llm_response
 from services.logging import get_logger
 
 logger = get_logger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/chats")
 
 
-@router.get("/chat/{id}", response_model=ChatHistory)
+@router.get("/{id}", response_model=ChatHistoryRead)
 async def get_chat(id: str):
     return sample_chat_history
 
 
-@router.websocket("/chat")
+@router.websocket("")
 async def chat_endpoint(ws: WebSocket):
     await ws.accept()
 
