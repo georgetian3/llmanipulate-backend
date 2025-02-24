@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi_users import schemas
 from fastapi_users_db_sqlmodel import SQLModelBaseOAuthAccount, SQLModelBaseUserDB
+from pydantic import UUID4
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship
 
@@ -34,6 +35,8 @@ class User(SQLModelBaseUserDB, table=True):
     def response_count(self) -> int:
         """Return the count of responses linked to the user."""
         return len(self.responses)
+
+UserID = UUID4
 
 
 class OAuthAccount(SQLModelBaseOAuthAccount, table=True):

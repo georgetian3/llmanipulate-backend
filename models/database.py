@@ -11,10 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-from config import config
 from models.models import *  # noqa: F403
-from models.user import OAuthAccount
+from models.user import OAuthAccount, User
 from services.logging import get_logger
+from settings import settings
 
 logger = get_logger(__name__)
 
@@ -22,12 +22,12 @@ logger = get_logger(__name__)
 class Database:
     def __init__(self):
         self._url = URL.create(
-            host=config.database_host,
-            port=config.database_port,
-            database=config.database_name,
-            username=config.database_username,
-            password=config.database_password,
-            drivername=config.database_driver,
+            host=settings.database_host,
+            port=settings.database_port,
+            database=settings.database_name,
+            username=settings.database_username,
+            password=settings.database_password,
+            drivername=settings.database_driver,
         )
         self._engine = create_async_engine(self._url)
         self._async_session_maker: sessionmaker = sessionmaker(

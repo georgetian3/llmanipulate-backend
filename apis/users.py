@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 import services.user
-from models.response import Response
+from models.task import TaskResponse
 from models.user import User, UserCreate
 
 router = APIRouter()
@@ -48,6 +48,6 @@ async def get_user(user_id: str):
     return user
 
 
-@router.get("/users_responses", response_model=list[Response])
+@router.get("/users_responses", response_model=list[TaskResponse])
 async def get_all_users_responses():
     return await services.user.get_user_responses()

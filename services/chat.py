@@ -4,7 +4,7 @@ from models.database import get_session
 from models.models import LLMInput, LLMResponse
 from models.user import User
 from services.agent import Agent
-from services.task import Task
+from services.tasks import Task
 
 lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))["BFI"]
 

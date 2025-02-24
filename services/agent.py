@@ -2,7 +2,7 @@ import json
 
 from openai import OpenAI
 
-from config import config
+from settings import settings
 
 
 class BaseAgent:
@@ -18,7 +18,7 @@ class Agent:
 
     def set_attributes(self, model_name, agent_type, language, user_personality):
         self.model_name = model_name
-        self.model = OpenAI(base_url=config.api_url, api_key=config.api_key)
+        self.model = OpenAI(base_url=settings.api_url, api_key=settings.api_key)
         self.agent_type = agent_type
         self.user_personality = user_personality
 

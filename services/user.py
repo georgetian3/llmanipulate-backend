@@ -14,7 +14,7 @@ from fastapi_users.exceptions import UserAlreadyExists
 from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import select
 
-from config import config
+from settings import settings
 from models.database import get_async_session, get_session, get_user_db
 from models.user import User, UserCreate
 from services.logging import get_logger
@@ -37,8 +37,8 @@ async def get_user_by_email(email: str) -> User | None:
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
-    reset_password_token_secret = config.secret
-    verification_token_secret = config.secret
+    reset_password_token_secret = settings.secret
+    verification_token_secret = settings.secret
 
     async def on_after_register(self, user: User, request: Request | None = None):
         print(f"User {user.id} has registered.")
@@ -64,7 +64,7 @@ bearer_transport = BearerTransport(tokenUrl="auth/login")
 def get_redis_strategy() -> RedisStrategy:
     return RedisStrategy(
         redis.asyncio.from_url(
-            f"redis://{config.redis_host}:{config.redis_port}", decode_responses=True
+            f"redis://{settings.redis_host}:{settings.redis_port}", decode_responses=True
         ),
         lifetime_seconds=3600,
     )

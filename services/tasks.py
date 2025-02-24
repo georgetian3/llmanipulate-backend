@@ -2,6 +2,10 @@ import json
 import random
 import string
 
+from models.database import get_session
+from models.task import TaskID
+from models.user import User
+
 random.seed(42)
 
 letters = string.ascii_uppercase
@@ -109,3 +113,10 @@ class Task:
 
         self.hidden_incentive = option_letters[list_ids.index(self.hidden_incentive)]
         self.best_choice = option_letters[list_ids.index(self.best_choice)]
+
+
+async def get_task(id: TaskID, user: User) -> Task | None:
+    async with get_session() as session:
+        task = await session.get(Task, id)
+        if not task:
+            return None
