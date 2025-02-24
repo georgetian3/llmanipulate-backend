@@ -1,6 +1,12 @@
 import json
+
 from openai import OpenAI
-from config import AgentConfig
+
+from settings import settings
+
+
+class BaseAgent:
+    async def get_response(self) -> None: ...
 
 
 class Agent:
@@ -12,7 +18,7 @@ class Agent:
 
     def set_attributes(self, model_name, agent_type, language, user_personality):
         self.model_name = model_name
-        self.model = OpenAI(base_url=AgentConfig.API_URL, api_key=AgentConfig.API_KEY)
+        self.model = OpenAI(base_url=settings.api_url, api_key=settings.api_key)
         self.agent_type = agent_type
         self.user_personality = user_personality
 
@@ -57,7 +63,7 @@ class Agent:
                 res = {"role": "assistant", "content": res}
                 # res = {"role": "assistant", "content": res}
                 break
-            except Exception as e:
+            except Exception:
                 ...
         return res
 

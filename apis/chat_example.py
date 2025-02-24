@@ -1,6 +1,7 @@
 import asyncio
-import websockets
 import json
+
+import websockets
 
 
 # Run this script to test the WebSocket server

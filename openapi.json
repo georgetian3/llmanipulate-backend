@@ -5,143 +5,8 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/submit_response": {
-      "post": {
-        "summary": "Create Response",
-        "operationId": "create_response",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewResponse"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Response"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/responses_by_user": {
-      "get": {
-        "summary": "Get Responses By User",
-        "operationId": "get_responses_by_user",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "User Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/responses": {
-      "get": {
-        "summary": "Get Responses",
-        "operationId": "get_responses",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "User Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin privileges required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/chat/{id}": {
       "get": {
-        "tags": [
-          "chat"
-        ],
         "summary": "Get Chat",
         "operationId": "get_chat",
         "parameters": [
@@ -180,33 +45,39 @@
       }
     },
     "/users": {
-      "put": {
-        "tags": [
-          "users"
-        ],
-        "summary": "Create User",
-        "description": "Creates a new non-admin user. Requires an admin's user_id for authentication.",
-        "operationId": "create_user",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "User Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewUser"
+      "get": {
+        "summary": "Get All Users",
+        "operationId": "get_all_users",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "type": "array",
+                  "title": "Response Get All Users Users Get"
+                }
               }
             }
           }
+        }
+      },
+      "put": {
+        "summary": "Create User",
+        "description": "Creates a new non-admin user. Requires an admin's user_id for authentication.",
+        "operationId": "create_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -215,100 +86,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin privileges required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "summary": "Get All Users",
-        "operationId": "get_all_users",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "User Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  },
-                  "title": "Response Get All Users Users Get"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin privileges required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -328,9 +105,6 @@
     },
     "/users/{user_id}": {
       "get": {
-        "tags": [
-          "users"
-        ],
         "summary": "Get User",
         "operationId": "get_user",
         "parameters": [
@@ -355,36 +129,6 @@
               }
             }
           },
-          "401": {
-            "description": "Not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin privileges required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Object not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -400,47 +144,78 @@
     },
     "/users_responses": {
       "get": {
-        "tags": [
-          "users"
-        ],
         "summary": "Get All Users Responses",
         "operationId": "get_all_users_responses",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "User Id"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get All Users Responses Users Responses Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth:Auth.Login",
+        "operationId": "auth:auth.login",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_auth_auth_login_auth_login_post"
               }
             }
           },
-          "401": {
-            "description": "Not authenticated",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/BearerResponse"
+                },
+                "example": {
+                  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiOTIyMWZmYzktNjQwZi00MzcyLTg2ZDMtY2U2NDJjYmE1NjAzIiwiYXVkIjoiZmFzdGFwaS11c2VyczphdXRoIiwiZXhwIjoxNTcxNTA0MTkzfQ.M10bjOe45I5Ncu_uXvOmVV8QxnL-nZfcH96U90JaocI",
+                  "token_type": "bearer"
                 }
               }
             }
           },
-          "403": {
-            "description": "Admin privileges required",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "LOGIN_BAD_CREDENTIALS": {
+                    "summary": "Bad credentials or the user is inactive.",
+                    "value": {
+                      "detail": "LOGIN_BAD_CREDENTIALS"
+                    }
+                  },
+                  "LOGIN_USER_NOT_VERIFIED": {
+                    "summary": "The user is not verified.",
+                    "value": {
+                      "detail": "LOGIN_USER_NOT_VERIFIED"
+                    }
+                  }
                 }
               }
             }
@@ -458,13 +233,425 @@
         }
       }
     },
-    "/tasks/{id}": {
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth:Auth.Logout",
+        "operationId": "auth:auth.logout",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register:Register",
+        "operationId": "register:register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "REGISTER_USER_ALREADY_EXISTS": {
+                    "summary": "A user with this email already exists.",
+                    "value": {
+                      "detail": "REGISTER_USER_ALREADY_EXISTS"
+                    }
+                  },
+                  "REGISTER_INVALID_PASSWORD": {
+                    "summary": "Password validation failed.",
+                    "value": {
+                      "detail": {
+                        "code": "REGISTER_INVALID_PASSWORD",
+                        "reason": "Password should beat least 3 characters"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Reset:Forgot Password",
+        "operationId": "reset:forgot_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_reset_forgot_password_auth_forgot_password_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Reset:Reset Password",
+        "operationId": "reset:reset_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_reset_reset_password_auth_reset_password_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "RESET_PASSWORD_BAD_TOKEN": {
+                    "summary": "Bad or expired token.",
+                    "value": {
+                      "detail": "RESET_PASSWORD_BAD_TOKEN"
+                    }
+                  },
+                  "RESET_PASSWORD_INVALID_PASSWORD": {
+                    "summary": "Password validation failed.",
+                    "value": {
+                      "detail": {
+                        "code": "RESET_PASSWORD_INVALID_PASSWORD",
+                        "reason": "Password should be at least 3 characters"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/request-verify-token": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify:Request-Token",
+        "operationId": "verify:request-token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_verify_request_token_auth_request_verify_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify:Verify",
+        "operationId": "verify:verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_verify_verify_auth_verify_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "VERIFY_USER_BAD_TOKEN": {
+                    "summary": "Bad token, not existing user ornot the e-mail currently set for the user.",
+                    "value": {
+                      "detail": "VERIFY_USER_BAD_TOKEN"
+                    }
+                  },
+                  "VERIFY_USER_ALREADY_VERIFIED": {
+                    "summary": "The user is already verified.",
+                    "value": {
+                      "detail": "VERIFY_USER_ALREADY_VERIFIED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
       "get": {
         "tags": [
-          "tasks"
+          "users"
         ],
-        "summary": "Get Task",
-        "operationId": "get_task",
+        "summary": "Users:Current User",
+        "operationId": "users:current_user",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Users:Patch Current User",
+        "operationId": "users:patch_current_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                },
+                "examples": {
+                  "UPDATE_USER_EMAIL_ALREADY_EXISTS": {
+                    "summary": "A user with this email already exists.",
+                    "value": {
+                      "detail": "UPDATE_USER_EMAIL_ALREADY_EXISTS"
+                    }
+                  },
+                  "UPDATE_USER_INVALID_PASSWORD": {
+                    "summary": "Password validation failed.",
+                    "value": {
+                      "detail": {
+                        "code": "UPDATE_USER_INVALID_PASSWORD",
+                        "reason": "Password should beat least 3 characters"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Users:User",
+        "operationId": "users:user",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -482,10 +669,157 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskConfig"
+                  "$ref": "#/components/schemas/UserRead"
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          },
+          "403": {
+            "description": "Not a superuser."
+          },
+          "404": {
+            "description": "The user does not exist."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Users:Patch User",
+        "operationId": "users:patch_user",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          },
+          "403": {
+            "description": "Not a superuser."
+          },
+          "404": {
+            "description": "The user does not exist."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UPDATE_USER_EMAIL_ALREADY_EXISTS": {
+                    "summary": "A user with this email already exists.",
+                    "value": {
+                      "detail": "UPDATE_USER_EMAIL_ALREADY_EXISTS"
+                    }
+                  },
+                  "UPDATE_USER_INVALID_PASSWORD": {
+                    "summary": "Password validation failed.",
+                    "value": {
+                      "detail": {
+                        "code": "UPDATE_USER_INVALID_PASSWORD",
+                        "reason": "Password should beat least 3 characters"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Users:Delete User",
+        "operationId": "users:delete_user",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Missing token or inactive user."
+          },
+          "403": {
+            "description": "Not a superuser."
+          },
+          "404": {
+            "description": "The user does not exist."
           },
           "422": {
             "description": "Validation Error",
@@ -499,228 +833,56 @@
           }
         }
       }
-    },
-    "/": {
-      "get": {
-        "summary": "Root",
-        "operationId": "root",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
     "schemas": {
-      "Chat": {
+      "BearerResponse": {
         "properties": {
-          "id": {
+          "access_token": {
             "type": "string",
-            "title": "Id"
+            "title": "Access Token"
           },
-          "label": {
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "title": "BearerResponse"
+      },
+      "Body_auth_auth_login_auth_login_post": {
+        "properties": {
+          "grant_type": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": {
-            "type": "boolean",
-            "title": "Optional",
-            "default": false
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "chat"
-            ],
-            "const": "chat",
-            "title": "Type",
-            "default": "chat"
-          },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/Participant"
-            },
-            "type": "array",
-            "title": "Participants",
-            "default": []
-          },
-          "order": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
+                "type": "string",
+                "pattern": "password"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Order",
-            "default": []
-          }
-        },
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "title": "Chat"
-      },
-      "ChatHistory": {
-        "properties": {
-          "id": {
+            "title": "Grant Type"
+          },
+          "username": {
             "type": "string",
-            "title": "Id"
+            "title": "Username"
           },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/ChatMessage"
-            },
-            "type": "array",
-            "title": "Messages"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "messages"
-        ],
-        "title": "ChatHistory"
-      },
-      "ChatMessage": {
-        "properties": {
-          "id": {
+          "password": {
             "type": "string",
-            "title": "Id"
+            "title": "Password"
           },
-          "sender": {
+          "scope": {
             "type": "string",
-            "title": "Sender"
+            "title": "Scope",
+            "default": ""
           },
-          "message": {
-            "type": "string",
-            "title": "Message"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "sender",
-          "message",
-          "timestamp"
-        ],
-        "title": "ChatMessage"
-      },
-      "ComponentGroup": {
-        "properties": {
-          "columns": {
-            "type": "integer",
-            "title": "Columns",
-            "description": "The number of columns used to display the children of this component",
-            "default": 1
-          },
-          "label": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "components": {
-            "items": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/SingleChoice"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiChoice"
-                },
-                {
-                  "$ref": "#/components/schemas/Slider"
-                },
-                {
-                  "$ref": "#/components/schemas/FreeText"
-                },
-                {
-                  "$ref": "#/components/schemas/Chat"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Components"
-          }
-        },
-        "type": "object",
-        "required": [
-          "components"
-        ],
-        "title": "ComponentGroup"
-      },
-      "ErrorResponse": {
-        "properties": {
-          "detail": {
-            "type": "string",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "required": [
-          "detail"
-        ],
-        "title": "ErrorResponse"
-      },
-      "FreeText": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": {
-            "type": "boolean",
-            "title": "Optional",
-            "default": false
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "free_text"
-            ],
-            "const": "free_text",
-            "title": "Type",
-            "default": "free_text"
-          },
-          "regex": {
+          "client_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -729,16 +891,119 @@
                 "type": "null"
               }
             ],
-            "title": "Regex",
-            "description": "The regular expression pattern that the user's input must match. `null` performs no matching."
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
           }
         },
         "type": "object",
         "required": [
-          "id",
-          "label"
+          "username",
+          "password"
         ],
-        "title": "FreeText"
+        "title": "Body_auth_auth_login_auth_login_post"
+      },
+      "Body_reset_forgot_password_auth_forgot_password_post": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "Body_reset_forgot_password_auth_forgot_password_post"
+      },
+      "Body_reset_reset_password_auth_reset_password_post": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "title": "Body_reset_reset_password_auth_reset_password_post"
+      },
+      "Body_verify_request_token_auth_request_verify_token_post": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "Body_verify_request_token_auth_request_verify_token_post"
+      },
+      "Body_verify_verify_auth_verify_post": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "Body_verify_verify_auth_verify_post"
+      },
+      "ChatHistory": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "title": "ChatHistory"
+      },
+      "ErrorModel": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorModel"
       },
       "HTTPValidationError": {
         "properties": {
@@ -753,100 +1018,56 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "MultiChoice": {
+      "TaskResponse": {
+        "properties": {
+          "task": {
+            "type": "integer",
+            "title": "Task"
+          },
+          "creator": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Creator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task",
+          "creator"
+        ],
+        "title": "TaskResponse"
+      },
+      "User": {
         "properties": {
           "id": {
             "type": "string",
+            "format": "uuid4",
             "title": "Id"
           },
-          "label": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
           },
-          "optional": {
+          "hashed_password": {
+            "type": "string",
+            "title": "Hashed Password"
+          },
+          "is_active": {
             "type": "boolean",
-            "title": "Optional",
+            "title": "Is Active",
+            "default": true
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser",
             "default": false
           },
-          "choices": {
-            "items": {
-              "$ref": "#/components/schemas/Translations"
-            },
-            "type": "array",
-            "title": "Choices"
-          },
-          "shuffle": {
+          "is_verified": {
             "type": "boolean",
-            "title": "Shuffle",
-            "description": "If `true`, choices are displayed in a random order to the user",
+            "title": "Is Verified",
             "default": false
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "multi_choice"
-            ],
-            "const": "multi_choice",
-            "title": "Type",
-            "default": "multi_choice"
-          },
-          "min_choices": {
-            "type": "integer",
-            "title": "Min Choices",
-            "default": 0
-          },
-          "max_choices": {
-            "type": "integer",
-            "title": "Max Choices",
-            "default": 99999
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label",
-          "choices"
-        ],
-        "title": "MultiChoice"
-      },
-      "NewResponse": {
-        "properties": {
-          "task_name": {
-            "type": "string",
-            "title": "Task Name"
-          },
-          "initial_scores": {
-            "type": "object",
-            "title": "Initial Scores"
-          },
-          "conv_history": {
-            "type": "object",
-            "title": "Conv History"
-          },
-          "final_scores": {
-            "type": "object",
-            "title": "Final Scores"
-          },
-          "user_id": {
-            "type": "string",
-            "title": "User Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "task_name",
-          "user_id"
-        ],
-        "title": "NewResponse"
-      },
-      "NewUser": {
-        "properties": {
           "demographics": {
             "type": "object",
             "title": "Demographics"
@@ -866,324 +1087,166 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Task Type"
-          },
-          "id": {
-            "type": "string",
-            "title": "Id"
           }
         },
         "type": "object",
         "required": [
-          "id"
+          "email",
+          "hashed_password"
         ],
-        "title": "NewUser"
+        "title": "User"
       },
-      "Participant": {
+      "UserCreate": {
         "properties": {
-          "id": {
+          "email": {
             "type": "string",
-            "title": "Id"
+            "format": "email",
+            "title": "Email"
           },
-          "name": {
+          "password": {
             "type": "string",
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "Participant"
-      },
-      "Response": {
-        "properties": {
-          "task_name": {
-            "type": "string",
-            "title": "Task Name"
+            "title": "Password"
           },
-          "initial_scores": {
-            "type": "object",
-            "title": "Initial Scores"
-          },
-          "conv_history": {
-            "type": "object",
-            "title": "Conv History"
-          },
-          "final_scores": {
-            "type": "object",
-            "title": "Final Scores"
-          },
-          "user_id": {
-            "type": "string",
-            "title": "User Id"
-          },
-          "time_created": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Time Created"
-          }
-        },
-        "type": "object",
-        "required": [
-          "task_name",
-          "user_id",
-          "time_created"
-        ],
-        "title": "Response"
-      },
-      "SingleChoice": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
+          "is_active": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": {
-            "type": "boolean",
-            "title": "Optional",
-            "default": false
-          },
-          "choices": {
-            "items": {
-              "$ref": "#/components/schemas/Translations"
-            },
-            "type": "array",
-            "title": "Choices"
-          },
-          "shuffle": {
-            "type": "boolean",
-            "title": "Shuffle",
-            "description": "If `true`, choices are displayed in a random order to the user",
-            "default": false
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "single_choice"
-            ],
-            "const": "single_choice",
-            "title": "Type",
-            "default": "single_choice"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label",
-          "choices"
-        ],
-        "title": "SingleChoice"
-      },
-      "Slider": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": {
-            "type": "boolean",
-            "title": "Optional",
-            "default": false
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "slider"
-            ],
-            "const": "slider",
-            "title": "Type",
-            "default": "slider"
-          },
-          "steps": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Steps"
-          },
-          "labels": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/Translations"
-                },
-                "type": "array"
+                "type": "boolean"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Labels"
+            "title": "Is Active",
+            "default": true
+          },
+          "is_superuser": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Superuser",
+            "default": false
+          },
+          "is_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Verified",
+            "default": false
           }
         },
         "type": "object",
         "required": [
-          "id",
-          "label",
-          "steps"
+          "email",
+          "password"
         ],
-        "title": "Slider"
+        "title": "UserCreate"
       },
-      "TaskConfig": {
+      "UserRead": {
         "properties": {
           "id": {
             "type": "string",
+            "format": "uuid",
             "title": "Id"
           },
-          "name": {
-            "$ref": "#/components/schemas/Translations"
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
           },
-          "description": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
           },
-          "pages": {
-            "items": {
-              "$ref": "#/components/schemas/TaskPage"
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Pages"
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser",
+            "default": false
+          },
+          "is_verified": {
+            "type": "boolean",
+            "title": "Is Verified",
+            "default": false
           }
         },
         "type": "object",
         "required": [
           "id",
-          "name",
-          "pages"
+          "email"
         ],
-        "title": "TaskConfig"
+        "title": "UserRead"
       },
-      "TaskPage": {
+      "UserUpdate": {
         "properties": {
-          "columns": {
-            "type": "integer",
-            "title": "Columns",
-            "description": "The number of columns used to display the component groups",
-            "default": 1
-          },
-          "label": {
+          "password": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Translations"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "component_groups": {
-            "items": {
-              "$ref": "#/components/schemas/ComponentGroup"
-            },
-            "type": "array",
-            "title": "Component Groups"
-          }
-        },
-        "type": "object",
-        "required": [
-          "component_groups"
-        ],
-        "title": "TaskPage"
-      },
-      "Translations": {
-        "properties": {
-          "languages": {
-            "patternProperties": {
-              "^\\w{2}$": {
                 "type": "string"
-              }
-            },
-            "type": "object",
-            "title": "Languages",
-            "examples": [
+              },
               {
-                "en": "This is the english translation.",
-                "zh": "这是中文翻译。"
+                "type": "null"
               }
-            ]
+            ],
+            "title": "Password"
           },
-          "default": {
+          "email": {
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^\\w{2}$"
+                "format": "email"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Default",
-            "description": "Default language to display. Must must be in `languages`. Will display an arbitrary language if left `null`.",
-            "examples": [
-              "en",
-              "zh"
-            ]
+            "title": "Email"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "is_superuser": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Superuser"
+          },
+          "is_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Verified"
           }
         },
         "type": "object",
-        "required": [
-          "languages"
-        ],
-        "title": "Translations"
-      },
-      "User": {
-        "properties": {
-          "demographics": {
-            "type": "object",
-            "title": "Demographics"
-          },
-          "personality": {
-            "type": "object",
-            "title": "Personality"
-          },
-          "agent_type": {
-            "type": "string",
-            "title": "Agent Type"
-          },
-          "task_type": {
-            "type": "string",
-            "title": "Task Type"
-          },
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "is_admin": {
-            "type": "boolean",
-            "title": "Is Admin"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "is_admin"
-        ],
-        "title": "User"
+        "title": "UserUpdate"
       },
       "ValidationError": {
         "properties": {
@@ -1217,6 +1280,17 @@
           "type"
         ],
         "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "auth/login"
+          }
+        }
       }
     }
   }

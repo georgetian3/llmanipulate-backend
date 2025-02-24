@@ -4,5 +4,8 @@ asyncpg
 greenlet
 pytz
 openai
+fastapi-users[redis,oauth]
+fastapi_users_db_sqlmodel
+pydantic-settings
 sqladmin
 pydantic-extra-types[pycountry]

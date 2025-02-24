@@ -1,11 +1,10 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-# from apis.utils import NOT_AUTHENTICATED, check_auth
-from models.models import LLMInput, LLMResponse
-from services.chat import get_llm_response, config_agent
+from models.models import ChatHistory, LLMInput, LLMResponse
+from models.task_config.examples import sample_chat_history
+from services.chat import config_agent, get_llm_response
 from services.logging import get_logger
-from models.task_config import ChatHistory, sample_chat_history
 
 logger = get_logger(__name__)
 
