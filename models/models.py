@@ -53,16 +53,22 @@ class ChatParticipant(SQLModel, table=True):
     participant: UUID4 = Field(primary_key=True)
 
 
-class ChatMessage(UuidId, table=True):
-    chat: UUID4 = Field(foreign_key="chathistory.id")
+class ChatMessageBase(UuidId):
     sender: UUID4
     message: str
     timestamp: datetime
 
 
-class ChatHistory(UuidId, table=True): ...
+class ChatMessageRead(ChatMessageBase): ...
+
+
+class ChatMessage(ChatMessageBase, table=True):
+    chat: UUID4 = Field(foreign_key="chathistory.id")
+
+
+class ChatHistoryRead(UuidId, table=True): ...
 
 
 class ChatHistoryRead(BaseModel):
     id: UUID4
-    messages: list[ChatMessage]
+    messages: list[ChatMessageRead]

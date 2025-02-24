@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from models.task_config.task_config import TaskConfig, sample_task_config
+from models.task_config.examples import sample_task_config
+from models.task_config.task_config import TaskConfig
 
 router = APIRouter(prefix="/tasks")
 

@@ -10,11 +10,12 @@ from httpx_oauth.clients.google import GoogleOAuth2
 
 from apis.chat import router as chat_router
 from apis.responses import router as response_router
+from apis.tasks import router as task_router
 from apis.users import router as user_router
-from settings import settings
 from models.database import _DATABASE
 from models.user import UserCreate, UserRead, UserUpdate
 from services.user import auth_backend, fastapi_users
+from settings import settings
 
 
 @asynccontextmanager
@@ -35,9 +36,10 @@ api.add_middleware(
 )
 
 
-api.include_router(response_router)
-api.include_router(chat_router)
-api.include_router(user_router)
+api.include_router(response_router, tags=["responses"])
+api.include_router(chat_router, tags=["chats"])
+api.include_router(user_router, tags=["users"])
+api.include_router(task_router, tags=["tasks"])
 
 
 if settings.oauth_google_client_id and settings.oauth_google_client_secret:
