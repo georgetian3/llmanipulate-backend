@@ -36,6 +36,7 @@ class User(SQLModelBaseUserDB, table=True):
         """Return the count of responses linked to the user."""
         return len(self.responses)
 
+
 UserID = UUID4
 
 

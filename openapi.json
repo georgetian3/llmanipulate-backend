@@ -5,6 +5,57 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/responses": {
+      "post": {
+        "tags": [
+          "responses"
+        ],
+        "summary": "Create Response",
+        "operationId": "create_response",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskResponse"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/chats/{id}": {
       "get": {
         "tags": [
@@ -204,6 +255,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TaskConfig"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}/response": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task",
+        "operationId": "get_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
                 }
               }
             }
@@ -918,7 +1011,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "password"
+                "pattern": "^password$"
               },
               {
                 "type": "null"
@@ -1058,9 +1151,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "chat"
-            ],
             "const": "chat",
             "title": "Type",
             "default": "chat"
@@ -1249,9 +1339,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "free_text"
-            ],
             "const": "free_text",
             "title": "Type",
             "default": "free_text"
@@ -1275,6 +1362,10 @@
           "label"
         ],
         "title": "FreeText"
+      },
+      "FreeTextResponse": {
+        "type": "string",
+        "title": "FreeTextResponse"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1332,9 +1423,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "multi_choice"
-            ],
             "const": "multi_choice",
             "title": "Type",
             "default": "multi_choice"
@@ -1357,6 +1445,13 @@
           "choices"
         ],
         "title": "MultiChoice"
+      },
+      "MultiChoiceResponse": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array",
+        "title": "MultiChoiceResponse"
       },
       "Participant": {
         "properties": {
@@ -1420,9 +1515,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "single_choice"
-            ],
             "const": "single_choice",
             "title": "Type",
             "default": "single_choice"
@@ -1435,6 +1527,10 @@
           "choices"
         ],
         "title": "SingleChoice"
+      },
+      "SingleChoiceResponse": {
+        "type": "integer",
+        "title": "SingleChoiceResponse"
       },
       "Slider": {
         "properties": {
@@ -1466,9 +1562,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "slider"
-            ],
             "const": "slider",
             "title": "Type",
             "default": "slider"
@@ -1500,6 +1593,10 @@
           "steps"
         ],
         "title": "Slider"
+      },
+      "SliderResponse": {
+        "type": "integer",
+        "title": "SliderResponse"
       },
       "TaskConfig": {
         "properties": {
@@ -1575,6 +1672,31 @@
             "type": "integer",
             "title": "Task"
           },
+          "draft": {
+            "type": "boolean",
+            "title": "Draft",
+            "default": false
+          },
+          "response": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/SliderResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeTextResponse"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Response"
+          },
           "creator": {
             "type": "string",
             "format": "uuid4",
@@ -1584,6 +1706,7 @@
         "type": "object",
         "required": [
           "task",
+          "response",
           "creator"
         ],
         "title": "TaskResponse"

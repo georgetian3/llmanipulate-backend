@@ -14,10 +14,10 @@ from fastapi_users.exceptions import UserAlreadyExists
 from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import select
 
-from settings import settings
 from models.database import get_async_session, get_session, get_user_db
 from models.user import User, UserCreate
 from services.logging import get_logger
+from settings import settings
 
 logger = get_logger(__name__)
 
@@ -64,7 +64,8 @@ bearer_transport = BearerTransport(tokenUrl="auth/login")
 def get_redis_strategy() -> RedisStrategy:
     return RedisStrategy(
         redis.asyncio.from_url(
-            f"redis://{settings.redis_host}:{settings.redis_port}", decode_responses=True
+            f"redis://{settings.redis_host}:{settings.redis_port}",
+            decode_responses=True,
         ),
         lifetime_seconds=3600,
     )

@@ -1,9 +1,10 @@
-from typing import Self
+from abc import ABC, abstractmethod
+from typing import ClassVar, Self
 
-from pydantic import UUID4, BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 from pydantic_extra_types.language_code import LanguageAlpha2
 
-ID = UUID4
+from models.task_config.responses import ComponentResponseType
 
 
 class Translations(BaseModel):
@@ -23,9 +24,16 @@ class Translations(BaseModel):
         return self
 
 
+ComponentIdType = str | int
 
 
 class BaseComponent(BaseModel):
-    id: str | int
+    id: ComponentIdType
     label: Translations | None
     optional: bool = False
+    response_class: ClassVar[ComponentResponseType]
+
+    @abstractmethod
+    def validate_response(self, response: ComponentResponseType) -> str | None:
+        if not isinstance(response, self.response_class):
+            return f"Response not instance of {self.response_class}"
