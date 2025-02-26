@@ -99,6 +99,12 @@ async def create_user(user: UserCreate) -> User | None:
                     return user
     except UserAlreadyExists:
         logger.info(f"User {user.email} already exists")
+        async with get_session() as session:
+            return (
+                (await session.execute(select(User).where(User.email == user.email)))
+                .unique()
+                .scalar_one_or_none()
+            )
 
 
 AGENT_TYPE_MAPPING = {0: "Neutral", 1: "Neutral_Goal", 2: "Manipulator"}

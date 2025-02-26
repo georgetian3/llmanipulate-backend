@@ -1,12 +1,7 @@
-# from datetime import UTC, datetime
 
-# from sqlalchemy.future import select
+from services.logging import get_logger
 
-# from models.database import get_session
-# from models.user import User
-# from services.logging import get_logger
-
-# logger = get_logger(__name__)
+logger = get_logger(__name__)
 
 
 # async def create_response(

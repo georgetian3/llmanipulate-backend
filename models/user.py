@@ -29,12 +29,7 @@ class User(SQLModelBaseUserDB, table=True):
     agent_type: int = Field(default_factory=int, ge=0, le=2)
     task_type: int = Field(default_factory=int, ge=0, le=1)
 
-    responses: list["Response"] = Relationship(back_populates="user")
 
-    @property
-    def response_count(self) -> int:
-        """Return the count of responses linked to the user."""
-        return len(self.responses)
 
 
 UserID = UUID4

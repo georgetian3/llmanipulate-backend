@@ -1,7 +1,7 @@
 import re
 from typing import ClassVar, Literal, Self
 
-from pydantic import Field, RootModel, model_validator
+from pydantic import Field, model_validator
 
 from models.task_config.base_component import BaseComponent, Translations
 from models.task_config.chat import Chat
@@ -15,7 +15,7 @@ from models.task_config.responses import (
 
 
 class Choice(BaseComponent):
-    choices: list[Translations]
+    choices: list[Translations | str]
     shuffle: bool = Field(
         default=False,
         description="If `true`, choices are displayed in a random order to the user",
@@ -27,10 +27,9 @@ class SingleChoice(Choice):
     response_class: ClassVar[ComponentResponseType] = SingleChoiceResponse
 
     def validate_response(self, response):
-        if x := super().validate_response(response):
-            return x
+        super().validate_response(response)
         if not 0 <= response < len(self.choices):
-            return f"Choice must be in range [0, {len(self.choices)})"
+            raise ValueError(f"Choice must be in range [0, {len(self.choices)})")
 
 
 class MultiChoice(Choice):
@@ -52,30 +51,28 @@ class MultiChoice(Choice):
         return self
 
     def validate_response(self, response):
-        if x := super().validate_response(response):
-            return x
+        super().validate_response(response)
         if len(set(response)) != len(response):
-            return "Response cannot contain duplicates"
+            raise ValueError("Response cannot contain duplicates")
         if not self.min_choices <= len(response) <= self.max_choices:
-            return f"Number of choices must be in range [{self.min_choices}, {len(self.max_choices)}]"
+            raise ValueError(
+                f"Number of choices must be in range [{self.min_choices}, {len(self.max_choices)}]"
+            )
         for choice in response:
             if not 0 <= choice < len(self.choices):
-                return f"Choice must be in range [0, {len(self.choices)}]"
+                raise ValueError(f"Choice must be in range [0, {len(self.choices)}]")
 
 
 class Slider(BaseComponent):
     type: Literal["slider"] = "slider"
     steps: int = Field(ge=1)
-    labels: list[Translations] | None = None
+    labels: list[Translations | str] | None = None
     response_class: ClassVar[ComponentResponseType] = SliderResponse
 
     @model_validator(mode="after")
     def validate_labels(self) -> Self:
         if self.labels is None:
-            self.labels = [
-                Translations(languages={"en": str(i)}, default="en")
-                for i in range(self.steps)
-            ]
+            self.labels = [str(i) for i in range(self.steps)]
         if len(self.labels) > 0 and len(self.labels) != self.steps:
             raise ValueError(
                 f"Number of labels ({self.labels}) must equal number of steps ({self.steps})"
@@ -83,10 +80,9 @@ class Slider(BaseComponent):
         return self
 
     def validate_response(self, response):
-        if x := super().validate_response(response):
-            return x
+        super().validate_response(response)
         if not 0 <= response < self.steps:
-            return f"Slider value must be in range [0, {self.steps}]"
+            raise ValueError(f"Slider value must be in range [0, {self.steps}]")
 
 
 class FreeText(BaseComponent):
@@ -98,10 +94,9 @@ class FreeText(BaseComponent):
     response_class: ClassVar[ComponentResponseType] = FreeTextResponse
 
     def validate_response(self, response):
-        if x := super().validate_response(response):
-            return x
+        super().validate_response(response)
         if self.regex and not re.search(self.regex, response):
-            return f"Text input does not satisfy regex"
+            raise ValueError("Text input does not satisfy regex")
 
 
 ComponentType = SingleChoice | MultiChoice | Slider | FreeText | Chat

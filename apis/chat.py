@@ -1,7 +1,8 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from models.models import ChatHistoryRead, LLMInput, LLMResponse
+from models.chat import ChatHistoryRead
+from models.models import LLMInput, LLMResponse
 from models.task_config.examples import sample_chat_history
 from services.chat import config_agent, get_llm_response
 from services.logging import get_logger

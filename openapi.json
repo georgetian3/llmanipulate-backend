@@ -230,21 +230,27 @@
         }
       }
     },
-    "/tasks/{id}": {
+    "/tasks/{task_id}": {
       "get": {
         "tags": [
           "tasks"
         ],
         "summary": "Get Task",
         "operationId": "get_task",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
-            "name": "id",
+            "name": "task_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid4",
+              "title": "Task Id"
             }
           }
         ],
@@ -254,7 +260,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskConfig"
+                  "$ref": "#/components/schemas/TaskRead"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -272,21 +288,27 @@
         }
       }
     },
-    "/tasks/{id}/response": {
+    "/tasks/{task_id}/response": {
       "get": {
         "tags": [
           "tasks"
         ],
-        "summary": "Get Task",
-        "operationId": "get_task",
+        "summary": "Get Task Response",
+        "operationId": "get_task_response",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
-            "name": "id",
+            "name": "task_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid4",
+              "title": "Task Id"
             }
           }
         ],
@@ -296,7 +318,63 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskResponse"
+                  "$ref": "#/components/schemas/TaskResponseRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Response",
+        "operationId": "get_task_response",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskResponseCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseRead"
                 }
               }
             }
@@ -1011,7 +1089,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "^password$"
+                "pattern": "password"
               },
               {
                 "type": "null"
@@ -1151,6 +1229,9 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "chat"
+            ],
             "const": "chat",
             "title": "Type",
             "default": "chat"
@@ -1203,26 +1284,30 @@
         },
         "type": "object",
         "required": [
-          "id",
           "messages"
         ],
         "title": "ChatHistoryRead"
       },
       "ChatMessageRead": {
         "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
           "id": {
             "type": "string",
             "format": "uuid4",
             "title": "Id"
           },
+          "chat": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat"
+          },
           "sender": {
             "type": "string",
             "format": "uuid4",
             "title": "Sender"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
           },
           "timestamp": {
             "type": "string",
@@ -1232,8 +1317,9 @@
         },
         "type": "object",
         "required": [
-          "sender",
           "message",
+          "chat",
+          "sender",
           "timestamp"
         ],
         "title": "ChatMessageRead"
@@ -1252,9 +1338,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "components": {
             "items": {
@@ -1309,6 +1399,19 @@
         ],
         "title": "ErrorModel"
       },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse"
+      },
       "FreeText": {
         "properties": {
           "id": {
@@ -1328,9 +1431,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "optional": {
             "type": "boolean",
@@ -1339,6 +1446,9 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "free_text"
+            ],
             "const": "free_text",
             "title": "Type",
             "default": "free_text"
@@ -1399,9 +1509,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "optional": {
             "type": "boolean",
@@ -1410,7 +1524,14 @@
           },
           "choices": {
             "items": {
-              "$ref": "#/components/schemas/Translations"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Translations"
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "type": "array",
             "title": "Choices"
@@ -1423,6 +1544,9 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "multi_choice"
+            ],
             "const": "multi_choice",
             "title": "Type",
             "default": "multi_choice"
@@ -1491,9 +1615,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "optional": {
             "type": "boolean",
@@ -1502,7 +1630,14 @@
           },
           "choices": {
             "items": {
-              "$ref": "#/components/schemas/Translations"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Translations"
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "type": "array",
             "title": "Choices"
@@ -1515,6 +1650,9 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "single_choice"
+            ],
             "const": "single_choice",
             "title": "Type",
             "default": "single_choice"
@@ -1551,9 +1689,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "optional": {
             "type": "boolean",
@@ -1562,6 +1704,9 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "slider"
+            ],
             "const": "slider",
             "title": "Type",
             "default": "slider"
@@ -1575,7 +1720,14 @@
             "anyOf": [
               {
                 "items": {
-                  "$ref": "#/components/schemas/Translations"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Translations"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
                 },
                 "type": "array"
               },
@@ -1600,12 +1752,16 @@
       },
       "TaskConfig": {
         "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
           "name": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Name"
           },
           "description": {
             "anyOf": [
@@ -1613,9 +1769,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Description"
           },
           "pages": {
             "items": {
@@ -1628,7 +1788,6 @@
         },
         "type": "object",
         "required": [
-          "id",
           "name",
           "pages"
         ],
@@ -1648,9 +1807,13 @@
                 "$ref": "#/components/schemas/Translations"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Label"
           },
           "component_groups": {
             "items": {
@@ -1665,6 +1828,41 @@
           "component_groups"
         ],
         "title": "TaskPage"
+      },
+      "TaskRead": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "creator": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Creator"
+          },
+          "config": {
+            "$ref": "#/components/schemas/TaskConfig"
+          },
+          "public": {
+            "type": "boolean",
+            "title": "Public",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "creator",
+          "config"
+        ],
+        "title": "TaskRead"
       },
       "TaskResponse": {
         "properties": {
@@ -1697,19 +1895,107 @@
             "type": "object",
             "title": "Response"
           },
-          "creator": {
+          "updated_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated Timestamp"
+          },
+          "created_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Timestamp"
+          },
+          "user": {
             "type": "string",
             "format": "uuid4",
-            "title": "Creator"
+            "title": "User"
           }
         },
         "type": "object",
         "required": [
           "task",
           "response",
-          "creator"
+          "user"
         ],
         "title": "TaskResponse"
+      },
+      "TaskResponseCreate": {
+        "properties": {
+          "task": {
+            "type": "integer",
+            "title": "Task"
+          },
+          "draft": {
+            "type": "boolean",
+            "title": "Draft",
+            "default": false
+          },
+          "response": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/SliderResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeTextResponse"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task",
+          "response"
+        ],
+        "title": "TaskResponseCreate"
+      },
+      "TaskResponseRead": {
+        "properties": {
+          "task": {
+            "type": "integer",
+            "title": "Task"
+          },
+          "draft": {
+            "type": "boolean",
+            "title": "Draft",
+            "default": false
+          },
+          "response": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/SliderResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeTextResponse"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task",
+          "response"
+        ],
+        "title": "TaskResponseRead"
       },
       "Translations": {
         "properties": {

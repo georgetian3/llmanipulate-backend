@@ -1,19 +1,41 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import UUID4
 
-from models.task import TaskResponse
+import services.tasks
+from apis.utils import create_docs
+from models.task import TaskRead, TaskResponseCreate, TaskResponseRead
 from models.task_config.examples import sample_task_config
-from models.task_config.task_config import TaskConfig
+from models.user import User
+from services.user import current_active_user
 
 router = APIRouter(prefix="/tasks")
 
 
-@router.get("/{id}", response_model=TaskConfig)
-async def get_task(id: str):
+NOT_FOUND = HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+FORBIDDEN = HTTPException(status.HTTP_403_FORBIDDEN, "Forbidden")
+
+
+@router.get("/{task_id}", response_model=TaskRead, responses=create_docs(FORBIDDEN))
+async def get_task(task_id: UUID4, user: User = Depends(current_active_user)):
+    task, authorized = await services.tasks.get_task(task_id, user.id)
+    if not authorized:
+        raise FORBIDDEN
+    if task is None:
+        raise NOT_FOUND
+    return TaskRead.model_validate(task)
+
+
+@router.get("/{task_id}/response", response_model=TaskResponseRead)
+async def get_task_response(task_id: UUID4, user: User = Depends(current_active_user)):
     return sample_task_config
 
 
-@router.get("/{id}/response", response_model=TaskResponse)
-async def get_task(id: str):
+@router.post("/{task_id}/response", response_model=TaskResponseRead)
+async def get_task_response(
+    task_id: UUID4,
+    response: TaskResponseCreate,
+    user: User = Depends(current_active_user),
+):
     return sample_task_config
 
 

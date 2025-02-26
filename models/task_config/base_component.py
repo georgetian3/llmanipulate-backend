@@ -29,11 +29,11 @@ ComponentIdType = str | int
 
 class BaseComponent(BaseModel):
     id: ComponentIdType
-    label: Translations | None
+    label: Translations | str | None
     optional: bool = False
     response_class: ClassVar[ComponentResponseType]
 
     @abstractmethod
-    def validate_response(self, response: ComponentResponseType) -> str | None:
+    def validate_response(self, response: ComponentResponseType) -> None:
         if not isinstance(response, self.response_class):
-            return f"Response not instance of {self.response_class}"
+            raise TypeError(f"Response not instance of {self.response_class}")

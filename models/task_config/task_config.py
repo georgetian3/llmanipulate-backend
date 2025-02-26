@@ -15,12 +15,12 @@ class ColumnsMixin(BaseModel):
 
 
 class ComponentGroup(ColumnsMixin):
-    label: Translations | None = None
+    label: Translations | str | None = None
     components: list[ComponentType]
 
 
 class TaskPage(ColumnsMixin):
-    label: Translations | None = None
+    label: Translations | str | None = None
     component_groups: list[ComponentGroup]
     columns: int = Field(
         default=1,
@@ -38,10 +38,9 @@ class Constraint:
 
 
 class TaskConfig(BaseModel):
-    id: str
-    name: Translations
-    description: Translations | None = None
-    pages: list[TaskPage] = Field(min_length=1)
+    name: Translations | str
+    description: Translations | str | None = None
+    pages: list[TaskPage] = []
     # constraints: list[Constraint]
 
     @model_validator(mode="after")
