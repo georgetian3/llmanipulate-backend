@@ -230,6 +230,31 @@
         }
       }
     },
+    "/tasks/": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Tasks",
+        "operationId": "get_tasks",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TaskRead"
+                  },
+                  "type": "array",
+                  "title": "Response Get Tasks Tasks  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tasks/{task_id}": {
       "get": {
         "tags": [
@@ -1782,14 +1807,13 @@
               "$ref": "#/components/schemas/TaskPage"
             },
             "type": "array",
-            "minItems": 1,
-            "title": "Pages"
+            "title": "Pages",
+            "default": []
           }
         },
         "type": "object",
         "required": [
-          "name",
-          "pages"
+          "name"
         ],
         "title": "TaskConfig"
       },
@@ -1834,7 +1858,8 @@
           "id": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string",
+                "format": "uuid4"
               },
               {
                 "type": "null"
@@ -1858,7 +1883,6 @@
         },
         "type": "object",
         "required": [
-          "id",
           "creator",
           "config"
         ],
@@ -1867,7 +1891,8 @@
       "TaskResponse": {
         "properties": {
           "task": {
-            "type": "integer",
+            "type": "string",
+            "format": "uuid4",
             "title": "Task"
           },
           "draft": {
@@ -1922,7 +1947,8 @@
       "TaskResponseCreate": {
         "properties": {
           "task": {
-            "type": "integer",
+            "type": "string",
+            "format": "uuid4",
             "title": "Task"
           },
           "draft": {
@@ -1961,7 +1987,8 @@
       "TaskResponseRead": {
         "properties": {
           "task": {
-            "type": "integer",
+            "type": "string",
+            "format": "uuid4",
             "title": "Task"
           },
           "draft": {

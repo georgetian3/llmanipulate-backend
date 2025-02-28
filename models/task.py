@@ -1,16 +1,19 @@
+from uuid import uuid4
+
+from pydantic import UUID4
 from sqlmodel import JSON, Column, Field, SQLModel
 
-from models.models import CreatedMixin, SaveMixin, UpdatedMixin
+from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
 from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
 from models.user import UserID
 
-TaskID = int
+TaskID = UUID4
 
 
-class TaskBase(SaveMixin):
-    id: TaskID | None = Field(primary_key=True)
+class TaskBase(OrmMixin):
+    id: TaskID | None = Field(primary_key=True, default_factory=uuid4)
     creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
     config: TaskConfig = Field(sa_column=Column(JSON))
     public: bool = False
@@ -22,7 +25,7 @@ class TaskRead(TaskBase): ...
 class Task(TaskBase, table=True): ...
 
 
-class TaskParticipant(SaveMixin, table=True):
+class TaskParticipant(OrmMixin, table=True):
     task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
 
@@ -50,7 +53,7 @@ class TaskResponseRead(TaskResponseBase): ...
 
 
 class TaskResponse(
-    CreatedMixin, UpdatedMixin, TaskResponseCreate, SaveMixin, table=True
+    CreatedMixin, UpdatedMixin, TaskResponseCreate, OrmMixin, table=True
 ):
     __tablename__ = "task_response"
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")

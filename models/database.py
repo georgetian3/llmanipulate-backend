@@ -1,4 +1,3 @@
-import json
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -6,14 +5,11 @@ import pydantic_core
 import sqlalchemy
 import sqlalchemy.dialects
 import sqlalchemy.dialects.postgresql
-from fastapi import Depends
-from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-from models.user import OAuthAccount, User
 from services.logging import get_logger
 from settings import settings
 
@@ -86,7 +82,3 @@ async def get_session():
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with _DATABASE._async_session_maker() as session:
         yield session
-
-
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLModelUserDatabaseAsync(session, User, OAuthAccount)  # noqa: F405

@@ -14,8 +14,8 @@ from fastapi_users.exceptions import UserAlreadyExists
 from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from sqlalchemy import select
 
-from models.database import get_async_session, get_session, get_user_db
-from models.user import User, UserCreate
+from models.database import get_async_session, get_session
+from models.user import User, UserCreate, get_user_db
 from services.logging import get_logger
 from settings import settings
 
@@ -41,7 +41,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     verification_token_secret = settings.secret
 
     async def on_after_register(self, user: User, request: Request | None = None):
-        print(f"User {user.id} has registered.")
+        logger.info(f"User {user.id} {user.email} has registered.")
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Request | None = None
@@ -95,7 +95,6 @@ async def create_user(user: UserCreate) -> User | None:
             async with get_user_db_context(session) as user_db:
                 async with get_user_manager_context(user_db) as user_manager:
                     user = await user_manager.create(user)
-                    logger.info(f"User created {user}")
                     return user
     except UserAlreadyExists:
         logger.info(f"User {user.email} already exists")

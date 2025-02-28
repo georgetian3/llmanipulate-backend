@@ -13,6 +13,7 @@ from apis.responses import router as response_router
 from apis.tasks import router as task_router
 from apis.users import router as user_router
 from models.database import _DATABASE
+from models.fixtures import load_fixtures
 from models.user import UserCreate, UserRead, UserUpdate
 from services.user import auth_backend, fastapi_users
 from settings import settings
@@ -21,7 +22,8 @@ from settings import settings
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     await _DATABASE.create()
-    # await init_admin()
+    if settings.load_fixtures:
+        await load_fixtures()
     yield
 
 

@@ -29,7 +29,7 @@ async def create_user(new_user: UserCreate):
     response_model=list[User],
 )
 async def get_all_users():
-    return await services.user.get_all_users()
+    return await User.all()
 
 
 GET_USER_EXCEPTION = HTTPException(

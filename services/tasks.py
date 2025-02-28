@@ -117,37 +117,40 @@ lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool]:
+
+async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool | None]:
     """
     A user is authorized to to access a task iff they are the task's creator or is the task's participant
-    Returns tuple where the first element is a `Task` if it exists and the user is authorized to access it else `None`
-    1. `Task`: if the task exists and the user is authorized
-       `None`: otherwise, i.e. the user is unauthorized or the task doesn't exist
-    2. `True`: task exists and the user is authorized or the task doesn't exist
-       `False`: otherwise, i.e. the task exists and the user is unauthorized
+    Returns 2-tuple:
+    1. `Task`: the task exists
+       `None`: the task does not exist
+    2. `True`: the task exists and the user is authorized
+       `False`: the task exists and the user is unauthorized
+       `None`: the task does not exist
     """
-    # query = (
-    #     select(
-    #         Task,  # First column: Task object (or NULL if not found)
-    #         case(
-    #             [(Task.id.is_(None), False)],  # If task does not exist, user is not a participant
-    #             [(TaskParticipant.user.isnot(None), True)],  # User is a participant
-    #             else_=False  # User is not a participant
-    #         )
-    #     )
-    #     .outerjoin(TaskParticipant, (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id))
-    #     .where(Task.task_id == task_id)
-    # )
+    query = (
+        select(
+            Task,
+            TaskParticipant.user,
+        )
+        .outerjoin(
+            TaskParticipant,
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
+        )
+        .where(Task.id == task_id)
+    )
 
-    # async with get_session() as session:
-    #     result = (await session.execute(query)).first()
+    async with get_session() as session:
+        result: tuple[Task | None, UserID | None] = (
+            await session.execute(query)
+        ).first()
 
-    # task, is_participant = result if result else (None, False)  # Ensure NULL if no task
-    # authorized = not task or is_participant
-    return None, True
-    return task, authorized
-
-
+    task, is_participant = result if result else (None, None)
+    return task, (
+        None
+        if task is None
+        else (task.creator == user_id or is_participant is not None)
+    )
 
 
 async def get_task_response(task_id: TaskID, user_id: UserID) -> TaskResponse | None:

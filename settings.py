@@ -32,5 +32,6 @@ class Settings(BaseSettings):
     oauth_facebook_client_id: str | None = None
     oauth_facebook_client_secret: str | None = None
 
+    load_fixtures: bool = False
 
 settings = Settings()

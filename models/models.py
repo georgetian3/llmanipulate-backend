@@ -1,19 +1,7 @@
-from datetime import UTC, datetime
-from typing import Self
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel
 from sqlmodel import Field, SQLModel
-
-from models.database import get_session
-
-
-class CreatedMixin(SQLModel):
-    created_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-
-class UpdatedMixin(SQLModel):
-    updated_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Demographic(SQLModel, table=False):
@@ -40,16 +28,3 @@ class LLMResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
-
-class SaveMixin(SQLModel):
-
-    async def save(self) -> Self:
-        print('getting session')
-        async with get_session() as session:
-            print('adding')
-            session.add(self)
-            print('commiting')
-            await session.commit()
-            print('committed')
-            await session.refresh(self)
-        return self

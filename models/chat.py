@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4
 from sqlmodel import Field, SQLModel
 
-from models.models import SaveMixin, UuidId
+from models.mixins import OrmMixin
+from models.models import UuidId
 
 
 class ChatParticipant(SQLModel, table=True):
@@ -24,7 +25,7 @@ class ChatMessageRead(UuidId, ChatMessageCreate):
     timestamp: datetime
 
 
-class ChatMessage(ChatMessageRead, SaveMixin, table=True): ...
+class ChatMessage(ChatMessageRead, OrmMixin, table=True): ...
 
 
 class ChatHistoryBase(UuidId): ...
@@ -34,4 +35,4 @@ class ChatHistoryRead(UuidId):
     messages: list[ChatMessageRead]
 
 
-class ChatHistory(ChatHistoryBase, SaveMixin, table=True): ...
+class ChatHistory(ChatHistoryBase, OrmMixin, table=True): ...
