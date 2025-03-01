@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from pydantic import UUID4
+from pydantic import UUID4, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
@@ -39,6 +39,7 @@ class TaskResponseBase(SQLModel):
 
 
 class TaskResponseCreate(TaskResponseBase):
+    @model_validator(mode="after")
     def validate_response(self, task_config: TaskConfig) -> None:
         for component in task_config.components:
             component_response = self.response.get(component.id)

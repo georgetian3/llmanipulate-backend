@@ -3,7 +3,7 @@ from typing import ClassVar, Literal, Self
 
 from pydantic import Field, model_validator
 
-from models.task_config.base_component import BaseComponent, Translations
+from models.task_config.base_component import BaseComponent, Text, Translations
 from models.task_config.chat import Chat
 from models.task_config.responses import (
     ComponentResponseType,
@@ -15,7 +15,7 @@ from models.task_config.responses import (
 
 
 class Choice(BaseComponent):
-    choices: list[Translations | str]
+    choices: list[Text]
     shuffle: bool = Field(
         default=False,
         description="If `true`, choices are displayed in a random order to the user",
@@ -66,7 +66,7 @@ class MultiChoice(Choice):
 class Slider(BaseComponent):
     type: Literal["slider"] = "slider"
     steps: int = Field(ge=1)
-    labels: list[Translations | str] | None = None
+    labels: list[Text] | None = None
     response_class: ClassVar[ComponentResponseType] = SliderResponse
 
     @model_validator(mode="after")
@@ -88,8 +88,11 @@ class Slider(BaseComponent):
 class FreeText(BaseComponent):
     type: Literal["free_text"] = "free_text"
     regex: str | None = Field(
-        default=None,
+        None,
         description="The regular expression pattern that the user's input must match. `null` performs no matching.",
+    )
+    regex_prompt: str | None = Field(
+        None, description="Prompt to be shown if the regex does not match"
     )
     response_class: ClassVar[ComponentResponseType] = FreeTextResponse
 

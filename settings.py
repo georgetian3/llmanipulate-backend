@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,8 +24,10 @@ class Settings(BaseSettings):
 
     secret: str
 
-    redis_host: str
-    redis_port: int
+    auth_strategy: Literal["jwt", "redis"] = "jwt"
+
+    redis_host: str | None = None
+    redis_port: int | None = None
 
     oauth_google_client_id: str | None = None
     oauth_google_client_secret: str | None = None

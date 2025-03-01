@@ -1,17 +1,13 @@
-import json
-import random
-import string
-
-from sqlmodel import case, select, union
+from sqlmodel import select
 
 from models.database import get_session
 from models.task import Task, TaskID, TaskParticipant, TaskResponse
-from models.user import User, UserID
+from models.user import UserID
 
-random.seed(42)
+# random.seed(42)
 
-letters = string.ascii_uppercase
-lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))
+# letters = string.ascii_uppercase
+# lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))
 
 
 # class Task:
@@ -117,10 +113,12 @@ lang_dict = json.load(open("services/data/lang.json", "r", encoding="utf-8"))
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-
 async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool | None]:
     """
-    A user is authorized to to access a task iff they are the task's creator or is the task's participant
+    A user is authorized to to access a task if they satisfy at least one of the following requirements:
+    1. the user is the task's creator
+    2. the user is the task's participant
+    3. the task is public
     Returns 2-tuple:
     1. `Task`: the task exists
        `None`: the task does not exist
@@ -149,7 +147,7 @@ async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool 
     return task, (
         None
         if task is None
-        else (task.creator == user_id or is_participant is not None)
+        else (task.public or task.creator == user_id or is_participant is not None)
     )
 
 

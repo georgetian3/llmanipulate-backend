@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import UUID4
 
-from models.task import TaskResponse
+from models.task import TaskResponse, TaskResponseCreate
 
 # import services.responses
 # from models.response import Response, ResponseCreate
@@ -12,9 +12,12 @@ from models.task import TaskResponse
 
 router = APIRouter(prefix="/responses")
 
+@router.get("")
+async def get_responses():
+    return await TaskResponse.all()
 
-@router.post("")
-async def create_response(task_id: UUID4, response: TaskResponse): ...
+# @router.post("")
+# async def create_response(task_id: UUID4, response: TaskResponseCreate): ...
 
 
 # @router.post(

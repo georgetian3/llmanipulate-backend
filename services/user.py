@@ -1,13 +1,16 @@
+from collections.abc import Callable
 import contextlib
 import uuid
 from uuid import UUID
 
 import redis
+import redis.client
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
+    JWTStrategy,
     RedisStrategy,
 )
 from fastapi_users.exceptions import UserAlreadyExists
@@ -61,20 +64,33 @@ async def get_user_manager(user_db: SQLModelUserDatabaseAsync = Depends(get_user
 bearer_transport = BearerTransport(tokenUrl="auth/login")
 
 
-def get_redis_strategy() -> RedisStrategy:
+def jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
+
+
+def redis_strategy() -> RedisStrategy:
+    redis_url = f"redis://{settings.redis_host}:{settings.redis_port}"
+    # ensure redis is accessible before starting server
+    redis.from_url(redis_url).ping()
     return RedisStrategy(
         redis.asyncio.from_url(
-            f"redis://{settings.redis_host}:{settings.redis_port}",
+            redis_url,
             decode_responses=True,
         ),
         lifetime_seconds=3600,
     )
 
 
+def strategy() -> Callable[[], JWTStrategy] | Callable[[], RedisStrategy]:
+    if settings.auth_strategy == "jwt":
+        return jwt_strategy
+    return redis_strategy
+
+
 auth_backend = AuthenticationBackend(
     name="auth",
     transport=bearer_transport,
-    get_strategy=get_redis_strategy,
+    get_strategy=strategy(),
 )
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
@@ -100,10 +116,8 @@ async def create_user(user: UserCreate) -> User | None:
         logger.info(f"User {user.email} already exists")
         async with get_session() as session:
             return (
-                (await session.execute(select(User).where(User.email == user.email)))
-                .unique()
-                .scalar_one_or_none()
-            )
+                await session.execute(select(User).where(User.email == user.email))
+            ).scalar_one_or_none()
 
 
 AGENT_TYPE_MAPPING = {0: "Neutral", 1: "Neutral_Goal", 2: "Manipulator"}
