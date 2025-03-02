@@ -1379,7 +1379,7 @@
           "label": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+                "$ref": "#/components/schemas/Translations"
               },
               {
                 "type": "null"
@@ -1466,7 +1466,7 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+            "$ref": "#/components/schemas/Translations"
           },
           "optional": {
             "type": "boolean",
@@ -1545,7 +1545,7 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+            "$ref": "#/components/schemas/Translations"
           },
           "optional": {
             "type": "boolean",
@@ -1554,7 +1554,7 @@
           },
           "choices": {
             "items": {
-              "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+              "$ref": "#/components/schemas/Translations"
             },
             "type": "array",
             "title": "Choices"
@@ -1619,17 +1619,6 @@
         ],
         "title": "Participant"
       },
-      "RootModel_Union_Translations__str__": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/Translations"
-          },
-          {
-            "type": "string"
-          }
-        ],
-        "title": "RootModel[Union[Translations, str]]"
-      },
       "SingleChoice": {
         "properties": {
           "id": {
@@ -1644,7 +1633,7 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+            "$ref": "#/components/schemas/Translations"
           },
           "optional": {
             "type": "boolean",
@@ -1653,7 +1642,7 @@
           },
           "choices": {
             "items": {
-              "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+              "$ref": "#/components/schemas/Translations"
             },
             "type": "array",
             "title": "Choices"
@@ -1700,7 +1689,7 @@
             "title": "Id"
           },
           "label": {
-            "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+            "$ref": "#/components/schemas/Translations"
           },
           "optional": {
             "type": "boolean",
@@ -1725,7 +1714,7 @@
             "anyOf": [
               {
                 "items": {
-                  "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+                  "$ref": "#/components/schemas/Translations"
                 },
                 "type": "array"
               },
@@ -1751,12 +1740,12 @@
       "TaskConfig": {
         "properties": {
           "name": {
-            "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+            "$ref": "#/components/schemas/Translations"
           },
           "description": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/RootModel_Union_Translations__str__"
+                "$ref": "#/components/schemas/Translations"
               },
               {
                 "type": "null"

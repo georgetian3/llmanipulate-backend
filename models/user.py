@@ -17,7 +17,8 @@ from models.mixins import OrmMixin
 
 
 class UserRead(schemas.BaseUser[UUID]):
-    pass
+    id: UUID4
+    name: str
 
 
 class UserCreate(schemas.BaseUserCreate):
@@ -32,6 +33,7 @@ class User(SQLModelBaseUserDB, OrmMixin, table=True):
     # oauth_accounts: list["OAuthAccount"] = Relationship(
     #     back_populates="user", sa_relationship_kwargs={"lazy": "joined"}
     # )
+    name: str | None = None
 
     demographics: dict = Field(default_factory=dict, sa_column=Column(JSON))
     personality: dict = Field(default_factory=dict, sa_column=Column(JSON))

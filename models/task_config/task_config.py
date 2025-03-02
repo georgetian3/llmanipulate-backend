@@ -3,7 +3,7 @@ from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
 
-from models.task_config.base_component import Text, Translations
+from models.task_config.base_component import Translations
 from models.task_config.components import ComponentType
 
 
@@ -15,7 +15,7 @@ class ColumnsMixin(BaseModel):
 
 
 class ComponentGroup(ColumnsMixin):
-    label: Text | None = None
+    label: Translations | None = None
     components: list[ComponentType]
 
 
@@ -38,8 +38,8 @@ class Constraint:
 
 
 class TaskConfig(BaseModel):
-    name: Text
-    description: Text | None = None
+    name: Translations
+    description: Translations | None = None
     # use default factory so that field generated as non-null in typescript
     pages: list[TaskPage]
     # constraints: list[Constraint]

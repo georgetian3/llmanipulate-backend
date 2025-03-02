@@ -50,4 +50,4 @@ async def get_all_users_responses():
 async def get_my_tasks():
     all_tasks = await Task.all()
     all_tasks = [*all_tasks, *all_tasks]
-    return all_tasks
+    return [TaskRead.model_validate(task) for task in all_tasks]

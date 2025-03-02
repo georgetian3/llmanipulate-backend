@@ -2,7 +2,7 @@ from sqlmodel import select
 
 from models.database import get_session
 from models.task import Task, TaskID, TaskParticipant, TaskResponse
-from models.user import UserID
+from models.user import User, UserID
 
 # random.seed(42)
 
@@ -111,6 +111,20 @@ from models.user import UserID
 
 #         self.hidden_incentive = option_letters[list_ids.index(self.hidden_incentive)]
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
+
+
+async def get_creator_tasks(creator_id: UserID) -> list[Task]: ...
+
+
+async def get_participant_tasks(participant_id: UserID) -> list[Task]:
+    query = select(Task, User).join(
+        TaskParticipant, 
+        ((Task.id == TaskParticipant.task) & (TaskParticipant.user == participant_id)),
+    )
+    async with get_session() as session:
+        results = list((await session.execute(query)).scalars().all())
+    print(results)
+
 
 
 async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool | None]:

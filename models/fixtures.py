@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from models.task import Task, TaskParticipant
+from models.task_config.base_component import Translations
 from models.task_config.task_config import TaskConfig
 from models.user import UserCreate
 from services.user import create_user
@@ -17,7 +18,7 @@ async def load_fixtures():
     sample_task = Task(
         id=UUID("b9b5251db0c6485ba33f94e416aa77f0"),
         creator=sample_creator.id,
-        config=TaskConfig(name="sample task", pages=[]),
+        config=TaskConfig(name=Translations(languages={"en": "sample task"}), pages=[]),
     )
 
     try:

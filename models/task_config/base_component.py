@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import ClassVar, Self
 
-from pydantic import BaseModel, Field, RootModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 from pydantic_extra_types.language_code import LanguageAlpha2
 
 from models.task_config.responses import ComponentResponseType
@@ -24,14 +24,14 @@ class Translations(BaseModel):
         return self
 
 
-Text = RootModel[Translations | str]
+
 
 ComponentIdType = str | int
 
 
 class BaseComponent(BaseModel):
     id: ComponentIdType
-    label: Text
+    label: Translations
     optional: bool = False
     response_class: ClassVar[ComponentResponseType]
 

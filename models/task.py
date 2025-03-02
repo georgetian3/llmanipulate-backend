@@ -7,22 +7,23 @@ from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
 from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
+from models.user import UserID, UserRead
 
 TaskID = UUID4
 
 
 class TaskBase(OrmMixin):
     id: TaskID | None = Field(primary_key=True, default_factory=uuid4)
-    creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
     config: TaskConfig = Field(sa_column=Column(JSON))
     public: bool = False
 
 
-class TaskRead(TaskBase): ...
+class TaskRead(TaskBase):
+    creator: UserRead
 
 
-class Task(TaskBase, table=True): ...
+class Task(TaskBase, table=True):
+    creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
 
 
 class TaskParticipant(OrmMixin, table=True):
