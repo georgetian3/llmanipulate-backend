@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from pydantic import UUID4, model_validator
+from pydantic import UUID4, BaseModel, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
@@ -21,6 +21,9 @@ class TaskBase(OrmMixin):
 class TaskRead(TaskBase):
     creator: UserRead
 
+class MyTasks(BaseModel):
+    created: list[TaskRead]
+    participating: list[TaskRead]
 
 class Task(TaskBase, table=True):
     creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")

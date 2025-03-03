@@ -211,16 +211,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TaskRead"
-                  },
-                  "type": "array",
-                  "title": "Response Get My Tasks Users Me Tasks Get"
+                  "$ref": "#/components/schemas/MyTasks"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/tasks/": {
@@ -1600,6 +1601,30 @@
         "type": "array",
         "title": "MultiChoiceResponse"
       },
+      "MyTasks": {
+        "properties": {
+          "created": {
+            "items": {
+              "$ref": "#/components/schemas/TaskRead"
+            },
+            "type": "array",
+            "title": "Created"
+          },
+          "participating": {
+            "items": {
+              "$ref": "#/components/schemas/TaskRead"
+            },
+            "type": "array",
+            "title": "Participating"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created",
+          "participating"
+        ],
+        "title": "MyTasks"
+      },
       "Participant": {
         "properties": {
           "id": {
@@ -1817,11 +1842,6 @@
             ],
             "title": "Id"
           },
-          "creator": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Creator"
-          },
           "config": {
             "$ref": "#/components/schemas/TaskConfig"
           },
@@ -1829,12 +1849,15 @@
             "type": "boolean",
             "title": "Public",
             "default": false
+          },
+          "creator": {
+            "$ref": "#/components/schemas/UserRead"
           }
         },
         "type": "object",
         "required": [
-          "creator",
-          "config"
+          "config",
+          "creator"
         ],
         "title": "TaskRead"
       },
@@ -2046,6 +2069,17 @@
             "title": "Is Verified",
             "default": false
           },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
           "demographics": {
             "type": "object",
             "title": "Demographics"
@@ -2133,7 +2167,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "email": {
@@ -2155,6 +2189,17 @@
             "type": "boolean",
             "title": "Is Verified",
             "default": false
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           }
         },
         "type": "object",

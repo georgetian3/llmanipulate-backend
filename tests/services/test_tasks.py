@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 
 from models.database import _DATABASE
-from services.tasks import get_participant_tasks, get_task
+from services.tasks import get_task, get_user_tasks
 from tests.conftest import sample_data
 
 
@@ -20,5 +20,5 @@ async def test_get_tasks(sample_data):
 
 async def test_get_participant_tasks(sample_data):
     creator, participant, task, task_participant = sample_data
-    await get_participant_tasks(participant.id)
+    await get_user_tasks(participant.id)
 

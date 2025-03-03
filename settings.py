@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,5 +38,7 @@ class Settings(BaseSettings):
     oauth_facebook_client_secret: str | None = None
 
     load_fixtures: bool = False
+
+    access_token_lifetime_seconds: int = (datetime(9999, 12, 31) - datetime.now()).seconds
 
 settings = Settings()

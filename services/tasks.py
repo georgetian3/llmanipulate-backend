@@ -1,7 +1,8 @@
+from pprint import pprint
 from sqlmodel import select
 
 from models.database import get_session
-from models.task import Task, TaskID, TaskParticipant, TaskResponse
+from models.task import MyTasks, Task, TaskID, TaskParticipant, TaskRead, TaskResponse
 from models.user import User, UserID
 
 # random.seed(42)
@@ -113,18 +114,30 @@ from models.user import User, UserID
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-async def get_creator_tasks(creator_id: UserID) -> list[Task]: ...
 
-
-async def get_participant_tasks(participant_id: UserID) -> list[Task]:
-    query = select(Task, User).join(
-        TaskParticipant, 
-        ((Task.id == TaskParticipant.task) & (TaskParticipant.user == participant_id)),
+async def get_user_tasks(user_id: UserID) -> MyTasks:
+    query = (
+        select(Task, User, TaskParticipant)
+        .join(User, Task.creator == User.id)
+        .join(
+            TaskParticipant,
+            (
+                (Task.id == TaskParticipant.task)
+                & (TaskParticipant.user == user_id)
+            ), isouter=True
+        )
     )
     async with get_session() as session:
-        results = list((await session.execute(query)).scalars().all())
-    print(results)
+        results: list[tuple[Task, User, TaskParticipant]] = list((await session.execute(query)).all())
 
+    my_tasks = MyTasks(created=[], participating=[])
+    for task, user, task_participant in results:
+        task_read = TaskRead.model_validate(task, update={"creator": user})
+        if task.creator == user_id:
+            my_tasks.created.append(task_read)
+        if task_participant:
+            my_tasks.participating.append(task_read)
+    return my_tasks
 
 
 async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool | None]:

@@ -1,6 +1,6 @@
-from collections.abc import Callable
 import contextlib
 import uuid
+from collections.abc import Callable
 from uuid import UUID
 
 import redis
@@ -65,7 +65,7 @@ bearer_transport = BearerTransport(tokenUrl="auth/login")
 
 
 def jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
+    return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.access_token_lifetime_seconds)
 
 
 def redis_strategy() -> RedisStrategy:
@@ -77,7 +77,7 @@ def redis_strategy() -> RedisStrategy:
             redis_url,
             decode_responses=True,
         ),
-        lifetime_seconds=3600,
+        lifetime_seconds=settings.access_token_lifetime_seconds,
     )
 
 

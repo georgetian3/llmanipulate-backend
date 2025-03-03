@@ -18,7 +18,7 @@ from models.mixins import OrmMixin
 
 class UserRead(schemas.BaseUser[UUID]):
     id: UUID4
-    name: str
+    name: str | None = None
 
 
 class UserCreate(schemas.BaseUserCreate):

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 import services.user
-from models.task import Task, TaskRead, TaskResponse
+from models.task import MyTasks, Task, TaskRead, TaskResponse
 from models.user import User, UserCreate
+from services.tasks import get_user_tasks
+from services.user import current_active_user
 
 router = APIRouter(prefix="/users")
 
@@ -24,7 +26,10 @@ async def create_user(new_user: UserCreate):
     return user
 
 
-@router.get("", response_model=list[User],)
+@router.get(
+    "",
+    response_model=list[User],
+)
 async def get_all_users():
     return await User.all()
 
@@ -46,8 +51,7 @@ async def get_user(user_id: str):
 async def get_all_users_responses():
     return await services.user.get_user_responses()
 
-@router.get("/me/tasks", response_model=list[TaskRead])
-async def get_my_tasks():
-    all_tasks = await Task.all()
-    all_tasks = [*all_tasks, *all_tasks]
-    return [TaskRead.model_validate(task) for task in all_tasks]
+
+@router.get("/me/tasks", response_model=MyTasks)
+async def get_my_tasks(user: User = Depends(current_active_user)):
+    return await get_user_tasks(user.id)
