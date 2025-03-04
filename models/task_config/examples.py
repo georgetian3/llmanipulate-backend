@@ -194,7 +194,7 @@ sample_task_config = TaskConfig(
             label=Translations(languages={"en": "Page title"}),
             columns=2,
             component_groups=[
-                ComponentGroup(columns=1, components=[Chat(id="chat")]),
+                ComponentGroup(columns=1, components=[Chat(id="chat", all_users=True)]),
                 ComponentGroup(
                     label=Translations(languages={"en": "Component group label"}),
                     columns=2,

@@ -1,7 +1,7 @@
 -r base.txt
 
 fastapi[standard]
-
+aiosqlite
 pytest
 pytest-asyncio
 # typing, linting, formatting etc

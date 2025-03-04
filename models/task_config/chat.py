@@ -18,14 +18,16 @@ class Agent(Participant):
     type: Literal["agent"] = "agent"
     endpoint: str
     api_key: str
+    # the chat history will be substituted into the string {chat_history}
     prompt: str
 
 
 class Chat(BaseComponent):
     type: Literal["chat"] = "chat"
     label: Translations | None = None
-    participants: list[Participant] = []
+    agents: list[Agent] = []
     order: list[UUID4] | None = []
+    all_users: bool
 
     def validate_response(self, response):
         return None

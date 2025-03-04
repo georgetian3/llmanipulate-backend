@@ -11,24 +11,19 @@ class Settings(BaseSettings):
 
     database_host: str | None = None
     database_port: int | None = None
-    database_name: str | None = None
+    database_name: str | None = "llmanipulate.sqlite3"
     database_username: str | None = None
     database_password: str | None = None
-    database_driver: str | None = None
+    database_driver: str | None = "sqlite+aiosqlite"
 
-    api_url: str
-    api_key: str
+    frontend_url: str = "http://localhost:3000"
 
-    frontend_url: str
-
-    admin_id: str | None = None
-
-    secret: str
+    secret: str = "SECRET"
 
     auth_strategy: Literal["jwt", "redis"] = "jwt"
 
-    redis_host: str | None = None
-    redis_port: int | None = None
+    redis_host: str | None = "localhost"
+    redis_port: int | None = 6379
 
     oauth_google_client_id: str | None = None
     oauth_google_client_secret: str | None = None
@@ -37,7 +32,7 @@ class Settings(BaseSettings):
     oauth_facebook_client_id: str | None = None
     oauth_facebook_client_secret: str | None = None
 
-    load_fixtures: bool = False
+    load_fixtures: bool = True
 
     access_token_lifetime_seconds: int = (datetime(9999, 12, 31) - datetime.now()).seconds
 
