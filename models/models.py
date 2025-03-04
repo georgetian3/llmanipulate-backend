@@ -1,11 +1,7 @@
-from datetime import datetime
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel
-from sqlalchemy import JSON, Column
-from sqlmodel import Field, Relationship, SQLModel
-
-from models.user import User, UserID
+from sqlmodel import Field, SQLModel
 
 
 class Demographic(SQLModel, table=False):
@@ -15,20 +11,6 @@ class Demographic(SQLModel, table=False):
 
 class UuidId(SQLModel):
     id: UUID4 = Field(primary_key=True, default_factory=uuid4)
-
-
-class NewResponse(SQLModel, table=False):
-    task_name: str
-    initial_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    conv_history: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    final_scores: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    user_id: UserID = Field(foreign_key="user.id")
-
-
-class Response(NewResponse, table=True):
-    id: int | None = Field(primary_key=True, exclude=True)
-    time_created: datetime
-    user: "User" = Relationship(back_populates="responses")  # Proper relationship
 
 
 class LLMInput(BaseModel):
@@ -46,29 +28,3 @@ class LLMResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
-
-
-class ChatParticipant(SQLModel, table=True):
-    chat: UUID4 = Field(primary_key=True, foreign_key="chathistory.id")
-    participant: UUID4 = Field(primary_key=True)
-
-
-class ChatMessageBase(UuidId):
-    sender: UUID4
-    message: str
-    timestamp: datetime
-
-
-class ChatMessageRead(ChatMessageBase): ...
-
-
-class ChatMessage(ChatMessageBase, table=True):
-    chat: UUID4 = Field(foreign_key="chathistory.id")
-
-
-class ChatHistoryRead(UuidId, table=True): ...
-
-
-class ChatHistoryRead(BaseModel):
-    id: UUID4
-    messages: list[ChatMessageRead]

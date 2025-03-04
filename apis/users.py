@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 import services.user
-from models.task import TaskResponse
+from models.task import MyTasks, Task, TaskRead, TaskResponse
 from models.user import User, UserCreate
+from services.tasks import get_user_tasks
+from services.user import current_active_user
 
-router = APIRouter()
+router = APIRouter(prefix="/users")
 
 
 CREATE_USER_EXCEPTION = HTTPException(
@@ -13,7 +15,7 @@ CREATE_USER_EXCEPTION = HTTPException(
 
 
 @router.put(
-    "/users",
+    "",
     description="Creates a new non-admin user. Requires an admin's user_id for authentication.",
     response_model=User,
 )
@@ -25,11 +27,11 @@ async def create_user(new_user: UserCreate):
 
 
 @router.get(
-    "/users",
+    "",
     response_model=list[User],
 )
 async def get_all_users():
-    return await services.user.get_all_users()
+    return await User.all()
 
 
 GET_USER_EXCEPTION = HTTPException(
@@ -37,10 +39,7 @@ GET_USER_EXCEPTION = HTTPException(
 )
 
 
-@router.get(
-    "/users/{user_id}",
-    response_model=User,
-)
+@router.get("{user_id}", response_model=User)
 async def get_user(user_id: str):
     user = await services.user.get_user(user_id)
     if user is None:
@@ -51,3 +50,8 @@ async def get_user(user_id: str):
 @router.get("/users_responses", response_model=list[TaskResponse])
 async def get_all_users_responses():
     return await services.user.get_user_responses()
+
+
+@router.get("/me/tasks", response_model=MyTasks)
+async def get_my_tasks(user: User = Depends(current_active_user)):
+    return await get_user_tasks(user.id)

@@ -26,3 +26,6 @@ class Chat(BaseComponent):
     label: Translations | None = None
     participants: list[Participant] = []
     order: list[UUID4] | None = []
+
+    def validate_response(self, response):
+        return None

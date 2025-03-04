@@ -1,8 +1,13 @@
+from datetime import datetime
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="allow"
+    )
 
     database_host: str | None = None
     database_port: int | None = None
@@ -20,8 +25,10 @@ class Settings(BaseSettings):
 
     secret: str
 
-    redis_host: str
-    redis_port: int
+    auth_strategy: Literal["jwt", "redis"] = "jwt"
+
+    redis_host: str | None = None
+    redis_port: int | None = None
 
     oauth_google_client_id: str | None = None
     oauth_google_client_secret: str | None = None
@@ -30,5 +37,8 @@ class Settings(BaseSettings):
     oauth_facebook_client_id: str | None = None
     oauth_facebook_client_secret: str | None = None
 
+    load_fixtures: bool = False
+
+    access_token_lifetime_seconds: int = (datetime(9999, 12, 31) - datetime.now()).seconds
 
 settings = Settings()

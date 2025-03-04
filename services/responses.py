@@ -1,12 +1,9 @@
-# from datetime import UTC, datetime
+from pydantic import UUID4
+from models.task import TaskResponseCreate
+from models.user import User
+from services.logging import get_logger
 
-# from sqlalchemy.future import select
-
-# from models.database import get_session
-# from models.user import User
-# from services.logging import get_logger
-
-# logger = get_logger(__name__)
+logger = get_logger(__name__)
 
 
 # async def create_response(
@@ -79,3 +76,7 @@
 
 #         except Exception as e:
 #             return {"error": f"Error fetching responses from database: {str(e)}"}
+
+
+async def create_response(task_id: UUID4, response: TaskResponseCreate, user: User): ...
+    

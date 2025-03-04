@@ -1,15 +1,12 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from models.models import ChatHistoryRead, ChatMessage
+from models.chat import ChatHistoryRead, ChatMessage
 from models.task_config.base_component import Translations
 from models.task_config.chat import Chat
+from models.task_config.components import FreeText, MultiChoice, SingleChoice, Slider
 from models.task_config.task_config import (
     ComponentGroup,
-    FreeText,
-    MultiChoice,
-    SingleChoice,
-    Slider,
     TaskConfig,
     TaskPage,
 )
