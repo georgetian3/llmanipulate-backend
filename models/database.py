@@ -33,7 +33,7 @@ class Database:
         if 'sqlite' not in url.drivername:
             async with create_async_engine(url).execution_options(isolation_level="AUTOCOMMIT").connect() as conn:
                 try:
-                    await conn.execute(sqlalchemy.text(f"CREATE DATABASE {self._url.database}"))
+                    # await conn.execute(sqlalchemy.text(f"CREATE DATABASE {self._url.database}"))
                     logger.info(f"Database {self._url.database} created ")
                 except Exception as e:
                     if "already exists" not in str(e):
