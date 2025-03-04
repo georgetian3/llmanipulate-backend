@@ -114,21 +114,20 @@ from models.user import User, UserID
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-
 async def get_user_tasks(user_id: UserID) -> MyTasks:
     query = (
         select(Task, User, TaskParticipant)
         .join(User, Task.creator == User.id)
         .join(
             TaskParticipant,
-            (
-                (Task.id == TaskParticipant.task)
-                & (TaskParticipant.user == user_id)
-            ), isouter=True
+            ((Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id)),
+            isouter=True,
         )
     )
     async with get_session() as session:
-        results: list[tuple[Task, User, TaskParticipant]] = list((await session.execute(query)).all())
+        results: list[tuple[Task, User, TaskParticipant]] = list(
+            (await session.execute(query)).all()
+        )
 
     my_tasks = MyTasks(created=[], participating=[])
     for task, user, task_participant in results:
@@ -140,7 +139,9 @@ async def get_user_tasks(user_id: UserID) -> MyTasks:
     return my_tasks
 
 
-async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool | None]:
+async def get_task(
+    task_id: TaskID, user_id: UserID
+) -> tuple[TaskRead | None, bool | None]:
     """
     A user is authorized to to access a task if they satisfy at least one of the following requirements:
     1. the user is the task's creator
@@ -156,8 +157,10 @@ async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool 
     query = (
         select(
             Task,
+            User,
             TaskParticipant.user,
         )
+        .join(User, Task.creator == User.id)
         .outerjoin(
             TaskParticipant,
             (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
@@ -166,15 +169,15 @@ async def get_task(task_id: TaskID, user_id: UserID) -> tuple[Task | None, bool 
     )
 
     async with get_session() as session:
-        result: tuple[Task | None, UserID | None] = (
+        result: tuple[Task | None, User | None, UserID | None] = (
             await session.execute(query)
         ).first()
 
-    task, is_participant = result if result else (None, None)
-    return task, (
-        None
-        if task is None
-        else (task.public or task.creator == user_id or is_participant is not None)
+    task, creator, is_participant = result if result else (None, None, None)
+    if not result:
+        return None, None
+    return TaskRead.model_validate(task, update={"creator": creator}), (
+        task.public or task.creator == user_id or is_participant is not None
     )
 
 

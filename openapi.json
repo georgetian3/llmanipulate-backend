@@ -1831,15 +1831,8 @@
       "TaskRead": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid4",
             "title": "Id"
           },
           "config": {

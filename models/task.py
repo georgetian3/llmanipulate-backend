@@ -13,7 +13,7 @@ TaskID = UUID4
 
 
 class TaskBase(OrmMixin):
-    id: TaskID | None = Field(primary_key=True, default_factory=uuid4)
+    id: TaskID = Field(primary_key=True, default_factory=uuid4)
     config: TaskConfig = Field(sa_column=Column(JSON))
     public: bool = False
 
