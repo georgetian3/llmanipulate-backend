@@ -1110,6 +1110,46 @@
   },
   "components": {
     "schemas": {
+      "Agent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "const": "agent",
+            "title": "Type",
+            "default": "agent"
+          },
+          "endpoint": {
+            "type": "string",
+            "title": "Endpoint"
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "endpoint",
+          "api_key",
+          "prompt"
+        ],
+        "title": "Agent"
+      },
       "BearerResponse": {
         "properties": {
           "access_token": {
@@ -1134,7 +1174,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "pattern": "password"
+                "pattern": "^password$"
               },
               {
                 "type": "null"
@@ -1274,19 +1314,16 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "chat"
-            ],
             "const": "chat",
             "title": "Type",
             "default": "chat"
           },
-          "participants": {
+          "agents": {
             "items": {
-              "$ref": "#/components/schemas/Participant"
+              "$ref": "#/components/schemas/Agent"
             },
             "type": "array",
-            "title": "Participants",
+            "title": "Agents",
             "default": []
           },
           "order": {
@@ -1304,11 +1341,16 @@
             ],
             "title": "Order",
             "default": []
+          },
+          "all_users": {
+            "type": "boolean",
+            "title": "All Users"
           }
         },
         "type": "object",
         "required": [
-          "id"
+          "id",
+          "all_users"
         ],
         "title": "Chat"
       },
@@ -1476,9 +1518,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "free_text"
-            ],
             "const": "free_text",
             "title": "Type",
             "default": "free_text"
@@ -1568,9 +1607,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "multi_choice"
-            ],
             "const": "multi_choice",
             "title": "Type",
             "default": "multi_choice"
@@ -1625,25 +1661,6 @@
         ],
         "title": "MyTasks"
       },
-      "Participant": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "Participant"
-      },
       "SingleChoice": {
         "properties": {
           "id": {
@@ -1680,9 +1697,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "single_choice"
-            ],
             "const": "single_choice",
             "title": "Type",
             "default": "single_choice"
@@ -1723,9 +1737,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "slider"
-            ],
             "const": "slider",
             "title": "Type",
             "default": "slider"
