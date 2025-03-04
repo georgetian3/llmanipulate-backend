@@ -137,6 +137,26 @@
         }
       }
     },
+    "/create_room": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Create Room",
+        "description": "Creates a new chat room and returns its ID.",
+        "operationId": "create_room",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "put": {
         "tags": [
@@ -551,9 +571,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "free_text"
-            ],
             "const": "free_text",
             "title": "Type",
             "default": "free_text"
@@ -620,9 +637,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "multi_choice"
-            ],
             "const": "multi_choice",
             "title": "Type",
             "default": "multi_choice"
@@ -774,9 +788,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "single_choice"
-            ],
             "const": "single_choice",
             "title": "Type",
             "default": "single_choice"
@@ -806,9 +817,6 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "slider"
-            ],
             "const": "slider",
             "title": "Type",
             "default": "slider"

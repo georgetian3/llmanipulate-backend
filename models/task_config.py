@@ -1,5 +1,7 @@
 import json
 from typing import Any, Literal, Self
+from typing_extensions import Self
+
 from pydantic import BaseModel, Field, RootModel, model_validator
 from pydantic_extra_types.language_code import LanguageAlpha2
 
