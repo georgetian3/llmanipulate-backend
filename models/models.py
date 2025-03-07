@@ -24,7 +24,3 @@ class LLMResponse(BaseModel):
     error: str | None = None
     response: str
     agent_data: dict
-
-
-class ErrorResponse(BaseModel):
-    detail: str

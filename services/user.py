@@ -25,20 +25,6 @@ from settings import settings
 logger = get_logger(__name__)
 
 
-async def get_user_by_id(user_id: UUID) -> User | None:
-    async with get_session() as session:
-        return session.get(User, user_id)
-
-
-async def get_user_by_email(email: str) -> User | None:
-    async with get_session() as session:
-        return (
-            (await session.exec(select(User).where(User.email == email)))
-            .scalars()
-            .first()
-        )
-
-
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = settings.secret
     verification_token_secret = settings.secret
@@ -65,7 +51,9 @@ bearer_transport = BearerTransport(tokenUrl="auth/login")
 
 
 def jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.access_token_lifetime_seconds)
+    return JWTStrategy(
+        secret=settings.secret, lifetime_seconds=settings.access_token_lifetime_seconds
+    )
 
 
 def redis_strategy() -> RedisStrategy:
@@ -105,19 +93,19 @@ get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
-async def create_user(user: UserCreate) -> User | None:
+async def create_user(user_create: UserCreate) -> User:
     try:
         async with get_async_session_context() as session:
             async with get_user_db_context(session) as user_db:
                 async with get_user_manager_context(user_db) as user_manager:
-                    user = await user_manager.create(user)
+                    user = await user_manager.create(user_create)
                     return user
     except UserAlreadyExists:
-        logger.info(f"User {user.email} already exists")
-        async with get_session() as session:
-            return (
-                await session.execute(select(User).where(User.email == user.email))
-            ).scalar_one_or_none()
+        logger.info(f"User {user_create.email} already exists")
+        user = user_db.get_by_email(user_create.email)
+        if not user:
+            raise ValueError("create_user cannot find user")
+        return user
 
 
 AGENT_TYPE_MAPPING = {0: "Neutral", 1: "Neutral_Goal", 2: "Manipulator"}
@@ -174,30 +162,21 @@ async def get_all_users() -> list[User]:
         return list((await session.execute(select(User))).scalars())
 
 
-async def get_all_users_tasks() -> list[User]:
-    """
-    Fetch all User objects along with their associated responses.
-    :return: List of User objects with responses loaded.
-    """
-    from sqlalchemy.orm import selectinload
+# async def get_all_users_tasks() -> list[User]:
+#     """
+#     Fetch all User objects along with their associated responses.
+#     :return: List of User objects with responses loaded.
+#     """
+#     from sqlalchemy.orm import selectinload
 
-    async with (
-        get_session() as session
-    ):  # Assuming get_session() returns an AsyncSession
-        result = await session.execute(
-            select(User).options(selectinload(User.responses))
-        )
-        users = result.scalars().all()
-        return users
-
-
-async def get_user(user_id: UUID) -> User | None:
-    """
-    :param user_id: the user's id
-    :return: the `User` object with the given id
-    """
-    async with get_session() as session:
-        return session.get(User, user_id)
+#     async with (
+#         get_session() as session
+#     ):  # Assuming get_session() returns an AsyncSession
+#         result = await session.execute(
+#             select(User).options(selectinload(User.responses))
+#         )
+#         users = result.scalars().all()
+#         return users
 
 
 # async def update_user(user: PartialUser) -> bool:
@@ -220,32 +199,32 @@ async def get_user(user_id: UUID) -> User | None:
 #     return results.rowcount > 0
 
 
-async def get_user_responses():
-    users = await get_all_users_tasks()
-    user_data = []
-    for user in users:
-        user_dict = {
-            "id": user.id,
-            "is_admin": user.is_admin,
-            "agent_type": user.agent_type,
-            "task_type": user.task_type,
-            "demographics": user.demographics,
-            "personality": user.personality,
-            "response_count": user.response_count,
-            "responses": [
-                {
-                    "id": response.id,
-                    "task_name": response.task_name,
-                    "task_title": TASK_TITLES_BY_CATEGORY[user.task_type][
-                        int(response.task_name)
-                    ],
-                    "initial_scores": response.initial_scores,
-                    "conv_history": response.conv_history,
-                    "final_scores": response.final_scores,
-                    "time_created": response.time_created.isoformat(),
-                }
-                for response in user.responses
-            ],
-        }
-        user_data.append(user_dict)
-    return user_data
+# async def get_user_responses():
+#     users = await get_all_users_tasks()
+#     user_data = []
+#     for user in users:
+#         user_dict = {
+#             "id": user.id,
+#             "is_admin": user.is_admin,
+#             "agent_type": user.agent_type,
+#             "task_type": user.task_type,
+#             "demographics": user.demographics,
+#             "personality": user.personality,
+#             "response_count": user.response_count,
+#             "responses": [
+#                 {
+#                     "id": response.id,
+#                     "task_name": response.task_name,
+#                     "task_title": TASK_TITLES_BY_CATEGORY[user.task_type][
+#                         int(response.task_name)
+#                     ],
+#                     "initial_scores": response.initial_scores,
+#                     "conv_history": response.conv_history,
+#                     "final_scores": response.final_scores,
+#                     "time_created": response.time_created.isoformat(),
+#                 }
+#                 for response in user.responses
+#             ],
+#         }
+#         user_data.append(user_dict)
+#     return user_data

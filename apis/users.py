@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 import services.user
 from models.task import MyTasks, Task, TaskRead, TaskResponse
-from models.user import User, UserCreate
+from models.user import User, UserCreate, UserID
 from services.tasks import get_user_tasks
 from services.user import current_active_user
 
@@ -40,8 +40,8 @@ GET_USER_EXCEPTION = HTTPException(
 
 
 @router.get("{user_id}", response_model=User)
-async def get_user(user_id: str):
-    user = await services.user.get_user(user_id)
+async def get_user(user_id: UserID):
+    user = await User.get(user_id)
     if user is None:
         raise GET_USER_EXCEPTION
     return user

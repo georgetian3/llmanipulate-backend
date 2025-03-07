@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import ClassVar, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, RootModel, model_validator
 from pydantic_extra_types.language_code import LanguageAlpha2
 
 from models.task_config.responses import ComponentResponseType
@@ -24,18 +24,17 @@ class Translations(BaseModel):
         return self
 
 
-
-
-ComponentIdType = str | int
+class ComponentIdType(RootModel[str | int]):
+    model_config = {"frozen": True}
 
 
 class BaseComponent(BaseModel):
     id: ComponentIdType
-    label: Translations
+    label: Translations | None = None
     optional: bool = False
-    response_class: ClassVar[ComponentResponseType]
+    response_class: ClassVar[type]
 
     @abstractmethod
     def validate_response(self, response: ComponentResponseType) -> None:
         if not isinstance(response, self.response_class):
-            raise TypeError(f"Response not instance of {self.response_class}")
+            raise ValueError(f"Response not instance of {self.response_class}")

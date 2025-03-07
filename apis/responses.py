@@ -12,9 +12,11 @@ from models.task import TaskResponse, TaskResponseCreate
 
 router = APIRouter(prefix="/responses")
 
+
 @router.get("")
 async def get_responses():
     return await TaskResponse.all()
+
 
 # @router.post("")
 # async def create_response(task_id: UUID4, response: TaskResponseCreate): ...

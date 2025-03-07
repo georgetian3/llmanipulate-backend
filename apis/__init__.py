@@ -66,7 +66,7 @@ if settings.oauth_facebook_client_id and settings.oauth_facebook_client_secret:
                 ["https://www.googleapis.com/auth/userinfo.email"],
             ),
             auth_backend,
-            settings.SECRET,
+            settings.secret,
         ),
         prefix="/auth/facebook",
         tags=["auth"],

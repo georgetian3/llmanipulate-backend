@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel, model_validator
@@ -21,9 +23,6 @@ class TaskBase(OrmMixin):
 class TaskRead(TaskBase):
     creator: UserRead
 
-class MyTasks(BaseModel):
-    created: list[TaskRead]
-    participating: list[TaskRead]
 
 class Task(TaskBase, table=True):
     creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
@@ -35,29 +34,34 @@ class TaskParticipant(OrmMixin, table=True):
 
 
 class TaskResponseBase(SQLModel):
-    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     draft: bool = False
     response: dict[ComponentIdType, ComponentResponseType] = Field(
         sa_column=Column(JSON)
     )
 
 
-class TaskResponseCreate(TaskResponseBase):
-    def validate_response(self, task_config: TaskConfig) -> None:
-        for component in task_config.components:
-            component_response = self.response.get(component.id)
-            if component_response is None:
-                if self.draft:
-                    continue
-                raise ValueError(f"Missing response for component: {component.id}")
-            component.validate_response(component_response)
+class TaskResponseCreate(TaskResponseBase): ...
 
 
-class TaskResponseRead(TaskResponseBase): ...
-
-
-class TaskResponse(
-    CreatedMixin, UpdatedMixin, TaskResponseCreate, OrmMixin, table=True
-):
-    __tablename__ = "task_response"
+class TaskResponseRead(CreatedMixin, UpdatedMixin, TaskResponseBase):
+    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+
+
+class TaskResponse(TaskResponseRead, OrmMixin, table=True):
+    __tablename__ = "task_response"
+
+
+class MyTasks(BaseModel):
+    created: list[TaskRead]
+    participating: list[TaskRead]
+
+
+class UserTasksWithResponsesParticipated(BaseModel):
+    tasks: list[TaskRead]
+    responses: list[TaskResponseRead]
+
+
+class UserTasksWithResponses(BaseModel):
+    created: list[TaskRead]
+    participated: list[UserTasksWithResponsesParticipated]

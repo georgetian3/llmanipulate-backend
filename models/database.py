@@ -30,12 +30,13 @@ class Database:
             self._url,
             json_serializer=lambda x: pydantic_core.to_json(x).decode("utf-8"),
             json_deserializer=lambda x: pydantic_core.from_json(x),
+            echo=True,
         )
         self._async_session_maker: sessionmaker = sessionmaker(
             self._engine, class_=AsyncSession
         )
 
-    async def create(self):
+    async def create(self) -> None:
         url = self._url._replace(database=None)
         # No need to create DB for sqlite
         if "sqlite" not in url.drivername:
@@ -55,7 +56,7 @@ class Database:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
 
-    async def reset(self):
+    async def reset(self) -> None:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.drop_all)
         await self.create()

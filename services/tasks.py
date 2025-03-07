@@ -1,8 +1,17 @@
 from pprint import pprint
+
 from sqlmodel import select
 
 from models.database import get_session
-from models.task import MyTasks, Task, TaskID, TaskParticipant, TaskRead, TaskResponse
+from models.task import (
+    MyTasks,
+    Task,
+    TaskID,
+    TaskParticipant,
+    TaskRead,
+    TaskResponse,
+    UserTasksWithResponses,
+)
 from models.user import User, UserID
 
 # random.seed(42)
@@ -114,14 +123,34 @@ from models.user import User, UserID
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
+async def get_user_tasks_with_responses(user_id: UserID) -> UserTasksWithResponses:
+    query = (
+        select(Task, User, TaskParticipant, TaskResponse)
+        .join(User, Task.creator == User.id)  # type: ignore
+        .outerjoin(
+            TaskParticipant,
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
+        )
+        .outerjoin(
+            TaskResponse,
+            (Task.id == TaskResponse.task) & (TaskResponse.user == user_id),  # type: ignore
+        )
+    )
+    async with get_session() as session:
+        results: list[tuple[Task, User, TaskParticipant, TaskResponse]] = list(
+            (await session.execute(query)).all()
+        )
+    tasks = UserTasksWithResponses(created=[], participated=[])
+    return tasks
+
+
 async def get_user_tasks(user_id: UserID) -> MyTasks:
     query = (
         select(Task, User, TaskParticipant)
-        .join(User, Task.creator == User.id)
-        .join(
+        .join(User, Task.creator == User.id)  # type: ignore
+        .outerjoin(
             TaskParticipant,
-            ((Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id)),
-            isouter=True,
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
     )
     async with get_session() as session:
@@ -160,12 +189,11 @@ async def get_task(
             User,
             TaskParticipant.user,
         )
-        .join(User, Task.creator == User.id)
+        .join(User, (Task.id == task_id) & (Task.creator == User.id))  # type: ignore
         .outerjoin(
             TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
-        .where(Task.id == task_id)
     )
 
     async with get_session() as session:
@@ -174,19 +202,8 @@ async def get_task(
         ).first()
 
     task, creator, is_participant = result if result else (None, None, None)
-    if not result:
+    if not result or not task:
         return None, None
     return TaskRead.model_validate(task, update={"creator": creator}), (
         task.public or task.creator == user_id or is_participant is not None
     )
-
-
-async def get_task_response(task_id: TaskID, user_id: UserID) -> TaskResponse | None:
-    async with get_session() as session:
-        return (
-            await session.execute(
-                select(TaskResponse).where(
-                    TaskResponse.task == task_id, TaskResponse.user == user_id
-                )
-            )
-        ).scalar_one_or_none()

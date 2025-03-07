@@ -145,6 +145,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid4",
               "title": "User Id"
             }
           }
@@ -420,6 +421,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TaskResponseRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1287,15 +1308,7 @@
       "Chat": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "$ref": "#/components/schemas/ComponentIdType"
           },
           "label": {
             "anyOf": [
@@ -1459,6 +1472,17 @@
         ],
         "title": "ComponentGroup"
       },
+      "ComponentIdType": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "title": "ComponentIdType"
+      },
       "ErrorModel": {
         "properties": {
           "detail": {
@@ -1498,18 +1522,17 @@
       "FreeText": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "$ref": "#/components/schemas/ComponentIdType"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -1549,8 +1572,7 @@
         },
         "type": "object",
         "required": [
-          "id",
-          "label"
+          "id"
         ],
         "title": "FreeText"
       },
@@ -1574,18 +1596,17 @@
       "MultiChoice": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "$ref": "#/components/schemas/ComponentIdType"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -1625,7 +1646,6 @@
         "type": "object",
         "required": [
           "id",
-          "label",
           "choices"
         ],
         "title": "MultiChoice"
@@ -1664,18 +1684,17 @@
       "SingleChoice": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "$ref": "#/components/schemas/ComponentIdType"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -1705,7 +1724,6 @@
         "type": "object",
         "required": [
           "id",
-          "label",
           "choices"
         ],
         "title": "SingleChoice"
@@ -1717,18 +1735,17 @@
       "Slider": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "$ref": "#/components/schemas/ComponentIdType"
           },
           "label": {
-            "$ref": "#/components/schemas/Translations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": {
             "type": "boolean",
@@ -1764,7 +1781,6 @@
         "type": "object",
         "required": [
           "id",
-          "label",
           "steps"
         ],
         "title": "Slider"
@@ -1867,11 +1883,6 @@
       },
       "TaskResponse": {
         "properties": {
-          "task": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Task"
-          },
           "draft": {
             "type": "boolean",
             "title": "Draft",
@@ -1893,6 +1904,9 @@
                   "$ref": "#/components/schemas/FreeTextResponse"
                 }
               ]
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ComponentIdType"
             },
             "type": "object",
             "title": "Response"
@@ -1907,6 +1921,11 @@
             "format": "date-time",
             "title": "Created Timestamp"
           },
+          "task": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Task"
+          },
           "user": {
             "type": "string",
             "format": "uuid4",
@@ -1915,19 +1934,14 @@
         },
         "type": "object",
         "required": [
-          "task",
           "response",
+          "task",
           "user"
         ],
         "title": "TaskResponse"
       },
       "TaskResponseCreate": {
         "properties": {
-          "task": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Task"
-          },
           "draft": {
             "type": "boolean",
             "title": "Draft",
@@ -1950,24 +1964,21 @@
                 }
               ]
             },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ComponentIdType"
+            },
             "type": "object",
             "title": "Response"
           }
         },
         "type": "object",
         "required": [
-          "task",
           "response"
         ],
         "title": "TaskResponseCreate"
       },
       "TaskResponseRead": {
         "properties": {
-          "task": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Task"
-          },
           "draft": {
             "type": "boolean",
             "title": "Draft",
@@ -1990,14 +2001,38 @@
                 }
               ]
             },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ComponentIdType"
+            },
             "type": "object",
             "title": "Response"
+          },
+          "updated_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated Timestamp"
+          },
+          "created_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Timestamp"
+          },
+          "task": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Task"
+          },
+          "user": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "User"
           }
         },
         "type": "object",
         "required": [
+          "response",
           "task",
-          "response"
+          "user"
         ],
         "title": "TaskResponseRead"
       },

@@ -24,7 +24,7 @@ class Choice(BaseComponent):
 
 class SingleChoice(Choice):
     type: Literal["single_choice"] = "single_choice"
-    response_class: ClassVar[ComponentResponseType] = SingleChoiceResponse
+    response_class = SingleChoiceResponse
 
     def validate_response(self, response):
         super().validate_response(response)
@@ -34,7 +34,7 @@ class SingleChoice(Choice):
 
 class MultiChoice(Choice):
     type: Literal["multi_choice"] = "multi_choice"
-    response_class: ClassVar[ComponentResponseType] = MultiChoiceResponse
+    response_class = MultiChoiceResponse
     min_choices: int = 0
     max_choices: int = 99999
 
@@ -67,12 +67,14 @@ class Slider(BaseComponent):
     type: Literal["slider"] = "slider"
     steps: int = Field(ge=1)
     labels: list[Translations] | None = None
-    response_class: ClassVar[ComponentResponseType] = SliderResponse
+    response_class = SliderResponse
 
     @model_validator(mode="after")
     def validate_labels(self) -> Self:
         if self.labels is None:
-            self.labels = [str(i) for i in range(self.steps)]
+            self.labels = [
+                Translations(languages={"en": str(i)}) for i in range(self.steps)
+            ]
         if len(self.labels) > 0 and len(self.labels) != self.steps:
             raise ValueError(
                 f"Number of labels ({self.labels}) must equal number of steps ({self.steps})"
@@ -94,7 +96,7 @@ class FreeText(BaseComponent):
     regex_prompt: str | None = Field(
         None, description="Prompt to be shown if the regex does not match"
     )
-    response_class: ClassVar[ComponentResponseType] = FreeTextResponse
+    response_class = FreeTextResponse
 
     def validate_response(self, response):
         super().validate_response(response)

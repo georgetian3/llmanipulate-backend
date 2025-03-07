@@ -34,6 +34,9 @@ class Settings(BaseSettings):
 
     load_fixtures: bool = True
 
-    access_token_lifetime_seconds: int = (datetime(9999, 12, 31) - datetime.now()).seconds
+    access_token_lifetime_seconds: int = (
+        datetime(9999, 12, 31) - datetime.now()
+    ).seconds
+
 
 settings = Settings()

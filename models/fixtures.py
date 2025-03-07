@@ -59,7 +59,6 @@ async def load_fixtures():
         except:
             continue
 
-
     sample_task_participants = [
         TaskParticipant(task=sample_tasks[0].id, user=sample_users[0].id),
         TaskParticipant(task=sample_tasks[0].id, user=sample_users[1].id),
