@@ -1,4 +1,4 @@
-from pydantic import UUID4
+from pydantic import UUID4, ValidationError
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
@@ -90,44 +90,10 @@ logger = get_logger(__name__)
 #             return {"error": f"Error fetching responses from database: {str(e)}"}
 
 
-def validate_response(
-    task_config: TaskConfig,
-    new_response: TaskResponseCreate,
-    existing_response: TaskResponse | None,
-) -> None:
-    all_components_responded = True
-    # for each component in a task config
-    for component in task_config.components:
-        # get the response for this compoment
-        component_response = new_response.response.get(component.id)
-        # if the response for this component is missing
-        if component_response is None:
-            all_components_responded = False
-            # new response cannot have less answers than the old response
-            if (
-                # a non-draft response cannot have empty component responses
-                not new_response.draft
-                # if a response for this component in an older draft exists, new draft cannot be missing this response
-                or existing_response
-                and component.id not in existing_response.response
-            ):
-                raise ValueError(f"Component '{component.id}': missing response")
-        else:
-            # let each component validate the type/structure of its response
-            try:
-                component.validate_response(component_response)
-            except ValueError as e:
-                raise ValueError(f"Component '{component.id}': {e}") from e
-    if all_components_responded:
-        new_response.draft = False
-
-
 async def create_response(
-    task_id: UUID4, response: TaskResponseCreate, user: User
+    task_id: UUID4, response: TaskResponseCreate, user_id: UserID
 ) -> tuple[TaskResponseRead | None, bool, bool, str | None]:
     """
-
-
     :returns:
         - TaskResponseRead | None: the newly created response
         - bool: task exists
@@ -141,43 +107,67 @@ async def create_response(
             TaskParticipant,
             (Task.id == task_id)  # type: ignore
             & (Task.id == TaskParticipant.task)
-            & (TaskParticipant.user == user.id),
+            & (TaskParticipant.user == user_id),
         )
         # gets the draft response if it exists
         .outerjoin(
             TaskResponse,
-            (Task.id == TaskResponse.task) & (TaskResponse.user == user.id),  # type: ignore
+            (Task.id == TaskResponse.task) & (TaskResponse.user == user_id),  # type: ignore
         )
+        # if this where isn't added, the left join returns extra tasks
+        .where(Task.id == task_id)
     )
     async with get_session() as session:
-        result: tuple[Task, TaskParticipant, TaskResponse] | None = (
-            await session.execute(query)
-        ).first()
+        result = (await session.execute(query)).first()
 
     if not result:  # task doesn't exist
         return None, False, False, None
 
-    task, participant, existing_response = result
+    task = Task.model_validate(result[0])
+    participant = TaskParticipant.model_validate(result[1]) if result[1] else None
+    existing_response = TaskResponse.model_validate(result[2]) if result[2] else None
+
     if not participant:
         return None, True, False, None
     try:
-        validate_response(task.config, response, existing_response)
-    except Exception as e:
-        logger.exception("Exception")
+        # validate the response checking that components have the right responses
+        TaskResponseCreate.model_validate(
+            response.model_dump(),
+            context={
+                "task_config": task.config,
+                "existing_response": existing_response,
+            },
+        )
+    except ValidationError as e:
+        logger.exception("Validation error")
         return None, True, True, str(e)
+
+    response_db = TaskResponse(
+        draft=response.draft, response=response.response, user=user_id, task=task.id
+    )
 
     upsert = (
         insert(TaskResponse)
+        .values(response_db.model_dump())
         .on_conflict_do_update(
+            # index on primary keys
             index_elements=["task", "user"],
-            set_={"draft": response.draft, "response": response.response},
+            # only update the following fields
+            set_=response_db.model_dump(
+                include={"draft", "response", "updated_timestamp"}
+            ),
+            # only update if this response is newer
+            where=TaskResponse.updated_timestamp < response_db.updated_timestamp,
         )
         .returning(TaskResponse)
     )
 
     async with get_session() as session:
-        new_response = (await session.execute(upsert)).scalar_one()
+        new_response = TaskResponseRead.model_validate(
+            (await session.execute(upsert)).scalar_one()
+        )
         await session.commit()
+
     return new_response, True, True, None
 
 

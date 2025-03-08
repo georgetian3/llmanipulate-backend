@@ -58,7 +58,7 @@ async def create_task_response(
         task_exists,
         is_participant,
         validation_error,
-    ) = await services.responses.create_response(task_id, response, user)
+    ) = await services.responses.create_response(task_id, response, user.id)
     if not task_exists:
         raise NOT_FOUND
     if not is_participant:

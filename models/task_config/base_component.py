@@ -24,8 +24,7 @@ class Translations(BaseModel):
         return self
 
 
-class ComponentIdType(RootModel[str | int]):
-    model_config = {"frozen": True}
+ComponentIdType = str | int
 
 
 class BaseComponent(BaseModel):

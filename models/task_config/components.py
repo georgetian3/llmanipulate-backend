@@ -1,12 +1,11 @@
 import re
-from typing import ClassVar, Literal, Self
+from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
 from models.task_config.base_component import BaseComponent, Translations
 from models.task_config.chat import Chat
 from models.task_config.responses import (
-    ComponentResponseType,
     FreeTextResponse,
     MultiChoiceResponse,
     SingleChoiceResponse,

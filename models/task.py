@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import UUID4, BaseModel, model_validator
+from pydantic import UUID4, BaseModel, ValidationInfo, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
@@ -33,11 +33,46 @@ class TaskParticipant(OrmMixin, table=True):
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
 
 
+TaskResponseType = dict[ComponentIdType, ComponentResponseType]
+
+
 class TaskResponseBase(SQLModel):
     draft: bool = False
-    response: dict[ComponentIdType, ComponentResponseType] = Field(
-        sa_column=Column(JSON)
-    )
+    response: TaskResponseType = Field(sa_column=Column(JSON))
+
+    @model_validator(mode="after")
+    def validate_response(self, info: ValidationInfo) -> TaskResponseBase:
+        if not info.context:
+            return self
+        task_config = TaskConfig.model_validate(info.context["task_config"])
+        existing_response = (
+            TaskResponse.model_validate(x)
+            if (x := info.context["existing_response"])
+            else None
+        )
+
+        # for each component in a task config
+        for component in task_config.components:
+            # get the response for this compoment
+            component_response = self.response.get(component.id)
+            # if the response for this component is missing
+            if component_response is None:
+                # new response cannot have less answers than the old response
+                # optional components can be ignored
+                if not component.optional and (
+                    # a non-draft response cannot have empty component responses
+                    not self.draft
+                    # if a response for this component in an older draft exists, new draft cannot be missing this response
+                    or existing_response
+                    and component.id in existing_response.response
+                ):
+                    raise ValueError(f"Component '{component.id}': missing response")
+            else:
+                # let each component validate the type/structure of its response
+                try:
+                    component.validate_response(component_response)
+                except ValueError as e:
+                    raise ValueError(f"Component '{component.id}': {e}") from e
 
 
 class TaskResponseCreate(TaskResponseBase): ...
