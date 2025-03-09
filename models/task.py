@@ -23,6 +23,10 @@ class TaskBase(OrmMixin):
 class TaskRead(TaskBase):
     creator: UserRead
 
+    model_config = {
+        "json_schema_extra": {"required": ["id", "config", "public", "creator"]}
+    }
+
 
 class Task(TaskBase, table=True):
     creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")

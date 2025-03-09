@@ -38,55 +38,6 @@ api.add_middleware(
 )
 
 
-api.include_router(response_router, tags=["responses"])
-api.include_router(chat_router, tags=["chats"])
-api.include_router(user_router, tags=["users"])
-api.include_router(task_router, tags=["tasks"])
-
-
-if settings.oauth_google_client_id and settings.oauth_google_client_secret:
-    api.include_router(
-        fastapi_users.get_oauth_router(
-            GoogleOAuth2(
-                settings.oauth_google_client_id, settings.oauth_google_client_secret
-            ),
-            auth_backend,
-            settings.secret,
-        ),
-        prefix="/auth/google",
-        tags=["auth"],
-    )
-
-if settings.oauth_facebook_client_id and settings.oauth_facebook_client_secret:
-    api.include_router(
-        fastapi_users.get_oauth_router(
-            FacebookOAuth2(
-                settings.oauth_facebook_client_id,
-                settings.oauth_facebook_client_secret,
-                ["https://www.googleapis.com/auth/userinfo.email"],
-            ),
-            auth_backend,
-            settings.secret,
-        ),
-        prefix="/auth/facebook",
-        tags=["auth"],
-    )
-
-if settings.oauth_github_client_id and settings.oauth_github_client_secret:
-    api.include_router(
-        fastapi_users.get_oauth_router(
-            GitHubOAuth2(
-                settings.oauth_github_client_id,
-                settings.oauth_github_client_secret,
-                ["user:email"],
-            ),
-            auth_backend,
-            settings.secret,
-        ),
-        prefix="/auth/github",
-        tags=["auth"],
-    )
-
 api.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]
 )
@@ -110,6 +61,57 @@ api.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+
+
+# if settings.oauth_google_client_id and settings.oauth_google_client_secret:
+#     api.include_router(
+#         fastapi_users.get_oauth_router(
+#             GoogleOAuth2(
+#                 settings.oauth_google_client_id, settings.oauth_google_client_secret
+#             ),
+#             auth_backend,
+#             settings.secret,
+#         ),
+#         prefix="/auth/google",
+#         tags=["auth"],
+#     )
+
+# if settings.oauth_facebook_client_id and settings.oauth_facebook_client_secret:
+#     api.include_router(
+#         fastapi_users.get_oauth_router(
+#             FacebookOAuth2(
+#                 settings.oauth_facebook_client_id,
+#                 settings.oauth_facebook_client_secret,
+#                 ["https://www.googleapis.com/auth/userinfo.email"],
+#             ),
+#             auth_backend,
+#             settings.secret,
+#         ),
+#         prefix="/auth/facebook",
+#         tags=["auth"],
+#     )
+
+# if settings.oauth_github_client_id and settings.oauth_github_client_secret:
+#     api.include_router(
+#         fastapi_users.get_oauth_router(
+#             GitHubOAuth2(
+#                 settings.oauth_github_client_id,
+#                 settings.oauth_github_client_secret,
+#                 ["user:email"],
+#             ),
+#             auth_backend,
+#             settings.secret,
+#         ),
+#         prefix="/auth/github",
+#         tags=["auth"],
+#     )
+
+
+api.include_router(response_router, tags=["responses"])
+api.include_router(chat_router, tags=["chats"])
+api.include_router(user_router, tags=["users"])
+api.include_router(task_router, tags=["tasks"])
 
 """
 Simplify operation IDs so that generated API clients have simpler function

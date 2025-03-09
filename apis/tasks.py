@@ -1,5 +1,8 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import UUID4
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from pydantic import UUID4, ValidationError
 
 import services.responses
 import services.tasks
@@ -53,18 +56,18 @@ async def create_task_response(
     response: TaskResponseCreate,
     user: User = Depends(current_active_user),
 ):
-    (
-        response_read,
-        task_exists,
-        is_participant,
-        validation_error,
-    ) = await services.responses.create_response(task_id, response, user.id)
+    try:
+        (
+            response_read,
+            task_exists,
+            is_participant,
+        ) = await services.responses.create_response(task_id, response, user.id)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=jsonable_encoder(e.errors()))
     if not task_exists:
         raise NOT_FOUND
     if not is_participant:
         raise FORBIDDEN
-    if validation_error:
-        raise HTTPException(400, ErrorResponse(detail=validation_error))
     return response_read
 
 

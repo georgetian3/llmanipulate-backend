@@ -39,7 +39,7 @@ GET_USER_EXCEPTION = HTTPException(
 )
 
 
-@router.get("{user_id}", response_model=User)
+@router.get("/{user_id}", response_model=User)
 async def get_user(user_id: UserID):
     user = await User.get(user_id)
     if user is None:

@@ -12,7 +12,7 @@ class Translations(BaseModel):
         examples=[{"en": "This is the english translation.", "zh": "这是中文翻译。"}]
     )
     default: LanguageAlpha2 | None = Field(
-        default=None,
+        None,
         examples=["en", "zh"],
         description="Default language to display. Must must be in `languages`. Will display an arbitrary language if left `null`.",
     )

@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from models.task import Task, TaskParticipant
 from models.task_config.examples import sample_task_config
@@ -37,17 +37,17 @@ async def load_fixtures():
 
     sample_tasks = [
         Task(
-            id=UUID("b9b5251db0c6485ba33f94e416aa77f0"),
+            id=UUID("642ad1478788480d86a1d9fe9c893cc3"),
             creator=sample_users[0].id,
             config=sample_task_configs[0],
         ),
         Task(
-            id=UUID("b9b5251db0c6485ba33f95e416aa77f0"),
+            id=UUID("abec92d8f34a4df9b4df26494f6bb760"),
             creator=sample_users[0].id,
             config=sample_task_configs[1],
         ),
         Task(
-            id=UUID("b9b5251db0c6485ba33f96e416aa77f0"),
+            id=UUID("10fe6383d36a4e0eb2819db043484a0a"),
             creator=sample_users[1].id,
             config=sample_task_configs[2],
         ),

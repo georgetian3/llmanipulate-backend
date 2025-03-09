@@ -92,7 +92,7 @@ logger = get_logger(__name__)
 
 async def create_response(
     task_id: UUID4, response: TaskResponseCreate, user_id: UserID
-) -> tuple[TaskResponseRead | None, bool, bool, str | None]:
+) -> tuple[TaskResponseRead | None, bool, bool]:
     """
     :returns:
         - TaskResponseRead | None: the newly created response
@@ -100,6 +100,7 @@ async def create_response(
         - bool: user is participant
         - str | None: response validation error
     """
+    logger.debug(f"User {user_id} submitting response for task {task_id}: {response}")
     query = (
         select(Task, TaskParticipant, TaskResponse)
         # ensures the user is a participant of the task
@@ -121,26 +122,24 @@ async def create_response(
         result = (await session.execute(query)).first()
 
     if not result:  # task doesn't exist
-        return None, False, False, None
+        return None, False, False
 
     task = Task.model_validate(result[0])
     participant = TaskParticipant.model_validate(result[1]) if result[1] else None
     existing_response = TaskResponse.model_validate(result[2]) if result[2] else None
 
     if not participant:
-        return None, True, False, None
-    try:
-        # validate the response checking that components have the right responses
-        TaskResponseCreate.model_validate(
-            response.model_dump(),
-            context={
-                "task_config": task.config,
-                "existing_response": existing_response,
-            },
-        )
-    except ValidationError as e:
-        logger.exception("Validation error")
-        return None, True, True, str(e)
+        return None, True, False
+    
+    # validate the response checking that components have the right responses
+    # if error exists, raises ValidationError that will be handled by FastAPI
+    TaskResponseCreate.model_validate(
+        response.model_dump(),
+        context={
+            "task_config": task.config,
+            "existing_response": existing_response,
+        },
+    )
 
     response_db = TaskResponse(
         draft=response.draft, response=response.response, user=user_id, task=task.id
@@ -168,7 +167,7 @@ async def create_response(
         )
         await session.commit()
 
-    return new_response, True, True, None
+    return new_response, True, True
 
 
 async def get_responses(task_id: TaskID, user_id: UserID) -> list[TaskResponseRead]:

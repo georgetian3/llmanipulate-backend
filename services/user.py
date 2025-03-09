@@ -94,18 +94,18 @@ get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
 async def create_user(user_create: UserCreate) -> User:
-    try:
-        async with get_async_session_context() as session:
-            async with get_user_db_context(session) as user_db:
-                async with get_user_manager_context(user_db) as user_manager:
+    async with get_async_session_context() as session:
+        async with get_user_db_context(session) as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                try:
                     user = await user_manager.create(user_create)
                     return user
-    except UserAlreadyExists:
-        logger.info(f"User {user_create.email} already exists")
-        user = user_db.get_by_email(user_create.email)
-        if not user:
-            raise ValueError("create_user cannot find user")
-        return user
+                except UserAlreadyExists:
+                    logger.info(f"User {user_create.email} already exists")
+                    user = await user_db.get_by_email(user_create.email)
+                    if not user:
+                        raise ValueError("create_user cannot find user")
+                return user
 
 
 AGENT_TYPE_MAPPING = {0: "Neutral", 1: "Neutral_Goal", 2: "Manipulator"}

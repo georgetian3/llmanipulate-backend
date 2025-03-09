@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     database_password: str | None = None
     database_driver: str | None = "sqlite+aiosqlite"
 
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str = "*"
 
     secret: str = "SECRET"
 
@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     access_token_lifetime_seconds: int = (
         datetime(9999, 12, 31) - datetime.now()
     ).seconds
+
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
 
 settings = Settings()

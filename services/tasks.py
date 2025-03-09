@@ -144,7 +144,7 @@ async def get_user_tasks_with_responses(user_id: UserID) -> UserTasksWithRespons
     return tasks
 
 
-async def get_user_tasks(user_id: UserID) -> MyTasks:
+async def get_user_tasks(user_id: UserID) -> UserTasksWithResponses:
     query = (
         select(Task, User, TaskParticipant)
         .join(User, Task.creator == User.id)  # type: ignore
