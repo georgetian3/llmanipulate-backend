@@ -1589,10 +1589,6 @@
         ],
         "title": "FreeText"
       },
-      "FreeTextResponse": {
-        "type": "string",
-        "title": "FreeTextResponse"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1671,13 +1667,6 @@
         ],
         "title": "MultiChoice"
       },
-      "MultiChoiceResponse": {
-        "items": {
-          "type": "integer"
-        },
-        "type": "array",
-        "title": "MultiChoiceResponse"
-      },
       "MyTasks": {
         "properties": {
           "created": {
@@ -1701,6 +1690,21 @@
           "participating"
         ],
         "title": "MyTasks"
+      },
+      "RootModel_int_": {
+        "type": "integer",
+        "title": "RootModel[int]"
+      },
+      "RootModel_list_int__": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array",
+        "title": "RootModel[list[int]]"
+      },
+      "RootModel_str_": {
+        "type": "string",
+        "title": "RootModel[str]"
       },
       "SingleChoice": {
         "properties": {
@@ -1756,10 +1760,6 @@
           "choices"
         ],
         "title": "SingleChoice"
-      },
-      "SingleChoiceResponse": {
-        "type": "integer",
-        "title": "SingleChoiceResponse"
       },
       "Slider": {
         "properties": {
@@ -1821,10 +1821,6 @@
           "steps"
         ],
         "title": "Slider"
-      },
-      "SliderResponse": {
-        "type": "integer",
-        "title": "SliderResponse"
       },
       "TaskConfig": {
         "properties": {
@@ -1931,16 +1927,13 @@
             "additionalProperties": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_int_"
                 },
                 {
-                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_list_int__"
                 },
                 {
-                  "$ref": "#/components/schemas/SliderResponse"
-                },
-                {
-                  "$ref": "#/components/schemas/FreeTextResponse"
+                  "$ref": "#/components/schemas/RootModel_str_"
                 }
               ]
             },
@@ -1987,16 +1980,13 @@
             "additionalProperties": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_int_"
                 },
                 {
-                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_list_int__"
                 },
                 {
-                  "$ref": "#/components/schemas/SliderResponse"
-                },
-                {
-                  "$ref": "#/components/schemas/FreeTextResponse"
+                  "$ref": "#/components/schemas/RootModel_str_"
                 }
               ]
             },
@@ -2021,16 +2011,13 @@
             "additionalProperties": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/SingleChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_int_"
                 },
                 {
-                  "$ref": "#/components/schemas/MultiChoiceResponse"
+                  "$ref": "#/components/schemas/RootModel_list_int__"
                 },
                 {
-                  "$ref": "#/components/schemas/SliderResponse"
-                },
-                {
-                  "$ref": "#/components/schemas/FreeTextResponse"
+                  "$ref": "#/components/schemas/RootModel_str_"
                 }
               ]
             },

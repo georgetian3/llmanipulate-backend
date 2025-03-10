@@ -1,18 +1,7 @@
 from pydantic import RootModel
 
+IntResponseType = RootModel[int]
+ListIntResponseType = RootModel[list[int]]
+StringResponseType = RootModel[str]
 
-class SingleChoiceResponse(RootModel[int]): ...
-
-
-class MultiChoiceResponse(RootModel[list[int]]): ...
-
-
-class SliderResponse(RootModel[int]): ...
-
-
-class FreeTextResponse(RootModel[str]): ...
-
-
-ComponentResponseType = (
-    SingleChoiceResponse | MultiChoiceResponse | SliderResponse | FreeTextResponse
-)
+ComponentResponseType = IntResponseType | ListIntResponseType | StringResponseType
