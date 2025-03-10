@@ -1,4 +1,4 @@
-# LLManipulate
+# LLManipulate Backend
 
 ## Dependencies
 
@@ -9,15 +9,10 @@ All requirements are stored in `requirements/`.
 
 ## Development
 
-1. Install dependencies: `pip install -r requirements/local.txt`
-2. Ensure all environment variables referred to in `config.py` are defined in `.env`. A minimal `.env` using a local SQLite3 database is:
+1. Install dependencies, preferably in a virtual environment: `pip install -r requirements/local.txt`
+2. Run development server: `fastapi dev apis`
 
-```
-DATABASE_DATABASE=llmanipulate.sqlite3
-DATABASE_DRIVERNAME='sqlite+aiosqlite'
-```
-
-3. Run development server: `fastapi dev apis/apis.py`
+Default settings uses a local SQLite database and stateless JWT authentication backend which does not require access to Redis.
 
 ## Design Principles
 
@@ -27,9 +22,4 @@ DATABASE_DRIVERNAME='sqlite+aiosqlite'
 
 ## Linting, formatting, typechecking
 
-```
-black .
-flake8 .
-isort .
-mypy .
-```
+Use [Ruff](https://docs.astral.sh/ruff/)
