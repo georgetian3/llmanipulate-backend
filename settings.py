@@ -1,6 +1,7 @@
-from datetime import datetime
 from typing import Literal
+from uuid import uuid4
 
+from pydantic import UUID4
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,27 +19,11 @@ class Settings(BaseSettings):
 
     frontend_url: str = "*"
 
-    secret: str = "SECRET"
-
-    auth_strategy: Literal["jwt", "redis"] = "jwt"
-
-    redis_host: str | None = "localhost"
-    redis_port: int | None = 6379
-
-    oauth_google_client_id: str | None = None
-    oauth_google_client_secret: str | None = None
-    oauth_github_client_id: str | None = None
-    oauth_github_client_secret: str | None = None
-    oauth_facebook_client_id: str | None = None
-    oauth_facebook_client_secret: str | None = None
-
     load_fixtures: bool = True
 
-    access_token_lifetime_seconds: int = (
-        datetime(9999, 12, 31) - datetime.now()
-    ).seconds
-
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+    admin_id: UUID4 = uuid4()
 
 
 settings = Settings()

@@ -1,4 +1,4 @@
-from pydantic import UUID4, ValidationError
+from pydantic import UUID4
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
@@ -11,9 +11,9 @@ from models.task import (
     TaskResponseCreate,
     TaskResponseRead,
 )
-from models.task_config.task_config import TaskConfig
-from models.user import User, UserID
+from models.user import UserID
 from services.logging import get_logger
+from settings import settings
 
 logger = get_logger(__name__)
 
@@ -91,33 +91,30 @@ logger = get_logger(__name__)
 
 
 async def create_response(
-    task_id: UUID4, response: TaskResponseCreate, user_id: UserID
+    task_id: UUID4, response: TaskResponseCreate, user_id: UserID | None
 ) -> tuple[TaskResponseRead | None, bool, bool]:
     """
     :returns:
         - TaskResponseRead | None: the newly created response
         - bool: task exists
         - bool: user is participant
-        - str | None: response validation error
     """
     logger.debug(f"User {user_id} submitting response for task {task_id}: {response}")
-    query = (
-        select(Task, TaskParticipant, TaskResponse)
-        # ensures the user is a participant of the task
-        .outerjoin(
-            TaskParticipant,
-            (Task.id == task_id)  # type: ignore
-            & (Task.id == TaskParticipant.task)
-            & (TaskParticipant.user == user_id),
+    if settings.user_correlation:
+        query = (
+            select(Task, TaskParticipant, TaskResponse)
+            .outerjoin(
+                TaskParticipant,
+                (Task.id == task_id)  # type: ignore
+                & (Task.id == TaskParticipant.task)
+                & (TaskParticipant.user == user_id),
+            )
+            # if this where isn't added, the left join returns extra tasks
+            .where(Task.id == task_id)
         )
-        # gets the draft response if it exists
-        .outerjoin(
-            TaskResponse,
-            (Task.id == TaskResponse.task) & (TaskResponse.user == user_id),  # type: ignore
-        )
-        # if this where isn't added, the left join returns extra tasks
-        .where(Task.id == task_id)
-    )
+    else:
+        query = select(Task).where(Task.id == task_id)
+
     async with get_session() as session:
         result = (await session.execute(query)).first()
 
@@ -130,7 +127,7 @@ async def create_response(
 
     if not participant:
         return None, True, False
-    
+
     # validate the response checking that components have the right responses
     # if error exists, raises ValidationError that will be handled by FastAPI
     TaskResponseCreate.model_validate(
@@ -141,25 +138,12 @@ async def create_response(
         },
     )
 
-    response_db = TaskResponse(
-        draft=response.draft, response=response.response, user=user_id, task=task.id
-    )
+    response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
 
-    upsert = (
-        insert(TaskResponse)
-        .values(response_db.model_dump())
-        .on_conflict_do_update(
-            # index on primary keys
-            index_elements=["task", "user"],
-            # only update the following fields
-            set_=response_db.model_dump(
-                include={"draft", "response", "updated_timestamp"}
-            ),
-            # only update if this response is newer
-            where=TaskResponse.updated_timestamp < response_db.updated_timestamp,
-        )
-        .returning(TaskResponse)
-    )
+    try:
+        await response_db.save()
+    except:
+        return TaskResponse.get()
 
     async with get_session() as session:
         new_response = TaskResponseRead.model_validate(
@@ -170,13 +154,7 @@ async def create_response(
     return new_response, True, True
 
 
-async def get_responses(task_id: TaskID, user_id: UserID) -> list[TaskResponseRead]:
-    query = select(TaskResponse).join(
-        Task,
-        (Task.id == task_id)  # type: ignore
-        & (Task.creator == user_id)
-        & (TaskResponse.task == Task.id),
-    )
+async def get_responses(task_id: TaskID) -> list[TaskResponseRead]:
+    query = select(TaskResponse).where(TaskResponse.task == task_id)
     async with get_session() as session:
-        task_responses = list((await session.execute(query)).all())
-    return task_responses
+        return list((await session.execute(query)).all())

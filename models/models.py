@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID, uuid4
 
-from pydantic import UUID4, BaseModel, field_validator
+from pydantic import BaseModel, field_validator
 from sqlmodel import Field, SQLModel
 
 
@@ -11,11 +11,12 @@ class Demographic(SQLModel, table=False):
 
 
 class UuidId(SQLModel):
-    id: UUID4 = Field(primary_key=True)
+    id: str = Field(primary_key=True)
 
+    # default ID in validator instead of default factory, as otherwise marked
     @field_validator("id", mode="before")
-    def default_id(cls, value: Any) -> UUID4:
-        if not isinstance(value, UUID):
+    def default_id(cls, value: Any) -> str:
+        if not isinstance(value, UUID) or not UUID(value):
             return uuid4()
         return value
 

@@ -49,9 +49,7 @@ class TaskConfig(BaseModel):
         ids = set()
         for component in self.components:
             if component.id in ids:
-                raise ValueError(
-                    f"Every component must have a unique ID, duplicated ID: {component.id}"
-                )
+                raise ValueError(f"Duplicate component ID: {component.id}")
             ids.add(component.id)
         return self
 

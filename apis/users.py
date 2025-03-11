@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import UUID4
 
 import services.user
-from models.task import MyTasks, Task, TaskRead, TaskResponse
+from apis.auth import current_admin, current_user
+from models.task import MyTasks, TaskResponse
 from models.user import User, UserCreate, UserID
 from services.tasks import get_user_tasks
-from services.user import current_active_user
 
 router = APIRouter(prefix="/users")
 
@@ -16,14 +17,11 @@ CREATE_USER_EXCEPTION = HTTPException(
 
 @router.put(
     "",
-    description="Creates a new non-admin user. Requires an admin's user_id for authentication.",
+    description="Creates a new participant. Requires an admin's user_id for authentication.",
     response_model=User,
 )
-async def create_user(new_user: UserCreate):
-    user = await services.user.create_user(new_user)
-    if user is None:
-        raise CREATE_USER_EXCEPTION
-    return user
+async def create_user(new_user: UserCreate, _=Depends(current_admin)):
+    return await services.user.create_participant(new_user)
 
 
 @router.get(
@@ -53,5 +51,5 @@ async def get_all_users_responses():
 
 
 @router.get("/me/tasks", response_model=MyTasks)
-async def get_my_tasks(user: User = Depends(current_active_user)):
-    return await get_user_tasks(user.id)
+async def get_my_tasks(user_id: UUID4 | None = Depends(current_user)):
+    return await get_user_tasks(user_id)

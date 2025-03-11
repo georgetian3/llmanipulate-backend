@@ -9,7 +9,7 @@ from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
 from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
-from models.user import UserID, UserRead
+from models.user import UserID
 
 TaskID = UUID4
 
@@ -17,19 +17,12 @@ TaskID = UUID4
 class TaskBase(OrmMixin):
     id: TaskID = Field(primary_key=True, default_factory=uuid4)
     config: TaskConfig = Field(sa_column=Column(JSON))
-    public: bool = False
 
 
-class TaskRead(TaskBase):
-    creator: UserRead
-
-    model_config = {
-        "json_schema_extra": {"required": ["id", "config", "public", "creator"]}
-    }
+class TaskRead(TaskBase): ...
 
 
-class Task(TaskBase, table=True):
-    creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
+class Task(TaskBase, table=True): ...
 
 
 class TaskParticipant(OrmMixin, table=True):
@@ -41,7 +34,6 @@ TaskResponseType = dict[ComponentIdType, ComponentResponseType]
 
 
 class TaskResponseBase(SQLModel):
-    draft: bool = False
     response: TaskResponseType = Field(sa_column=Column(JSON))
 
     @model_validator(mode="after")
@@ -63,13 +55,7 @@ class TaskResponseBase(SQLModel):
             if component_response is None:
                 # new response cannot have less answers than the old response
                 # optional components can be ignored
-                if not component.optional and (
-                    # a non-draft response cannot have empty component responses
-                    not self.draft
-                    # if a response for this component in an older draft exists, new draft cannot be missing this response
-                    or existing_response
-                    and component.id in existing_response.response
-                ):
+                if not component.optional:
                     raise ValueError(f"Component '{component.id}': missing response")
             else:
                 # let each component validate the type/structure of its response
