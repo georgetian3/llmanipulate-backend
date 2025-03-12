@@ -1,10 +1,10 @@
 from pydantic import UUID4
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from models.database import get_session
 from models.user import User, UserCreate, UserRead
 from services.logging import get_logger
-from settings import settings
+from settings import SETTINGS
 
 logger = get_logger(__name__)
 
@@ -14,19 +14,19 @@ async def create_admin(user_id: UUID4 | None) -> User:
 
 
 async def init_admin() -> None:
-    if settings.admin_id is not None:
+    if SETTINGS.admin_id is not None:
         try:
-            await create_admin(settings.admin_id)
-            logger.info("Created user from ID in config")
+            await create_admin(SETTINGS.admin_id)
+            logger.info("Created user from ID in settings")
         except Exception:
-            logger.info("ID in config already exists in DB")
+            logger.info("ID in settings already exists in DB")
     async with get_session() as session:
         admin_count = await session.execute(
             select(func.count()).select_from(User).where(User.is_admin == True)
         )
     if admin_count == 0:
         logger.info("No admin account, creating a new one")
-        create_admin()
+        await create_admin()
 
 
 async def create_participant(user_create: UserCreate | None) -> UserRead:

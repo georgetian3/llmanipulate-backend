@@ -5,32 +5,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/auth/login": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Login",
-        "operationId": "login",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserRead"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OptionalHTTPBearer": []
-          }
-        ]
-      }
-    },
     "/chats/{chat_id}": {
       "get": {
         "tags": [
@@ -143,6 +117,53 @@
         ]
       }
     },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get Me",
+        "operationId": "get_me",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/users/login-required": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Login Required",
+        "operationId": "login_required",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequired"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{user_id}": {
       "get": {
         "tags": [
@@ -156,8 +177,15 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid4",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid4"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "User Id"
             }
           }
@@ -224,7 +252,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyTasks"
+                  "items": {
+                    "$ref": "#/components/schemas/TaskReadParticipant"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Tasks Users Me Tasks Get"
                 }
               }
             }
@@ -312,6 +344,16 @@
               }
             }
           },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -365,7 +407,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid4",
+              "format": "uuid",
               "title": "Task Id"
             }
           }
@@ -451,6 +493,16 @@
           },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task already completed",
             "content": {
               "application/json": {
                 "schema": {
@@ -614,7 +666,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "messages": {
@@ -640,7 +692,7 @@
           },
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "chat": {
@@ -808,6 +860,19 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LoginRequired": {
+        "properties": {
+          "login_required": {
+            "type": "boolean",
+            "title": "Login Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "login_required"
+        ],
+        "title": "LoginRequired"
+      },
       "MultiChoice": {
         "properties": {
           "id": {
@@ -872,30 +937,6 @@
           "choices"
         ],
         "title": "MultiChoice"
-      },
-      "MyTasks": {
-        "properties": {
-          "created": {
-            "items": {
-              "$ref": "#/components/schemas/TaskRead"
-            },
-            "type": "array",
-            "title": "Created"
-          },
-          "participating": {
-            "items": {
-              "$ref": "#/components/schemas/TaskRead"
-            },
-            "type": "array",
-            "title": "Participating"
-          }
-        },
-        "type": "object",
-        "required": [
-          "created",
-          "participating"
-        ],
-        "title": "MyTasks"
       },
       "RootModel_int_": {
         "type": "integer",
@@ -1049,12 +1090,17 @@
             },
             "type": "array",
             "title": "Pages"
+          },
+          "login_required": {
+            "type": "boolean",
+            "title": "Login Required"
           }
         },
         "type": "object",
         "required": [
           "name",
-          "pages"
+          "pages",
+          "login_required"
         ],
         "title": "TaskConfig"
       },
@@ -1111,6 +1157,28 @@
         ],
         "title": "TaskRead"
       },
+      "TaskReadParticipant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "config": {
+            "$ref": "#/components/schemas/TaskConfig"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "config",
+          "completed"
+        ],
+        "title": "TaskReadParticipant"
+      },
       "TaskResponse": {
         "properties": {
           "response": {
@@ -1146,8 +1214,15 @@
             "title": "Task"
           },
           "user": {
-            "type": "string",
-            "format": "uuid4",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "User"
           }
         },
@@ -1220,8 +1295,15 @@
             "title": "Task"
           },
           "user": {
-            "type": "string",
-            "format": "uuid4",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "User"
           }
         },
@@ -1278,7 +1360,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "attributes": {
@@ -1302,7 +1384,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "attributes": {
@@ -1321,7 +1403,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
+            "format": "uuid4",
             "title": "Id"
           },
           "attributes": {

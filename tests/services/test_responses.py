@@ -18,7 +18,7 @@ async def test_create_response(sample_data) -> None:
         validation_error,
     ) = await create_response(
         task_id=task.id,
-        response=good_response,
+        existing_response=good_response,
         user_id=participant.id,
     )
 
@@ -30,7 +30,7 @@ async def test_create_response(sample_data) -> None:
         validation_error,
     ) = await create_response(
         task_id=task.id,
-        response=good_response,
+        existing_response=good_response,
         user_id=participant.id,
     )
 
@@ -49,7 +49,7 @@ async def test_create_response(sample_data) -> None:
         validation_error,
     ) = await create_response(
         task_id=uuid4(),
-        response=good_response,
+        existing_response=good_response,
         user_id=participant.id,
     )
 
@@ -68,7 +68,7 @@ async def test_create_response(sample_data) -> None:
         validation_error,
     ) = await create_response(
         task_id=task.id,
-        response=good_response,
+        existing_response=good_response,
         user_id=uuid4(),
     )
 

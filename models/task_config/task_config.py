@@ -28,21 +28,11 @@ class TaskPage(ColumnsMixin):
     )
 
 
-class ConstraintAction:
-    next_page: str | None = None  # None means go to next page
-
-
-class Constraint:
-    condition: list[dict[str, Any]] = []
-    action: ConstraintAction = ConstraintAction()
-
-
 class TaskConfig(BaseModel):
     name: Translations
     description: Translations | None = None
-    # use default factory so that field generated as non-null in typescript
     pages: list[TaskPage]
-    # constraints: list[Constraint]
+    login_required: bool
 
     @model_validator(mode="after")
     def check_ids_unique(self) -> Self:

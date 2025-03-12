@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from fastapi.exceptions import HTTPException
 from fastapi.openapi.models import HTTPBearer as HTTPBearerModel
 from fastapi.security import HTTPAuthorizationCredentials
@@ -9,10 +9,9 @@ from fastapi.security.http import HTTPBase
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import UUID4
 from starlette.requests import Request
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 from typing_extensions import Annotated, Doc
 
-from models.user import User, UserRead
+from models.user import User, UserID
 
 
 class OptionalHTTPBearer(HTTPBase):
@@ -79,28 +78,27 @@ class OptionalHTTPBearer(HTTPBase):
 
 security = OptionalHTTPBearer()
 
+EXCEPTION_403 = HTTPException(403, "Unauthorized")
+EXCEPTION_404 = HTTPException(404, "Not found")
+EXCEPTION_422 = HTTPException(422, "Invalid format")
+
 
 def current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-):
-    return credentials.credentials
+) -> UserID:
+    user_id = credentials.credentials
+    if not user_id:
+        return None
+    try:
+        return UUID(user_id)
+    except:
+        raise EXCEPTION_422
 
 
-EXCEPTION_403 = HTTPException(403, "Unauthorized")
-
-
-async def current_admin(user_id: UUID4 | None = Depends(current_user)) -> User:
+async def current_admin(user_id: UserID = Depends(current_user)) -> User:
     if not user_id:
         raise EXCEPTION_403
     admin = await User.get(user_id)
     if not admin:
         raise EXCEPTION_403
     return admin
-
-
-router = APIRouter(prefix="/auth")
-
-
-@router.post("/login", response_model=UserRead)
-async def login(user_id: UUID = Depends(current_user)):
-    return await User.get(user_id)

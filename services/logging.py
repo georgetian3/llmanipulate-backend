@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from settings import settings
+from settings import SETTINGS
 
 
 class UtcFormatter(logging.Formatter):
@@ -22,7 +22,7 @@ _formatter = UtcFormatter(
 
 def get_logger(name: str | None = None) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(settings.log_level)
+    logger.setLevel(SETTINGS.log_level)
     handler = logging.StreamHandler()
     handler.setFormatter(_formatter)
     logger.addHandler(handler)

@@ -5,6 +5,8 @@ from sqlmodel import Field
 from models.mixins import OrmMixin
 from models.models import UuidId
 
+UserID = UUID4 | None
+
 
 class UserBase(OrmMixin, UuidId):
     attributes: dict = Field({}, sa_column=Column(JSON))
@@ -21,6 +23,3 @@ class UserUpdate(UserBase): ...
 
 
 class User(UserRead, table=True): ...
-
-
-UserID = UUID4

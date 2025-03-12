@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
@@ -25,9 +26,11 @@ async def get_all_tasks(_: User = Depends(current_admin)):
     return await Task.all()
 
 
-@router.get("/{task_id}", response_model=TaskRead, responses=create_docs(FORBIDDEN))
+@router.get(
+    "/{task_id}", response_model=TaskRead, responses=create_docs(FORBIDDEN, NOT_FOUND)
+)
 async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
-    task, authorized = await services.tasks.get_task(task_id, user.id)
+    task, authorized = await services.tasks.get_participant_task(task_id, user_id)
     if task is None:
         raise NOT_FOUND
     if not authorized:
@@ -41,14 +44,19 @@ async def get_sample_task():
 
 
 @router.get("/{task_id}/responses", response_model=TaskResponseRead)
-async def get_task_responses(task_id: UUID4, _ = Depends(current_admin)):
+async def get_task_responses(task_id: UUID, _=Depends(current_admin)):
     return sample_task_config
+
+
+COMPLETED_ERROR = HTTPException(
+    status_code=status.HTTP_409_CONFLICT, detail="Task already completed"
+)
 
 
 @router.post(
     "/{task_id}/response",
     response_model=TaskResponseRead,
-    responses=create_docs(NOT_FOUND, FORBIDDEN),
+    responses=create_docs(NOT_FOUND, FORBIDDEN, COMPLETED_ERROR),
 )
 async def create_task_response(
     task_id: UUID4,
@@ -60,6 +68,7 @@ async def create_task_response(
             response_read,
             task_exists,
             is_participant,
+            completed,
         ) = await services.responses.create_response(task_id, response, user_id)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=jsonable_encoder(e.errors()))
@@ -67,6 +76,8 @@ async def create_task_response(
         raise NOT_FOUND
     if not is_participant:
         raise FORBIDDEN
+    if completed:
+        raise COMPLETED_ERROR
     return response_read
 
 

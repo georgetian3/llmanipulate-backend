@@ -23,7 +23,9 @@ class Settings(BaseSettings):
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
+    login_required: bool = True
+
     admin_id: UUID4 = uuid4()
 
 
-settings = Settings()
+SETTINGS = Settings()

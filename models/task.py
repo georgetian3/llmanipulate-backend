@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import UUID4, BaseModel, ValidationInfo, model_validator
+from pydantic import UUID4, ValidationInfo, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
+from apis.auth import UserID
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
 from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
 
 TaskID = UUID4
 
@@ -20,6 +20,10 @@ class TaskBase(OrmMixin):
 
 
 class TaskRead(TaskBase): ...
+
+
+class TaskReadParticipant(TaskRead):
+    completed: bool
 
 
 class Task(TaskBase, table=True): ...
@@ -41,12 +45,6 @@ class TaskResponseBase(SQLModel):
         if not info.context:
             return self
         task_config = TaskConfig.model_validate(info.context["task_config"])
-        existing_response = (
-            TaskResponse.model_validate(x)
-            if (x := info.context["existing_response"])
-            else None
-        )
-
         # for each component in a task config
         for component in task_config.components:
             # get the response for this compoment
@@ -75,18 +73,3 @@ class TaskResponseRead(CreatedMixin, UpdatedMixin, TaskResponseBase):
 
 class TaskResponse(TaskResponseRead, OrmMixin, table=True):
     __tablename__ = "task_response"
-
-
-class MyTasks(BaseModel):
-    created: list[TaskRead]
-    participating: list[TaskRead]
-
-
-class UserTasksWithResponsesParticipated(BaseModel):
-    tasks: list[TaskRead]
-    responses: list[TaskResponseRead]
-
-
-class UserTasksWithResponses(BaseModel):
-    created: list[TaskRead]
-    participated: list[UserTasksWithResponsesParticipated]

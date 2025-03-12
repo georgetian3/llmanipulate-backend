@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from services.logging import get_logger
-from settings import settings
+from settings import SETTINGS
 
 logger = get_logger(__name__)
 
@@ -19,12 +19,12 @@ logger = get_logger(__name__)
 class Database:
     def __init__(self):
         self._url = URL.create(
-            host=settings.database_host,
-            port=settings.database_port,
-            database=settings.database_name,
-            username=settings.database_username,
-            password=settings.database_password,
-            drivername=settings.database_driver,
+            host=SETTINGS.database_host,
+            port=SETTINGS.database_port,
+            database=SETTINGS.database_name,
+            username=SETTINGS.database_username,
+            password=SETTINGS.database_password,
+            drivername=SETTINGS.database_driver,
         )
         self._engine = create_async_engine(
             self._url,

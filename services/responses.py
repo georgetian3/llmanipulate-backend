@@ -1,3 +1,4 @@
+from uuid import uuid4
 from pydantic import UUID4
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -11,9 +12,10 @@ from models.task import (
     TaskResponseCreate,
     TaskResponseRead,
 )
+from models.task_config.task_config import TaskConfig
 from models.user import UserID
 from services.logging import get_logger
-from settings import settings
+from settings import SETTINGS
 
 logger = get_logger(__name__)
 
@@ -92,66 +94,67 @@ logger = get_logger(__name__)
 
 async def create_response(
     task_id: UUID4, response: TaskResponseCreate, user_id: UserID | None
-) -> tuple[TaskResponseRead | None, bool, bool]:
+) -> tuple[TaskResponseRead | None, bool, bool, bool]:
     """
     :returns:
         - TaskResponseRead | None: the newly created response
         - bool: task exists
         - bool: user is participant
+        - bool: task already completed
     """
     logger.debug(f"User {user_id} submitting response for task {task_id}: {response}")
-    if settings.user_correlation:
-        query = (
-            select(Task, TaskParticipant, TaskResponse)
-            .outerjoin(
-                TaskParticipant,
-                (Task.id == task_id)  # type: ignore
-                & (Task.id == TaskParticipant.task)
-                & (TaskParticipant.user == user_id),
-            )
-            # if this where isn't added, the left join returns extra tasks
-            .where(Task.id == task_id)
+    query = (
+        select(Task, TaskParticipant, TaskResponse)
+        .outerjoin(
+            TaskParticipant,
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
         )
-    else:
-        query = select(Task).where(Task.id == task_id)
+        .outerjoin(
+            TaskResponse,
+            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),
+        )
+        # if this where isn't added, the left join returns extra tasks
+        .where(Task.id == task_id)
+    )
 
     async with get_session() as session:
-        result = (await session.execute(query)).first()
+        results: tuple[Task | None, TaskParticipant | None, TaskResponse | None] = (
+            await session.execute(query)
+        ).first()
 
-    if not result:  # task doesn't exist
+    if not results:
         return None, False, False
 
-    task = Task.model_validate(result[0])
-    participant = TaskParticipant.model_validate(result[1]) if result[1] else None
-    existing_response = TaskResponse.model_validate(result[2]) if result[2] else None
+    task, is_participant, existing_response = results
+    task.config = TaskConfig.model_validate(task.config)
 
-    if not participant:
-        return None, True, False
-
-    # validate the response checking that components have the right responses
-    # if error exists, raises ValidationError that will be handled by FastAPI
-    TaskResponseCreate.model_validate(
-        response.model_dump(),
-        context={
-            "task_config": task.config,
-            "existing_response": existing_response,
-        },
-    )
+    if task.config.login_required:
+        if not is_participant:
+            return None, True, False, False
+        if existing_response:
+            return existing_response, True, True, True
+    else:  # if no login required, randomize user_id
+        user_id = uuid4()
 
     response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
 
+    print('here', response_db.model_dump())
+
     try:
-        await response_db.save()
-    except:
-        return TaskResponse.get()
-
-    async with get_session() as session:
-        new_response = TaskResponseRead.model_validate(
-            (await session.execute(upsert)).scalar_one()
+        return (
+            TaskResponseRead.model_validate(await response_db.save()),
+            True,
+            True,
+            False,
         )
-        await session.commit()
-
-    return new_response, True, True
+    except Exception as e:
+        logger.info("Error saving response:", e)
+        return (
+            None,
+            True,
+            True,
+            True,
+        )
 
 
 async def get_responses(task_id: TaskID) -> list[TaskResponseRead]:

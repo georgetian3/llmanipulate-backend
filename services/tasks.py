@@ -4,15 +4,16 @@ from sqlmodel import select
 
 from models.database import get_session
 from models.task import (
-    MyTasks,
     Task,
     TaskID,
     TaskParticipant,
     TaskRead,
+    TaskReadParticipant,
     TaskResponse,
-    UserTasksWithResponses,
 )
+from models.task_config.task_config import TaskConfig
 from models.user import User, UserID
+from settings import SETTINGS
 
 # random.seed(42)
 
@@ -123,11 +124,16 @@ from models.user import User, UserID
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-async def get_user_tasks_with_responses(user_id: UserID) -> UserTasksWithResponses:
+async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
+    if not SETTINGS.login_required:
+        return [
+            TaskReadParticipant(**task.model_dump(), completed=False)
+            for task in await Task.all()
+        ]
+
     query = (
-        select(Task, User, TaskParticipant, TaskResponse)
-        .join(User, Task.creator == User.id)  # type: ignore
-        .outerjoin(
+        select(Task, TaskResponse)
+        .join(
             TaskParticipant,
             (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
@@ -137,73 +143,71 @@ async def get_user_tasks_with_responses(user_id: UserID) -> UserTasksWithRespons
         )
     )
     async with get_session() as session:
-        results: list[tuple[Task, User, TaskParticipant, TaskResponse]] = list(
+        results: list[tuple[Task, TaskResponse]] = list(
             (await session.execute(query)).all()
         )
-    tasks = UserTasksWithResponses(created=[], participated=[])
-    return tasks
+    return [
+        TaskReadParticipant(**x[0].model_dump(), completed=bool(x[1])) for x in results
+    ]
 
 
-async def get_user_tasks(user_id: UserID) -> UserTasksWithResponses:
-    query = (
-        select(Task, User, TaskParticipant)
-        .join(User, Task.creator == User.id)  # type: ignore
-        .outerjoin(
-            TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
-        )
-    )
-    async with get_session() as session:
-        results: list[tuple[Task, User, TaskParticipant]] = list(
-            (await session.execute(query)).all()
-        )
+# async def get_user_tasks(user_id: UserID) -> UserTasksWithResponses:
+#     query = select(Task, User, TaskParticipant).outerjoin(
+#         TaskParticipant,
+#         (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
+#     )
+#     async with get_session() as session:
+#         results: list[tuple[Task, User, TaskParticipant]] = list(
+#             (await session.execute(query)).all()
+#         )
 
-    my_tasks = MyTasks(created=[], participating=[])
-    for task, user, task_participant in results:
-        task_read = TaskRead.model_validate(task, update={"creator": user})
-        if task.creator == user_id:
-            my_tasks.created.append(task_read)
-        if task_participant:
-            my_tasks.participating.append(task_read)
-    return my_tasks
+#     my_tasks = MyTasks(created=[], participating=[])
+#     for task, user, task_participant in results:
+#         task_read = TaskRead.model_validate(task, update={"creator": user})
+
+#         if task_participant:
+#             my_tasks.participating.append(task_read)
+#     return my_tasks
 
 
-async def get_task(
+async def get_participant_task(
     task_id: TaskID, user_id: UserID
-) -> tuple[TaskRead | None, bool | None]:
+) -> tuple[TaskReadParticipant | None, bool]:
     """
-    A user is authorized to to access a task if they satisfy at least one of the following requirements:
-    1. the user is the task's creator
-    2. the user is the task's participant
-    3. the task is public
+    A user is authorized to to access a task if they are one of the task's participants
     Returns 2-tuple:
     1. `Task`: the task exists
        `None`: the task does not exist
-    2. `True`: the task exists and the user is authorized
-       `False`: the task exists and the user is unauthorized
-       `None`: the task does not exist
+    2. `True`: the user is authorized
+       `False`: the doesn't exist or the user is unauthorized
     """
+
     query = (
         select(
             Task,
-            User,
             TaskParticipant.user,
+            TaskResponse,
         )
-        .join(User, (Task.id == task_id) & (Task.creator == User.id))  # type: ignore
         .outerjoin(
             TaskParticipant,
             (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
+        .outerjoin(TaskResponse, (Task.id == task_id) & (TaskResponse.user == user_id))
     )
 
     async with get_session() as session:
-        result: tuple[Task | None, User | None, UserID | None] = (
+        result: tuple[Task | None, UserID | None, TaskResponse | None] = (
             await session.execute(query)
         ).first()
 
-    task, creator, is_participant = result if result else (None, None, None)
-    if not result or not task:
-        return None, None
-    return TaskRead.model_validate(task, update={"creator": creator}), (
-        task.public or task.creator == user_id or is_participant is not None
+    if not result:
+        return None, True
+    task, is_participant, completed = result
+    if not task:
+        return None, True
+    task.config = TaskConfig.model_validate(task.config)
+    if not task.config.login_required:
+        return TaskReadParticipant(**task.model_dump(), completed=False), True
+    return TaskReadParticipant(**task.model_dump(), completed=bool(completed)), bool(
+        is_participant
     )
