@@ -22,7 +22,7 @@ CLIENT_ERROR = HTTPException(status.HTTP_400_BAD_REQUEST, "Client error")
 
 
 @router.get("/", response_model=list[TaskRead])
-async def get_all_tasks(_: User = Depends(current_admin)):
+async def get_tasks(_: User = Depends(current_admin)):
     return await Task.all()
 
 

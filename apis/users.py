@@ -29,10 +29,10 @@ async def create_user(new_user: UserCreate, _=Depends(current_admin)):
 
 @router.get(
     "",
-    response_model=list[User],
+    response_model=list[UserRead],
 )
-async def get_all_users():
-    return await User.all()
+async def get_all_users(_=Depends(current_admin)):
+    return [UserRead.model_validate(user) for user in await User.all()]
 
 
 GET_USER_EXCEPTION = HTTPException(

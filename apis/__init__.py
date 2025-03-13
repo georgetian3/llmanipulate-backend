@@ -11,6 +11,7 @@ from apis.tasks import router as task_router
 from apis.users import router as user_router
 from models.database import _DATABASE
 from models.fixtures import load_fixtures
+from services.user import init_admin
 from settings import SETTINGS
 
 
@@ -19,6 +20,7 @@ async def lifespan(api: FastAPI):
     await _DATABASE.create()
     if SETTINGS.load_fixtures:
         await load_fixtures()
+    await init_admin()
     yield
 
 

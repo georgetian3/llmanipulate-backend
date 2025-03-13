@@ -61,7 +61,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/User"
+                    "$ref": "#/components/schemas/UserRead"
                   },
                   "type": "array",
                   "title": "Response Get All Users Users Get"
@@ -69,7 +69,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -274,8 +279,8 @@
         "tags": [
           "tasks"
         ],
-        "summary": "Get All Tasks",
-        "operationId": "get_all_tasks",
+        "summary": "Get Tasks",
+        "operationId": "get_tasks",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -286,7 +291,7 @@
                     "$ref": "#/components/schemas/TaskRead"
                   },
                   "type": "array",
-                  "title": "Response Get All Tasks Tasks  Get"
+                  "title": "Response Get Tasks Tasks  Get"
                 }
               }
             }
@@ -540,7 +545,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ]
       }
     }
   },

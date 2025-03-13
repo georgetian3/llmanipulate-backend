@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import UUID4
 
+from apis.auth import current_admin
 from models.task import TaskResponse, TaskResponseCreate
 
 # import services.responses
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/responses")
 
 
 @router.get("")
-async def get_responses():
+async def get_responses(_=Depends(current_admin)):
     return await TaskResponse.all()
 
 
