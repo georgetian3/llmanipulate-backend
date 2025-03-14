@@ -1,6 +1,19 @@
+from uuid import uuid4
+
 from pydantic import UUID4
-from models.task import TaskResponseCreate
-from models.user import User
+from sqlalchemy import select
+
+from models.database import get_session
+from models.task import (
+    Task,
+    TaskID,
+    TaskParticipant,
+    TaskResponse,
+    TaskResponseCreate,
+    TaskResponseRead,
+)
+from models.task_config.task_config import TaskConfig
+from models.user import UserID
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -78,5 +91,81 @@ logger = get_logger(__name__)
 #             return {"error": f"Error fetching responses from database: {str(e)}"}
 
 
-async def create_response(task_id: UUID4, response: TaskResponseCreate, user: User): ...
-    
+async def create_response(
+    task_id: UUID4, response: TaskResponseCreate, user_id: UserID | None
+) -> tuple[TaskResponseRead | None, bool, bool, bool]:
+    """
+    :returns:
+        - TaskResponseRead | None: the newly created response
+        - bool: task exists
+        - bool: user is participant
+        - bool: task already completed
+    """
+    logger.debug(f"User {user_id} submitting response for task {task_id}: {response}")
+    query = (
+        select(Task, TaskParticipant, TaskResponse)
+        .outerjoin(
+            TaskParticipant,
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
+        )
+        .outerjoin(
+            TaskResponse,
+            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),
+        )
+        # if this where isn't added, the left join returns extra tasks
+        .where(Task.id == task_id)
+    )
+
+    async with get_session() as session:
+        results: tuple[Task | None, TaskParticipant | None, TaskResponse | None] = (
+            await session.execute(query)
+        ).first()
+
+    if not results:
+        return None, False, False
+
+    task, is_participant, existing_response = results
+    task.config = TaskConfig.model_validate(task.config)
+
+    if task.config.login_required:
+        if not is_participant:
+            return None, True, False, False
+        if existing_response:
+            return existing_response, True, True, True
+    else:  # if no login required, randomize user_id
+        user_id = uuid4()
+
+    response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
+
+    try:
+        return (
+            TaskResponseRead.model_validate(await response_db.save()),
+            True,
+            True,
+            False,
+        )
+    except Exception as e:
+        logger.info("Error saving response:", e)
+        return (
+            None,
+            True,
+            True,
+            True,
+        )
+
+
+async def get_responses(task_id: TaskID | None) -> list[TaskResponseRead]:
+    if not task_id:
+        responses = await TaskResponse.all()
+    else:
+        query = select(TaskResponse).where(TaskResponse.task == task_id)
+        async with get_session() as session:
+            responses = (await session.scalars(query)).all()
+    return [TaskResponseRead.model_validate(x) for x in responses]
+
+
+async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
+    query = select(TaskResponse).where(TaskResponse.user == user_id)
+    async with get_session() as session:
+        responses = (await session.scalars(query)).all()
+    return [TaskResponseRead.model_validate(x) for x in responses]

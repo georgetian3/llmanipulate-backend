@@ -12,7 +12,7 @@ class Translations(BaseModel):
         examples=[{"en": "This is the english translation.", "zh": "这是中文翻译。"}]
     )
     default: LanguageAlpha2 | None = Field(
-        default=None,
+        None,
         examples=["en", "zh"],
         description="Default language to display. Must must be in `languages`. Will display an arbitrary language if left `null`.",
     )
@@ -24,18 +24,16 @@ class Translations(BaseModel):
         return self
 
 
-
-
 ComponentIdType = str | int
 
 
 class BaseComponent(BaseModel):
     id: ComponentIdType
-    label: Translations
+    label: Translations | None = None
     optional: bool = False
-    response_class: ClassVar[ComponentResponseType]
+    response_class: ClassVar[type]
 
     @abstractmethod
     def validate_response(self, response: ComponentResponseType) -> None:
         if not isinstance(response, self.response_class):
-            raise TypeError(f"Response not instance of {self.response_class}")
+            raise ValueError(f"Response not instance of {self.response_class}")

@@ -5,7 +5,8 @@ import pytest
 from models.database import _DATABASE
 from models.task import Task, TaskParticipant
 from models.task_config.base_component import Translations
-from models.task_config.task_config import TaskConfig
+from models.task_config.components import FreeText
+from models.task_config.task_config import ComponentGroup, TaskConfig, TaskPage
 from models.user import User, UserCreate
 from services.user import create_user
 
@@ -24,13 +25,22 @@ async def sample_data() -> tuple[User, User, Task, TaskParticipant]:
     sample_task = Task(
         id=UUID("b9b5251db0c6485ba33f94e416aa77f0"),
         creator=sample_creator.id,
-        config=TaskConfig(name=Translations(languages={"en": "sample task"}), pages=[]),
+        config=TaskConfig(
+            name=Translations(languages={"en": "sample task"}),
+            pages=[
+                TaskPage(
+                    component_groups=[
+                        ComponentGroup(components=[FreeText(id="1"), FreeText(id="2")])
+                    ]
+                )
+            ],
+        ),
     )
 
     try:
         await sample_task.save()
     except:
-        sample_task = await Task.get(sample_task.id)
+        ...
 
     sample_task_participant = TaskParticipant(
         task=sample_task.id, user=sample_participant.id

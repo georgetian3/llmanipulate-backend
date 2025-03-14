@@ -12,8 +12,8 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/chats")
 
 
-@router.get("/{id}", response_model=ChatHistoryRead)
-async def get_chat(id: str):
+@router.get("/{chat_id}", response_model=ChatHistoryRead)
+async def get_chat(chat_id: str):
     return sample_chat_history
 
 

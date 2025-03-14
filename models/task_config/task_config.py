@@ -28,30 +28,18 @@ class TaskPage(ColumnsMixin):
     )
 
 
-class ConstraintAction:
-    next_page: str | None = None  # None means go to next page
-
-
-class Constraint:
-    condition: list[dict[str, Any]] = []
-    action: ConstraintAction = ConstraintAction()
-
-
 class TaskConfig(BaseModel):
     name: Translations
     description: Translations | None = None
-    # use default factory so that field generated as non-null in typescript
     pages: list[TaskPage]
-    # constraints: list[Constraint]
+    login_required: bool
 
     @model_validator(mode="after")
     def check_ids_unique(self) -> Self:
         ids = set()
         for component in self.components:
             if component.id in ids:
-                raise ValueError(
-                    f"Every component must have a unique ID, duplicated ID: {component.id}"
-                )
+                raise ValueError(f"Duplicate component ID: {component.id}")
             ids.add(component.id)
         return self
 

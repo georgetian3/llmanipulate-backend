@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import UUID4, BaseModel
+from sqlmodel import Field
 
 from models.task_config.base_component import BaseComponent, Translations
 
@@ -28,6 +29,7 @@ class Chat(BaseComponent):
     agents: list[Agent] = []
     order: list[UUID4] | None = []
     all_users: bool
+    min_messages: int = Field(0, ge=0)
 
     def validate_response(self, response):
         return None

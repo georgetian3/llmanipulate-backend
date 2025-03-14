@@ -1,6 +1,7 @@
-from datetime import datetime
 from typing import Literal
+from uuid import uuid4
 
+from pydantic import UUID4
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,24 +17,15 @@ class Settings(BaseSettings):
     database_password: str | None = None
     database_driver: str | None = "sqlite+aiosqlite"
 
-    frontend_url: str = "http://localhost:3000"
-
-    secret: str = "SECRET"
-
-    auth_strategy: Literal["jwt", "redis"] = "jwt"
-
-    redis_host: str | None = "localhost"
-    redis_port: int | None = 6379
-
-    oauth_google_client_id: str | None = None
-    oauth_google_client_secret: str | None = None
-    oauth_github_client_id: str | None = None
-    oauth_github_client_secret: str | None = None
-    oauth_facebook_client_id: str | None = None
-    oauth_facebook_client_secret: str | None = None
+    frontend_url: str = "*"
 
     load_fixtures: bool = True
 
-    access_token_lifetime_seconds: int = (datetime(9999, 12, 31) - datetime.now()).seconds
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
-settings = Settings()
+    login_required: bool = True
+
+    admin_id: UUID4 = uuid4()
+
+
+SETTINGS = Settings()

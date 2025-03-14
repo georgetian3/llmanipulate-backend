@@ -1,11 +1,9 @@
 python-dotenv
-sqlmodel
+sqlmodel>=0.0.24
+sqlalchemy>=2.0.38
 asyncpg
 greenlet
 pytz
 openai
-fastapi-users[redis,oauth]
-fastapi_users_db_sqlmodel
 pydantic-settings
-sqladmin
 pydantic-extra-types[pycountry]
