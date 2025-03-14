@@ -1,8 +1,9 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import UUID4, BaseModel
 
+import services.responses
 import services.user
 from apis.auth import EXCEPTION_403, current_admin, current_user
 from models.task import TaskReadParticipant, TaskResponse
@@ -22,16 +23,14 @@ CREATE_USER_EXCEPTION = HTTPException(
     "",
     description="Creates a new participant. Requires an admin's user_id for authentication.",
     response_model=User,
+    dependencies=[Depends(current_admin)],
 )
-async def create_user(new_user: UserCreate, _=Depends(current_admin)):
+async def create_user(new_user: UserCreate):
     return await services.user.create_participant(new_user)
 
 
-@router.get(
-    "",
-    response_model=list[UserRead],
-)
-async def get_all_users(_=Depends(current_admin)):
+@router.get("", response_model=list[UserRead], dependencies=[Depends(current_admin)])
+async def get_users():
     return [UserRead.model_validate(user) for user in await User.all()]
 
 
@@ -65,13 +64,13 @@ async def get_user(user_id: UserID):
     return user
 
 
-@router.get("/users_responses", response_model=list[TaskResponse])
-async def get_all_users_responses():
-    return await services.user.get_user_responses()
+@router.get("/{user_id}/responses", response_model=list[TaskResponse])
+async def get_user_responses(user_id: UUID4):
+    return await services.responses.get_user_responses(user_id)
 
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
 async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
     if SETTINGS.login_required and not user_id:
-        return EXCEPTION_403
+        raise EXCEPTION_403
     return await get_participant_tasks(user_id)

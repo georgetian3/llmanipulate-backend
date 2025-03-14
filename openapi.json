@@ -52,8 +52,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Get All Users",
-        "operationId": "get_all_users",
+        "summary": "Get Users",
+        "operationId": "get_users",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -64,7 +64,7 @@
                     "$ref": "#/components/schemas/UserRead"
                   },
                   "type": "array",
-                  "title": "Response Get All Users Users Get"
+                  "title": "Response Get Users Users Get"
                 }
               }
             }
@@ -219,24 +219,46 @@
         }
       }
     },
-    "/users/users_responses": {
+    "/users/{user_id}/responses": {
       "get": {
         "tags": [
           "users"
         ],
-        "summary": "Get All Users Responses",
-        "operationId": "get_all_users_responses",
+        "summary": "Get User Responses",
+        "operationId": "get_user_responses",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "User Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/TaskResponse"
                   },
-                  "type": "array",
-                  "title": "Response Get All Users Responses Users Users Responses Get"
+                  "title": "Response Get User Responses Users  User Id  Responses Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -292,6 +314,50 @@
                   },
                   "type": "array",
                   "title": "Response Get Tasks Tasks  Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -370,6 +436,50 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Delete Task",
+        "operationId": "delete_task",
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/tasks/sample": {
@@ -423,7 +533,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskResponseRead"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponseRead"
+                  },
+                  "title": "Response Get Task Responses Tasks  Task Id  Responses Get"
                 }
               }
             }
@@ -529,6 +643,58 @@
         }
       }
     },
+    "/tasks/{task_id}/participants": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Participants",
+        "operationId": "get_task_participants",
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskParticipantRead"
+                  },
+                  "title": "Response Get Task Participants Tasks  Task Id  Participants Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/responses": {
       "get": {
         "tags": [
@@ -541,7 +707,13 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponseRead"
+                  },
+                  "type": "array",
+                  "title": "Response Get Responses Responses Get"
+                }
               }
             }
           }
@@ -731,7 +903,55 @@
         ],
         "title": "ChatMessageRead"
       },
-      "ComponentGroup": {
+      "ComponentGroup-Input": {
+        "properties": {
+          "columns": {
+            "type": "integer",
+            "title": "Columns",
+            "description": "The number of columns used to display the children of this component",
+            "default": 1
+          },
+          "label": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "components": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SingleChoice"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiChoice"
+                },
+                {
+                  "$ref": "#/components/schemas/Slider"
+                },
+                {
+                  "$ref": "#/components/schemas/FreeText"
+                },
+                {
+                  "$ref": "#/components/schemas/Chat"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Components"
+          }
+        },
+        "type": "object",
+        "required": [
+          "components"
+        ],
+        "title": "ComponentGroup"
+      },
+      "ComponentGroup-Output": {
         "properties": {
           "columns": {
             "type": "integer",
@@ -1079,7 +1299,7 @@
         ],
         "title": "Slider"
       },
-      "TaskConfig": {
+      "TaskConfig-Input": {
         "properties": {
           "name": {
             "$ref": "#/components/schemas/Translations"
@@ -1096,7 +1316,7 @@
           },
           "pages": {
             "items": {
-              "$ref": "#/components/schemas/TaskPage"
+              "$ref": "#/components/schemas/TaskPage-Input"
             },
             "type": "array",
             "title": "Pages"
@@ -1114,7 +1334,54 @@
         ],
         "title": "TaskConfig"
       },
-      "TaskPage": {
+      "TaskConfig-Output": {
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/Translations"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/TaskPage-Output"
+            },
+            "type": "array",
+            "title": "Pages"
+          },
+          "login_required": {
+            "type": "boolean",
+            "title": "Login Required"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "pages",
+          "login_required"
+        ],
+        "title": "TaskConfig"
+      },
+      "TaskCreate": {
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/TaskConfig-Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "config"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskPage-Input": {
         "properties": {
           "columns": {
             "type": "integer",
@@ -1138,7 +1405,7 @@
           },
           "component_groups": {
             "items": {
-              "$ref": "#/components/schemas/ComponentGroup"
+              "$ref": "#/components/schemas/ComponentGroup-Input"
             },
             "type": "array",
             "title": "Component Groups"
@@ -1150,15 +1417,83 @@
         ],
         "title": "TaskPage"
       },
+      "TaskPage-Output": {
+        "properties": {
+          "columns": {
+            "type": "integer",
+            "title": "Columns",
+            "description": "The number of columns used to display the component groups",
+            "default": 1
+          },
+          "label": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Translations"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "component_groups": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentGroup-Output"
+            },
+            "type": "array",
+            "title": "Component Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "component_groups"
+        ],
+        "title": "TaskPage"
+      },
+      "TaskParticipantRead": {
+        "properties": {
+          "task": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Task"
+          },
+          "user": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User"
+          },
+          "completed": {
+            "type": "boolean",
+            "title": "Completed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task",
+          "user",
+          "completed"
+        ],
+        "title": "TaskParticipantRead"
+      },
       "TaskRead": {
         "properties": {
+          "config": {
+            "$ref": "#/components/schemas/TaskConfig-Output"
+          },
           "id": {
             "type": "string",
             "format": "uuid4",
             "title": "Id"
-          },
-          "config": {
-            "$ref": "#/components/schemas/TaskConfig"
           }
         },
         "type": "object",
@@ -1169,13 +1504,13 @@
       },
       "TaskReadParticipant": {
         "properties": {
+          "config": {
+            "$ref": "#/components/schemas/TaskConfig-Output"
+          },
           "id": {
             "type": "string",
             "format": "uuid4",
             "title": "Id"
-          },
-          "config": {
-            "$ref": "#/components/schemas/TaskConfig"
           },
           "completed": {
             "type": "boolean",

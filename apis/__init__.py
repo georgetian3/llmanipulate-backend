@@ -11,6 +11,7 @@ from apis.tasks import router as task_router
 from apis.users import router as user_router
 from models.database import _DATABASE
 from models.fixtures import load_fixtures
+from services.logging import get_logger
 from services.user import init_admin
 from settings import SETTINGS
 
@@ -51,6 +52,9 @@ Should be called only after all routes have been added.
 for route in api.routes:
     if isinstance(route, APIRoute):
         route.operation_id = route.name
+
+
+logger = get_logger(__name__)
 
 
 with open("openapi.json", "w", encoding="utf-8") as f:

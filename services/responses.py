@@ -1,7 +1,7 @@
 from uuid import uuid4
+
 from pydantic import UUID4
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 
 from models.database import get_session
 from models.task import (
@@ -15,7 +15,6 @@ from models.task import (
 from models.task_config.task_config import TaskConfig
 from models.user import UserID
 from services.logging import get_logger
-from settings import SETTINGS
 
 logger = get_logger(__name__)
 
@@ -138,8 +137,6 @@ async def create_response(
 
     response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
 
-    print('here', response_db.model_dump())
-
     try:
         return (
             TaskResponseRead.model_validate(await response_db.save()),
@@ -157,7 +154,18 @@ async def create_response(
         )
 
 
-async def get_responses(task_id: TaskID) -> list[TaskResponseRead]:
-    query = select(TaskResponse).where(TaskResponse.task == task_id)
+async def get_responses(task_id: TaskID | None) -> list[TaskResponseRead]:
+    if not task_id:
+        responses = await TaskResponse.all()
+    else:
+        query = select(TaskResponse).where(TaskResponse.task == task_id)
+        async with get_session() as session:
+            responses = (await session.scalars(query)).all()
+    return [TaskResponseRead.model_validate(x) for x in responses]
+
+
+async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
+    query = select(TaskResponse).where(TaskResponse.user == user_id)
     async with get_session() as session:
-        return list((await session.execute(query)).all())
+        responses = (await session.scalars(query)).all()
+    return [TaskResponseRead.model_validate(x) for x in responses]

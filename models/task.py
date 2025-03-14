@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import UUID4, ValidationInfo, model_validator
+from pydantic import UUID4, ValidationInfo, field_validator, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from apis.auth import UserID
@@ -15,23 +15,41 @@ TaskID = UUID4
 
 
 class TaskBase(OrmMixin):
-    id: TaskID = Field(primary_key=True, default_factory=uuid4)
     config: TaskConfig = Field(sa_column=Column(JSON))
 
 
-class TaskRead(TaskBase): ...
+class TaskCreate(TaskBase): ...
+
+
+class TaskRead(TaskBase):
+    id: TaskID = Field(primary_key=True, default_factory=uuid4)
 
 
 class TaskReadParticipant(TaskRead):
     completed: bool
 
+    @field_validator("config", mode="after")
+    @classmethod
+    def remove_secrets(cls, config: TaskConfig):
+        for component in config.components:
+            if component.type == "chat":
+                component.agents = []
+        return config
 
-class Task(TaskBase, table=True): ...
+
+class Task(TaskRead, table=True): ...
 
 
-class TaskParticipant(OrmMixin, table=True):
+class TaskParticipantBase(OrmMixin):
     task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+
+
+class TaskParticipantRead(TaskParticipantBase):
+    completed: bool
+
+
+class TaskParticipant(TaskParticipantBase, table=True): ...
 
 
 TaskResponseType = dict[ComponentIdType, ComponentResponseType]

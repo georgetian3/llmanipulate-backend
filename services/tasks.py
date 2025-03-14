@@ -1,18 +1,22 @@
 from pprint import pprint
 
+from pydantic import UUID4
+from sqlalchemy import delete
 from sqlmodel import select
 
 from models.database import get_session
 from models.task import (
     Task,
+    TaskCreate,
     TaskID,
     TaskParticipant,
+    TaskParticipantRead,
     TaskRead,
     TaskReadParticipant,
     TaskResponse,
 )
 from models.task_config.task_config import TaskConfig
-from models.user import User, UserID
+from models.user import UserID
 from settings import SETTINGS
 
 # random.seed(42)
@@ -124,6 +128,28 @@ from settings import SETTINGS
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
+def task_to_task_read(task: Task) -> TaskRead:
+    return TaskRead.model_validate(
+        task, update={"config": TaskConfig.model_validate(task.config)}
+    )
+
+
+async def create_task(task_create: TaskCreate) -> TaskRead:
+    task = Task.model_validate(task_create)
+    async with get_session() as session:
+        session.add(task)
+        await session.commit()
+        await session.refresh(task)
+    return task_to_task_read(task)
+
+
+async def delete_task(task_id: UUID4):
+    query = delete(Task).where(Task.id == task_id)
+    async with get_session() as session:
+        await session.execute(query)
+        await session.commit()
+
+
 async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
     if not SETTINGS.login_required:
         return [
@@ -147,7 +173,12 @@ async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
             (await session.execute(query)).all()
         )
     return [
-        TaskReadParticipant(**x[0].model_dump(), completed=bool(x[1])) for x in results
+        TaskReadParticipant(
+            config=TaskConfig.model_validate(task.config),
+            id=task.id,
+            completed=bool(response),
+        )
+        for task, response in results
     ]
 
 
@@ -193,6 +224,7 @@ async def get_participant_task(
             (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
         .outerjoin(TaskResponse, (Task.id == task_id) & (TaskResponse.user == user_id))
+        .where(Task.id == task_id)
     )
 
     async with get_session() as session:
@@ -211,3 +243,22 @@ async def get_participant_task(
     return TaskReadParticipant(**task.model_dump(), completed=bool(completed)), bool(
         is_participant
     )
+
+
+async def get_task_participants(task_id: UUID4) -> list[TaskParticipantRead]:
+    query = (
+        select(TaskParticipant, TaskResponse)
+        .outerjoin(
+            TaskResponse,
+            (TaskParticipant.task == task_id) & (TaskResponse.task == task_id),
+        )
+        .where(TaskParticipant.task == task_id)
+    )
+    async with get_session() as session:
+        results: list[tuple[TaskParticipant, TaskResponse]] = (
+            await session.execute(query)
+        ).all()
+    return [
+        TaskParticipantRead(task=tp.task, user=tp.user, completed=bool(tr))
+        for tp, tr in results
+    ]
