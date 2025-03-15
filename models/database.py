@@ -1,39 +1,54 @@
-import asyncio
-from dataclasses import asdict
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
-import asyncpg
-from sqlalchemy import URL, create_engine
+import pydantic_core
 import sqlalchemy
 import sqlalchemy.dialects
 import sqlalchemy.dialects.postgresql
+from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-from config import DatabaseConfig
-from models.models import *
 from services.logging import get_logger
-from sqlalchemy.exc import ProgrammingError
+from settings import SETTINGS
 
 logger = get_logger(__name__)
 
-class Database:
 
-    def __init__(self, config: DatabaseConfig):
-        self._url = URL.create(**{k.lower(): v for k, v in asdict(config).items()})
-        self._engine = create_async_engine(self._url)
+class Database:
+    def __init__(self):
+        self._url = URL.create(
+            host=SETTINGS.database_host,
+            port=SETTINGS.database_port,
+            database=SETTINGS.database_name,
+            username=SETTINGS.database_username,
+            password=SETTINGS.database_password,
+            drivername=SETTINGS.database_driver,
+        )
+        self._engine = create_async_engine(
+            self._url,
+            json_serializer=lambda x: pydantic_core.to_json(x).decode("utf-8"),
+            json_deserializer=lambda x: pydantic_core.from_json(x),
+            # echo=True,
+        )
         self._async_session_maker: sessionmaker = sessionmaker(
             self._engine, class_=AsyncSession
         )
 
-    async def create(self):
+    async def create(self) -> None:
         url = self._url._replace(database=None)
         # No need to create DB for sqlite
-        if 'sqlite' not in url.drivername:
-            async with create_async_engine(url).execution_options(isolation_level="AUTOCOMMIT").connect() as conn:
+        if "sqlite" not in url.drivername:
+            async with (
+                create_async_engine(url)
+                .execution_options(isolation_level="AUTOCOMMIT")
+                .connect() as conn
+            ):
                 try:
-                    await conn.execute(sqlalchemy.text(f"CREATE DATABASE {self._url.database}"))
+                    await conn.execute(
+                        sqlalchemy.text(f"CREATE DATABASE {self._url.database}")
+                    )
                     logger.info(f"Database {self._url.database} created ")
                 except Exception as e:
                     if "already exists" not in str(e):
@@ -41,7 +56,7 @@ class Database:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
 
-    async def reset(self):
+    async def reset(self) -> None:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.drop_all)
         await self.create()
@@ -49,7 +64,9 @@ class Database:
     def get_session(self) -> AsyncSession:
         return self._async_session_maker()
 
-_DATABASE = Database(DatabaseConfig())
+
+_DATABASE = Database()
+
 
 @asynccontextmanager
 async def get_session():
@@ -61,3 +78,8 @@ async def get_session():
         raise
     finally:
         await session.close()
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with _DATABASE._async_session_maker() as session:
+        yield session
