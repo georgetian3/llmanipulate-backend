@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import List, Optional
 
-from pydantic import UUID4
+from pydantic import UUID4, BaseModel
 from sqlmodel import Field, SQLModel
+
 
 from models.mixins import OrmMixin
 from models.models import UuidId
@@ -20,7 +22,8 @@ class ChatMessageCreate:
 
 class ChatMessageRead(UuidId, ChatMessageCreate):
     chat: UUID4 = Field(foreign_key="chathistory.id", ondelete="CASCADE")
-    sender: UUID4 = Field(foreign_key="user.id", ondelete="CASCADE")
+    sender_uuid: Optional[UUID4] = Field(default=None, foreign_key="user.id", ondelete="CASCADE")  # ✅ Human sender
+    sender_agent: Optional[str] = Field(default=None, max_length=50)  # ✅ Agent sender (no FK)
     timestamp: datetime
 
 
@@ -35,3 +38,4 @@ class ChatHistoryRead(UuidId):
 
 
 class ChatHistory(ChatHistoryBase, OrmMixin, table=True): ...
+
