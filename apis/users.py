@@ -14,19 +14,14 @@ from settings import SETTINGS
 router = APIRouter(prefix="/users")
 
 
-CREATE_USER_EXCEPTION = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST, detail="User email already taken"
-)
-
-
 @router.put(
     "",
-    description="Creates a new participant. Requires an admin's user_id for authentication.",
+    description="Creates a new user. Requires an admin's user_id for authentication.",
     response_model=User,
     dependencies=[Depends(current_admin)],
 )
-async def create_user(new_user: UserCreate):
-    return await services.user.create_participant(new_user)
+async def create_user(user_create: UserCreate):
+    return await services.user.create_user(user_create)
 
 
 @router.get("", response_model=list[UserRead], dependencies=[Depends(current_admin)])

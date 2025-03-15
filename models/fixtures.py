@@ -4,7 +4,7 @@ from models.task import Task, TaskParticipant
 from models.task_config.examples import sample_task_config
 from models.task_config.task_config import TaskConfig
 from models.user import User, UserCreate
-from services.user import create_participant
+from services.user import create_user
 
 
 async def load_fixtures():
@@ -15,7 +15,7 @@ async def load_fixtures():
     sample_users = []
     for user_uuid in user_uuids:
         try:
-            user = await create_participant(UserCreate(id=UUID(user_uuid)))
+            user = await create_user(UserCreate(id=UUID(user_uuid)))
         except:
             user = await User.get(UUID(user_uuid))
         sample_users.append(user)
@@ -25,6 +25,7 @@ async def load_fixtures():
         TaskConfig(**sample_task_config.model_dump()),
         TaskConfig(**sample_task_config.model_dump()),
     ]
+
     sample_task_configs[0].name.languages["en"] = "Sample Task 1"
     sample_task_configs[1].name.languages["en"] = "Sample Task 2"
     sample_task_configs[2].name.languages["en"] = "Sample Task 3"
@@ -34,14 +35,17 @@ async def load_fixtures():
         Task(
             id=UUID("642ad1478788480d86a1d9fe9c893cc3"),
             config=sample_task_configs[0],
+            public=True,
         ),
         Task(
             id=UUID("abec92d8f34a4df9b4df26494f6bb760"),
             config=sample_task_configs[1],
+            public=True,
         ),
         Task(
             id=UUID("10fe6383d36a4e0eb2819db043484a0a"),
             config=sample_task_configs[2],
+            public=False,
         ),
     ]
 
@@ -50,6 +54,7 @@ async def load_fixtures():
             await task.save()
         except:
             continue
+
 
     sample_task_participants = [
         TaskParticipant(task=sample_tasks[0].id, user=sample_users[0].id),

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import UUID4, ValidationInfo, field_validator, model_validator
+from pydantic import UUID4, BaseModel, ValidationInfo, field_validator, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
 from apis.auth import UserID
@@ -23,6 +23,7 @@ class TaskCreate(TaskBase): ...
 
 class TaskRead(TaskBase):
     id: TaskID = Field(primary_key=True, default_factory=uuid4)
+    public: bool
 
 
 class TaskReadParticipant(TaskRead):
@@ -47,6 +48,10 @@ class TaskParticipantBase(OrmMixin):
 
 class TaskParticipantRead(TaskParticipantBase):
     completed: bool
+
+
+class TaskParticipantCreate(BaseModel):
+    user: UserID
 
 
 class TaskParticipant(TaskParticipantBase, table=True): ...

@@ -693,6 +693,62 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task Participant",
+        "operationId": "create_task_participant",
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskParticipantCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskParticipantRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/responses": {
@@ -1453,6 +1509,27 @@
         ],
         "title": "TaskPage"
       },
+      "TaskParticipantCreate": {
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user"
+        ],
+        "title": "TaskParticipantCreate"
+      },
       "TaskParticipantRead": {
         "properties": {
           "task": {
@@ -1494,11 +1571,16 @@
             "type": "string",
             "format": "uuid4",
             "title": "Id"
+          },
+          "login_required": {
+            "type": "boolean",
+            "title": "Login Required"
           }
         },
         "type": "object",
         "required": [
-          "config"
+          "config",
+          "login_required"
         ],
         "title": "TaskRead"
       },
@@ -1512,6 +1594,10 @@
             "format": "uuid4",
             "title": "Id"
           },
+          "login_required": {
+            "type": "boolean",
+            "title": "Login Required"
+          },
           "completed": {
             "type": "boolean",
             "title": "Completed"
@@ -1520,6 +1606,7 @@
         "type": "object",
         "required": [
           "config",
+          "login_required",
           "completed"
         ],
         "title": "TaskReadParticipant"

@@ -9,7 +9,7 @@ import services.responses
 import services.tasks
 from apis.auth import current_admin, current_user
 from apis.utils import create_docs
-from models.task import Task, TaskCreate, TaskParticipantRead, TaskRead, TaskResponseCreate, TaskResponseRead
+from models.task import Task, TaskCreate, TaskParticipantCreate, TaskParticipantRead, TaskRead, TaskResponseCreate, TaskResponseRead
 from models.task_config.examples import sample_task_config
 from models.user import User, UserRead
 
@@ -105,6 +105,12 @@ async def create_task_response(
 async def get_task_participants(task_id: UUID4):
     return await services.tasks.get_task_participants(task_id)
 
-# @router.post("/{id}/response")
-# async def create_response(id: str, response: TaskResponse):
-#     ...
+
+@router.put("/{task_id}/participants", response_model=TaskParticipantRead, dependencies=[Depends(current_admin)])
+async def create_task_participant(task_id: UUID4, task_participant_create: TaskParticipantCreate):
+    tp = await services.tasks.create_participant(task_id, task_participant_create.user)
+    if not tp:
+        raise NOT_FOUND
+    return tp
+
+

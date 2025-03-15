@@ -1,5 +1,6 @@
 from pydantic import UUID4
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from models.database import get_session
 from models.user import User, UserCreate, UserRead
@@ -29,7 +30,12 @@ async def init_admin() -> None:
         await create_admin()
 
 
-async def create_participant(user_create: UserCreate | None) -> UserRead:
+async def create_user(user_create: UserCreate) -> UserRead:
+    user_insert_query = (
+        pg_insert(User)
+        .values(id=user_create.id, attributes=user_create.attributes, active=user_create.active, is_admin=False)
+        .on_conflict_do_nothing()
+    )
     user = await User.model_validate(user_create).save()
     return UserRead.model_validate(user)
 

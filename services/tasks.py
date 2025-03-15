@@ -1,4 +1,6 @@
 from pprint import pprint
+from sqlite3 import IntegrityError
+from uuid import uuid4
 
 from pydantic import UUID4
 from sqlalchemy import delete
@@ -16,7 +18,7 @@ from models.task import (
     TaskResponse,
 )
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
+from models.user import User, UserID
 from settings import SETTINGS
 
 # random.seed(42)
@@ -135,7 +137,7 @@ def task_to_task_read(task: Task) -> TaskRead:
 
 
 async def create_task(task_create: TaskCreate) -> TaskRead:
-    task = Task.model_validate(task_create)
+    task = Task.model_validate(task_create, update={"login_required": task_create.config.public})
     async with get_session() as session:
         session.add(task)
         await session.commit()
@@ -154,23 +156,26 @@ async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
 
     query = (
         select(Task, TaskResponse)
-        .join(
+        .outerjoin(
             TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
+            Task.id == TaskParticipant.task,  # type: ignore
         )
         .outerjoin(
             TaskResponse,
-            (Task.id == TaskResponse.task) & (TaskResponse.user == user_id),  # type: ignore
+            (TaskResponse.user == TaskParticipant.user),  # type: ignore
         )
+        .where(TaskParticipant.user == user_id | Task.public)
     )
     async with get_session() as session:
         results: list[tuple[Task, TaskResponse]] = list(
             (await session.execute(query)).all()
         )
+
     return [
         TaskReadParticipant(
             config=TaskConfig.model_validate(task.config),
             id=task.id,
+            public=TaskConfig.model_validate(task.config).public,
             completed=bool(response),
         )
         for task, response in results
@@ -257,3 +262,18 @@ async def get_task_participants(task_id: UUID4) -> list[TaskParticipantRead]:
         TaskParticipantRead(task=tp.task, user=tp.user, completed=bool(tr))
         for tp, tr in results
     ]
+
+async def create_participant(task_id: UUID4, participant_id: UUID4 | None) -> TaskParticipantRead | None:
+    if not await Task.get(task_id):
+        return None
+    
+    if not participant_id:
+        participant_id = uuid4()
+    user = await User.get(participant_id)
+    if not user:
+        user = await User(id=participant_id).save()
+    try:
+        await TaskParticipant(task=task_id, user=user.id).save()
+    except IntegrityError:
+        ...
+    return TaskParticipantRead(task=task_id, user=participant_id, completed=False)

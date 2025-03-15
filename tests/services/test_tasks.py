@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from models.database import _DATABASE
 from services.tasks import get_participant_task, get_participant_tasks
+from services.user import create_admin
 from tests.conftest import sample_data
 
 
@@ -18,5 +19,5 @@ async def test_get_tasks(sample_data):
 
 
 async def test_get_participant_tasks(sample_data):
-    creator, participant, task, task_participant = sample_data
+    participant = create_participant
     await get_participant_tasks(participant.id)
