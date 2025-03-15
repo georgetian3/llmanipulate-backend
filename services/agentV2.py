@@ -22,7 +22,7 @@ class Agent:
     def set_attributes(self, model_name, agent_name: str):
         self.model_name = model_name
         #
-        self.model = OpenAI(api_key="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")
+        self.model = # OpenAI(api_key="") TODO: add api_key
         # /agent1 -> AI-Agent-1
         self.agent_name = agent_name.replace("/agent", "AI-Agent-")
 
