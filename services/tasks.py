@@ -151,11 +151,6 @@ async def delete_task(task_id: UUID4):
 
 
 async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
-    if not SETTINGS.login_required:
-        return [
-            TaskReadParticipant(**task.model_dump(), completed=False)
-            for task in await Task.all()
-        ]
 
     query = (
         select(Task, TaskResponse)
@@ -238,7 +233,7 @@ async def get_participant_task(
     if not task:
         return None, True
     task.config = TaskConfig.model_validate(task.config)
-    if not task.config.login_required:
+    if not task.config.public:
         return TaskReadParticipant(**task.model_dump(), completed=False), True
     return TaskReadParticipant(**task.model_dump(), completed=bool(completed)), bool(
         is_participant

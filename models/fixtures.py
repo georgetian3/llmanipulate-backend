@@ -28,7 +28,7 @@ async def load_fixtures():
     sample_task_configs[0].name.languages["en"] = "Sample Task 1"
     sample_task_configs[1].name.languages["en"] = "Sample Task 2"
     sample_task_configs[2].name.languages["en"] = "Sample Task 3"
-    sample_task_configs[2].login_required = False
+    sample_task_configs[2].public = False
 
     sample_tasks = [
         Task(

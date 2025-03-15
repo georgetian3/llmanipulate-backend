@@ -53,7 +53,7 @@ class LoginRequired(BaseModel):
 
 @router.get("/login-required", response_model=LoginRequired)
 async def login_required():
-    return LoginRequired(login_required=SETTINGS.login_required)
+    return LoginRequired(login_required=True)
 
 
 @router.get("/{user_id}", response_model=User)
@@ -71,6 +71,4 @@ async def get_user_responses(user_id: UUID4):
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
 async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
-    if SETTINGS.login_required and not user_id:
-        raise EXCEPTION_403
     return await get_participant_tasks(user_id)

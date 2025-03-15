@@ -127,7 +127,7 @@ async def create_response(
     task, is_participant, existing_response = results
     task.config = TaskConfig.model_validate(task.config)
 
-    if task.config.login_required:
+    if not task.config.public:
         if not is_participant:
             return None, True, False, False
         if existing_response:

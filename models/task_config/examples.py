@@ -15,7 +15,7 @@ sample_task_config = TaskConfig(
     id="test config",
     name=Translations(languages={"en": "test name", "zh": "测试名字"}, default="en"),
     description=Translations(languages={"en": "test", "zh": "测试描述"}, default="zh"),
-    login_required=True,
+    public=True,
     pages=[
         TaskPage(
             label=Translations(languages={"en": "Page title"}),

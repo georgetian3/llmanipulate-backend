@@ -21,9 +21,7 @@ class Settings(BaseSettings):
 
     load_fixtures: bool = True
 
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
-
-    login_required: bool = True
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO
 
     admin_id: UUID4 = uuid4()
 
