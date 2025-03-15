@@ -8,7 +8,7 @@ from httpx_oauth.clients.facebook import FacebookOAuth2
 from httpx_oauth.clients.github import GitHubOAuth2
 from httpx_oauth.clients.google import GoogleOAuth2
 
-from apis.chat import router as chat_router
+from apis.chat import chat_router as chat_router
 from apis.responses import router as response_router
 from apis.tasks import router as task_router
 from apis.users import router as user_router

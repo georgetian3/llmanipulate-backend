@@ -24,32 +24,30 @@
         }
       }
     },
-    "/chats/{id}": {
-      "get": {
+    "/create_room": {
+      "post": {
         "tags": [
           "chats"
         ],
-        "summary": "Get Chat",
-        "operationId": "get_chat",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
+        "summary": "Create Room",
+        "description": "✅ Creates a chat room and sets the first speaker for turn-based mode.",
+        "operationId": "create_room",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomConfig"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatHistoryRead"
-                }
+                "schema": {}
               }
             }
           },
@@ -60,26 +58,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/create_room": {
-      "post": {
-        "tags": [
-          "chat"
-        ],
-        "summary": "Create Room",
-        "description": "Creates a new chat room and returns its ID.",
-        "operationId": "create_room",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           }
@@ -293,7 +271,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid4",
+              "format": "uuid",
               "title": "Task Id"
             }
           }
@@ -372,7 +350,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid4",
+              "format": "uuid",
               "title": "Task Id"
             }
           }
@@ -418,7 +396,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid4",
+              "format": "uuid",
               "title": "Task Id"
             }
           }
@@ -1374,63 +1352,6 @@
         ],
         "title": "Chat"
       },
-      "ChatHistoryRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Id"
-          },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/ChatMessageRead"
-            },
-            "type": "array",
-            "title": "Messages"
-          }
-        },
-        "type": "object",
-        "required": [
-          "messages"
-        ],
-        "title": "ChatHistoryRead"
-      },
-      "ChatMessageRead": {
-        "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Id"
-          },
-          "chat": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Chat"
-          },
-          "sender": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Sender"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Timestamp"
-          }
-        },
-        "type": "object",
-        "required": [
-          "message",
-          "chat",
-          "sender",
-          "timestamp"
-        ],
-        "title": "ChatMessageRead"
-      },
       "ComponentGroup": {
         "properties": {
           "columns": {
@@ -1680,6 +1601,38 @@
           "participating"
         ],
         "title": "MyTasks"
+      },
+      "RoomConfig": {
+        "properties": {
+          "all_users": {
+            "type": "boolean",
+            "title": "All Users",
+            "example": true
+          },
+          "order": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Order",
+            "default": [],
+            "examples": [
+              [
+                "/agent1",
+                "human",
+                "/agent2",
+                "human",
+                "/agent3"
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "all_users"
+        ],
+        "title": "RoomConfig",
+        "description": "✅ Schema for creating a chat room."
       },
       "SingleChoice": {
         "properties": {
