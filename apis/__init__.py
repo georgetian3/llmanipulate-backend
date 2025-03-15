@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from apis.chat import router as chat_router
+from apis.chat import chat_router as chat_router
 from apis.responses import router as response_router
 from apis.tasks import router as task_router
 from apis.users import router as user_router
