@@ -15,6 +15,7 @@ sample_task_config = TaskConfig(
     id="test config",
     name=Translations(languages={"en": "test name", "zh": "测试名字"}, default="en"),
     description=Translations(languages={"en": "test", "zh": "测试描述"}, default="zh"),
+    login_required=True,
     pages=[
         TaskPage(
             label=Translations(languages={"en": "Page title"}),
@@ -65,118 +66,6 @@ sample_task_config = TaskConfig(
                         ),
                         FreeText(
                             id="f1",
-                            label=Translations(
-                                languages={
-                                    "en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)",
-                                    "zh": "滑动",
-                                },
-                                default="en",
-                            ),
-                            regex=".*f.*",
-                        ),
-                    ],
-                ),
-                ComponentGroup(
-                    label=Translations(languages={"en": "Component group 2"}),
-                    columns=2,
-                    components=[
-                        Slider(
-                            id="s12",
-                            steps=3,
-                            label=Translations(
-                                languages={"en": "Slider", "zh": "滑动"}, default="en"
-                            ),
-                            labels=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                            ],
-                        ),
-                        SingleChoice(
-                            id="sc12",
-                            choices=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                            ],
-                            label=Translations(
-                                languages={"en": "Single Choice", "zh": "滑动"},
-                                default="en",
-                            ),
-                            shuffle=True,
-                        ),
-                        MultiChoice(
-                            id="mc12",
-                            choices=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                                Translations(languages={"en": "4"}),
-                            ],
-                            label=Translations(
-                                languages={"en": "Multi Choice", "zh": "滑动"},
-                                default="en",
-                            ),
-                            shuffle=True,
-                        ),
-                        FreeText(
-                            id="f12",
-                            label=Translations(
-                                languages={
-                                    "en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)",
-                                    "zh": "滑动",
-                                },
-                                default="en",
-                            ),
-                            regex=".*f.*",
-                        ),
-                    ],
-                ),
-                ComponentGroup(
-                    label=Translations(languages={"en": "Component group 3"}),
-                    columns=1,
-                    components=[
-                        Slider(
-                            id="s13",
-                            steps=3,
-                            label=Translations(
-                                languages={"en": "Slider", "zh": "滑动"}, default="en"
-                            ),
-                            labels=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                            ],
-                        ),
-                        SingleChoice(
-                            id="sc13",
-                            choices=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                            ],
-                            label=Translations(
-                                languages={"en": "Single Choice", "zh": "滑动"},
-                                default="en",
-                            ),
-                            shuffle=True,
-                        ),
-                        MultiChoice(
-                            id="mc13",
-                            choices=[
-                                Translations(languages={"en": "1"}),
-                                Translations(languages={"en": "2"}),
-                                Translations(languages={"en": "3"}),
-                                Translations(languages={"en": "4"}),
-                            ],
-                            label=Translations(
-                                languages={"en": "Multi Choice", "zh": "滑动"},
-                                default="en",
-                            ),
-                            shuffle=True,
-                        ),
-                        FreeText(
-                            id="f13",
                             label=Translations(
                                 languages={
                                     "en": "# Free\n~text~ *with* **markdown** [links](https://www.google.com)",

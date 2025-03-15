@@ -1,20 +1,23 @@
-# from typing import Annotated
+from fastapi import APIRouter, Depends
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import UUID4
+import services.responses
+from apis.auth import current_admin
+from models.task import TaskResponseRead
 
-from models.task import TaskResponse, TaskResponseCreate
+router = APIRouter(prefix="/responses")
+
+
+@router.get(
+    "", response_model=list[TaskResponseRead], dependencies=[Depends(current_admin)]
+)
+async def get_responses():
+    return await services.responses.get_responses()
+
 
 # import services.responses
 # from models.response import Response, ResponseCreate
 # from models.user import User
 # from services.user import current_active_user, current_superuser
-
-router = APIRouter(prefix="/responses")
-
-@router.get("")
-async def get_responses():
-    return await TaskResponse.all()
 
 # @router.post("")
 # async def create_response(task_id: UUID4, response: TaskResponseCreate): ...

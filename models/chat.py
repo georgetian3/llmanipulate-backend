@@ -10,7 +10,6 @@ from models.models import UuidId
 
 
 class ChatParticipant(SQLModel, table=True):
-    
     chat: UUID4 = Field(
         primary_key=True, foreign_key="chathistory.id", ondelete="CASCADE"
     )

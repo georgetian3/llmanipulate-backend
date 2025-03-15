@@ -21,7 +21,6 @@ users: Dict[str, Dict[WebSocket, Dict[str, Union[str, bool]]]] = {}
 agents: Dict[str, Dict[str, Agent]] = {}
 room_configs: Dict[str, Dict[str, Union[bool, List[str], int, str]]] = {}
 
-
 class RoomConfig(BaseModel):
     """✅ Schema for creating a chat room."""
     all_users: bool = Field(..., example=True)

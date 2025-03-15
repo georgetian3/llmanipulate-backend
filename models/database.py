@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 from services.logging import get_logger
-from settings import settings
+from settings import SETTINGS
 
 logger = get_logger(__name__)
 
@@ -19,23 +19,24 @@ logger = get_logger(__name__)
 class Database:
     def __init__(self):
         self._url = URL.create(
-            host=settings.database_host,
-            port=settings.database_port,
-            database=settings.database_name,
-            username=settings.database_username,
-            password=settings.database_password,
-            drivername=settings.database_driver,
+            host=SETTINGS.database_host,
+            port=SETTINGS.database_port,
+            database=SETTINGS.database_name,
+            username=SETTINGS.database_username,
+            password=SETTINGS.database_password,
+            drivername=SETTINGS.database_driver,
         )
         self._engine = create_async_engine(
             self._url,
             json_serializer=lambda x: pydantic_core.to_json(x).decode("utf-8"),
             json_deserializer=lambda x: pydantic_core.from_json(x),
+            # echo=True,
         )
         self._async_session_maker: sessionmaker = sessionmaker(
             self._engine, class_=AsyncSession
         )
 
-    async def create(self):
+    async def create(self) -> None:
         url = self._url._replace(database=None)
         # No need to create DB for sqlite
         if "sqlite" not in url.drivername:
@@ -55,7 +56,7 @@ class Database:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
 
-    async def reset(self):
+    async def reset(self) -> None:
         async with self._engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.drop_all)
         await self.create()

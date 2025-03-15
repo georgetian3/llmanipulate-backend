@@ -1,63 +1,93 @@
+from __future__ import annotations
+
 from uuid import uuid4
 
-from pydantic import UUID4, BaseModel, model_validator
+from pydantic import UUID4, ValidationInfo, field_validator, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
+from apis.auth import UserID
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
 from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
-from models.user import UserID, UserRead
 
 TaskID = UUID4
 
 
 class TaskBase(OrmMixin):
-    id: TaskID = Field(primary_key=True, default_factory=uuid4)
     config: TaskConfig = Field(sa_column=Column(JSON))
-    public: bool = False
+
+
+class TaskCreate(TaskBase): ...
 
 
 class TaskRead(TaskBase):
-    creator: UserRead
-
-class MyTasks(BaseModel):
-    created: list[TaskRead]
-    participating: list[TaskRead]
-
-class Task(TaskBase, table=True):
-    creator: UserID = Field(foreign_key="user.id", ondelete="CASCADE")
+    id: TaskID = Field(primary_key=True, default_factory=uuid4)
 
 
-class TaskParticipant(OrmMixin, table=True):
+class TaskReadParticipant(TaskRead):
+    completed: bool
+
+    @field_validator("config", mode="after")
+    @classmethod
+    def remove_secrets(cls, config: TaskConfig):
+        for component in config.components:
+            if component.type == "chat":
+                component.agents = []
+        return config
+
+
+class Task(TaskRead, table=True): ...
+
+
+class TaskParticipantBase(OrmMixin):
     task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+
+
+class TaskParticipantRead(TaskParticipantBase):
+    completed: bool
+
+
+class TaskParticipant(TaskParticipantBase, table=True): ...
+
+
+TaskResponseType = dict[ComponentIdType, ComponentResponseType]
 
 
 class TaskResponseBase(SQLModel):
-    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
-    draft: bool = False
-    response: dict[ComponentIdType, ComponentResponseType] = Field(
-        sa_column=Column(JSON)
-    )
+    response: TaskResponseType = Field(sa_column=Column(JSON))
 
-
-class TaskResponseCreate(TaskResponseBase):
-    def validate_response(self, task_config: TaskConfig) -> None:
+    @model_validator(mode="after")
+    def validate_response(self, info: ValidationInfo) -> TaskResponseBase:
+        if not info.context:
+            return self
+        task_config = TaskConfig.model_validate(info.context["task_config"])
+        # for each component in a task config
         for component in task_config.components:
+            # get the response for this compoment
             component_response = self.response.get(component.id)
+            # if the response for this component is missing
             if component_response is None:
-                if self.draft:
-                    continue
-                raise ValueError(f"Missing response for component: {component.id}")
-            component.validate_response(component_response)
+                # new response cannot have less answers than the old response
+                # optional components can be ignored
+                if not component.optional:
+                    raise ValueError(f"Component '{component.id}': missing response")
+            else:
+                # let each component validate the type/structure of its response
+                try:
+                    component.validate_response(component_response)
+                except ValueError as e:
+                    raise ValueError(f"Component '{component.id}': {e}") from e
 
 
-class TaskResponseRead(TaskResponseBase): ...
+class TaskResponseCreate(TaskResponseBase): ...
 
 
-class TaskResponse(
-    CreatedMixin, UpdatedMixin, TaskResponseCreate, OrmMixin, table=True
-):
-    __tablename__ = "task_response"
+class TaskResponseRead(CreatedMixin, UpdatedMixin, TaskResponseBase):
+    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
     user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+
+
+class TaskResponse(TaskResponseRead, OrmMixin, table=True):
+    __tablename__ = "task_response"
