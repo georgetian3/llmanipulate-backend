@@ -1,10 +1,12 @@
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
+
 from models.task import Task, TaskParticipant
 from models.task_config.examples import sample_task_config
 from models.task_config.task_config import TaskConfig
-from models.user import User, UserCreate
-from services.user import create_user
+from models.user import User, UserUpsert
+from services.user import upsert_user
 
 
 async def load_fixtures():
@@ -15,8 +17,8 @@ async def load_fixtures():
     sample_users = []
     for user_uuid in user_uuids:
         try:
-            user = await create_user(UserCreate(id=UUID(user_uuid)))
-        except:
+            user = await upsert_user(UserUpsert(id=UUID(user_uuid)))
+        except IntegrityError:
             user = await User.get(UUID(user_uuid))
         sample_users.append(user)
 
@@ -55,7 +57,6 @@ async def load_fixtures():
         except:
             continue
 
-
     sample_task_participants = [
         TaskParticipant(task=sample_tasks[0].id, user=sample_users[0].id),
         TaskParticipant(task=sample_tasks[0].id, user=sample_users[1].id),
@@ -68,5 +69,5 @@ async def load_fixtures():
     for tp in sample_task_participants:
         try:
             await tp.save()
-        except:
+        except IntegrityError:
             continue

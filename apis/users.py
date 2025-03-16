@@ -5,23 +5,22 @@ from pydantic import UUID4, BaseModel
 
 import services.responses
 import services.user
-from apis.auth import EXCEPTION_403, current_admin, current_user
+from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
 from models.task import TaskReadParticipant, TaskResponse
-from models.user import User, UserCreate, UserID, UserRead
+from models.user import OptionalUserID, User, UserRead, UserUpsert
 from services.tasks import get_participant_tasks
-from settings import SETTINGS
 
 router = APIRouter(prefix="/users")
 
 
-@router.put(
+@router.post(
     "",
-    description="Creates a new user. Requires an admin's user_id for authentication.",
-    response_model=User,
-    dependencies=[Depends(current_admin)],
+    description="Create or update a new user. Requires an admin's user_id for authentication.",
+    response_model=UserRead,
+    dependencies=ADMIN_DEP,
 )
-async def create_user(user_create: UserCreate):
-    return await services.user.create_user(user_create)
+async def upsert_user(user_create: UserUpsert):
+    return await services.user.upsert_user(user_create)
 
 
 @router.get("", response_model=list[UserRead], dependencies=[Depends(current_admin)])
@@ -52,7 +51,7 @@ async def login_required():
 
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: UserID):
+async def get_user(user_id: OptionalUserID):
     user = await User.get(user_id)
     if user is None:
         raise GET_USER_EXCEPTION

@@ -1,19 +1,29 @@
 import asyncio
-
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.websockets import WebSocketState
-from typing import Dict, List, Union
 import uuid
 from datetime import datetime
+from typing import Dict, List, Union
+
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from pydantic import UUID4, BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.websockets import WebSocketState
 
-from models.chat import ChatMessage, ChatHistory
-from models.database import get_async_session
+from models.chat import Chat, ChatMessage
+from models.database import get_async_session, get_session
 from services.agentV2 import Agent
-from services.chatV2 import config_agent
+from services.chat import WebsocketChatManager
 
-chat_router = APIRouter()
+
+def config_agent(agent_name: str) -> Agent:
+    agent = Agent()
+    model_name = "gpt-4o-mini"
+    agent.set_attributes(model_name, agent_name)
+    agent.fill_prompt()
+    return agent
+
+
+
+router = APIRouter()
 
 # ✅ In-memory storage
 rooms: Dict[str, List[WebSocket]] = {}
@@ -21,19 +31,19 @@ users: Dict[str, Dict[WebSocket, Dict[str, Union[str, bool]]]] = {}
 agents: Dict[str, Dict[str, Agent]] = {}
 room_configs: Dict[str, Dict[str, Union[bool, List[str], int, str]]] = {}
 
+
 class RoomConfig(BaseModel):
     """✅ Schema for creating a chat room."""
+
     all_users: bool = Field(..., example=True)
     order: List[str] = Field(
-        default=[],
-        examples=[["/agent1", "human", "/agent2", "human", "/agent3"]]
+        default=[], examples=[["/agent1", "human", "/agent2", "human", "/agent3"]]
     )
 
 
-@chat_router.post("/create_room")
+@router.post("/create_room")
 async def create_room(
-        room_data: RoomConfig,
-        session: AsyncSession = Depends(get_async_session)
+    room_data: RoomConfig, session: AsyncSession = Depends(get_async_session)
 ):
     """✅ Creates a chat room and sets the first speaker for turn-based mode."""
     room_id = str(uuid.uuid4())
@@ -50,12 +60,12 @@ async def create_room(
         "turn_index": turn_index,
         "current_speaker": None,  # no speaker yet
         "room_ready": False,  # not ready until humans join
-        "last_human": None  # track last human ID for round-robin
+        "last_human": None,  # track last human ID for round-robin
     }
 
     # create an empty ChatHistory DB row
     async with session.begin():
-        chat_history = ChatHistory(id=room_id)
+        chat_history = Chat(id=room_id)
         session.add(chat_history)
 
     agents_list = [p for p in room_data.order if p.startswith("/agent")]
@@ -72,7 +82,8 @@ async def notify_turn_change(room_id: str):
     next_speaker = config.get("current_speaker")
 
     active_sockets = [
-        ws for ws in rooms.get(room_id, [])
+        ws
+        for ws in rooms.get(room_id, [])
         if ws.application_state == WebSocketState.CONNECTED
     ]
     if not active_sockets:
@@ -81,10 +92,7 @@ async def notify_turn_change(room_id: str):
 
     for ws in active_sockets:
         try:
-            await ws.send_json({
-                "type": "TURN_CHANGE",
-                "current_speaker": next_speaker
-            })
+            await ws.send_json({"type": "TURN_CHANGE", "current_speaker": next_speaker})
         except Exception as e:
             print(f"⚠️ Error sending turn change: {e}")
             rooms[room_id].remove(ws)
@@ -167,7 +175,7 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
                 chat=room_id,
                 sender_agent=next_speaker,
                 message=agent_message,
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
             session.add(chat_message)
             await session.flush()
@@ -176,7 +184,7 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
             message_json = {
                 "user": next_speaker,
                 "message": agent_message,
-                "timestamp": chat_message.timestamp.isoformat()
+                "timestamp": chat_message.timestamp.isoformat(),
             }
             for ws in rooms[room_id]:
                 await ws.send_json(message_json)
@@ -187,13 +195,31 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
     # notify all clients about who can speak now
     await notify_turn_change(room_id)
 
+manager = WebsocketChatManager()
 
-@chat_router.websocket("/join/{room_id}/{user_id}")
+@router.websocket("/chat")
+async def chat(
+    websocket: WebSocket,
+    user: UUID4,
+    task: UUID4,
+    component: str
+):
+    await manager.connect(websocket, user, task, component)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            await manager.receive(data, websocket, user, task, component)
+    except WebSocketDisconnect:
+        await manager.disconnect(websocket)
+
+
+
+@router.websocket("/join/{room_id}/{user_id}")
 async def join_room(
-        websocket: WebSocket,
-        room_id: str,
-        user_id: UUID4,
-        session: AsyncSession = Depends(get_async_session)
+    websocket: WebSocket,
+    room_id: str,
+    user_id: UUID4,
+    session: AsyncSession = Depends(get_async_session),
 ):
     """✅ Handles WebSocket connections and ensures turn-based logic works."""
     if room_id not in rooms:
@@ -202,15 +228,13 @@ async def join_room(
 
     await websocket.accept()
     rooms[room_id].append(websocket)
-    users[room_id][websocket] = {
-        "id": str(user_id),
-        "can_speak": True
-    }
+    users[room_id][websocket] = {"id": str(user_id), "can_speak": True}
 
     # Mark room as ready if we have enough humans
     config = room_configs.get(room_id, {})
     human_users = [
-        ud["id"] for _, ud in users[room_id].items()
+        ud["id"]
+        for _, ud in users[room_id].items()
         if not ud["id"].startswith("/agent")
     ]
     expected_human_count = sum(1 for p in config["order"] if p == "human")
@@ -235,15 +259,16 @@ async def join_room(
 
             # Check turn ownership
             if sender_id != config.get("current_speaker"):
-                await websocket.send_json({
-                    "type": "ERROR",
-                    "message": "⏳ Wait for your turn!"
-                })
+                await websocket.send_json(
+                    {"type": "ERROR", "message": "⏳ Wait for your turn!"}
+                )
                 continue
 
             # update agents messages
             for agent in agents[room_id]:
-                agents[room_id][agent].add_message({"role": "user", "content": f"User-{sender_id}: {data}"})
+                agents[room_id][agent].add_message(
+                    {"role": "user", "content": f"User-{sender_id}: {data}"}
+                )
 
             # Store user message
             async with session.begin():
@@ -251,7 +276,7 @@ async def join_room(
                     chat=room_id,
                     sender_uuid=uuid.UUID(sender_id),
                     message=data,
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow(),
                 )
                 session.add(chat_message)
                 await session.flush()
@@ -261,7 +286,7 @@ async def join_room(
             message_json = {
                 "user": sender_id,
                 "message": data,
-                "timestamp": timestamp_str
+                "timestamp": timestamp_str,
             }
             for ws in rooms[room_id]:
                 await ws.send_json(message_json)

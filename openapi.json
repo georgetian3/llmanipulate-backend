@@ -5,25 +5,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/responses": {
-      "get": {
-        "tags": [
-          "responses"
-        ],
-        "summary": "Get Responses",
-        "operationId": "get_responses",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "/create_room": {
       "post": {
         "tags": [
@@ -98,7 +79,7 @@
           "users"
         ],
         "summary": "Create User",
-        "description": "Creates a new participant. Requires an admin's user_id for authentication.",
+        "description": "Creates a new user. Requires an admin's user_id for authentication.",
         "operationId": "create_user",
         "requestBody": {
           "content": {
@@ -406,7 +387,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
+              "format": "uuid4",
               "title": "Task Id"
             }
           }
@@ -591,7 +572,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
+              "format": "uuid4",
               "title": "Task Id"
             }
           }
@@ -917,7 +898,7 @@
         ],
         "title": "Chat"
       },
-      "ComponentGroup": {
+      "ComponentGroup-Input": {
         "properties": {
           "columns": {
             "type": "integer",
@@ -1182,21 +1163,6 @@
         ],
         "title": "MultiChoice"
       },
-      "RootModel_int_": {
-        "type": "integer",
-        "title": "RootModel[int]"
-      },
-      "RootModel_list_int__": {
-        "items": {
-          "type": "integer"
-        },
-        "type": "array",
-        "title": "RootModel[list[int]]"
-      },
-      "RootModel_str_": {
-        "type": "string",
-        "title": "RootModel[str]"
-      },
       "RoomConfig": {
         "properties": {
           "all_users": {
@@ -1228,6 +1194,21 @@
         ],
         "title": "RoomConfig",
         "description": "✅ Schema for creating a chat room."
+      },
+      "RootModel_int_": {
+        "type": "integer",
+        "title": "RootModel[int]"
+      },
+      "RootModel_list_int__": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array",
+        "title": "RootModel[list[int]]"
+      },
+      "RootModel_str_": {
+        "type": "string",
+        "title": "RootModel[str]"
       },
       "SingleChoice": {
         "properties": {
@@ -1367,16 +1348,16 @@
             "type": "array",
             "title": "Pages"
           },
-          "login_required": {
+          "public": {
             "type": "boolean",
-            "title": "Login Required"
+            "title": "Public"
           }
         },
         "type": "object",
         "required": [
           "name",
           "pages",
-          "login_required"
+          "public"
         ],
         "title": "TaskConfig"
       },
@@ -1402,16 +1383,16 @@
             "type": "array",
             "title": "Pages"
           },
-          "login_required": {
+          "public": {
             "type": "boolean",
-            "title": "Login Required"
+            "title": "Public"
           }
         },
         "type": "object",
         "required": [
           "name",
           "pages",
-          "login_required"
+          "public"
         ],
         "title": "TaskConfig"
       },
@@ -1562,15 +1543,15 @@
             "format": "uuid4",
             "title": "Id"
           },
-          "login_required": {
+          "public": {
             "type": "boolean",
-            "title": "Login Required"
+            "title": "Public"
           }
         },
         "type": "object",
         "required": [
           "config",
-          "login_required"
+          "public"
         ],
         "title": "TaskRead"
       },
@@ -1584,9 +1565,9 @@
             "format": "uuid4",
             "title": "Id"
           },
-          "login_required": {
+          "public": {
             "type": "boolean",
-            "title": "Login Required"
+            "title": "Public"
           },
           "completed": {
             "type": "boolean",
@@ -1596,7 +1577,7 @@
         "type": "object",
         "required": [
           "config",
-          "login_required",
+          "public",
           "completed"
         ],
         "title": "TaskReadParticipant"
@@ -1794,6 +1775,12 @@
             "type": "boolean",
             "title": "Is Admin",
             "default": false
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether this user is allowed to login and submit responses",
+            "default": true
           }
         },
         "type": "object",
@@ -1805,20 +1792,40 @@
       "UserCreate": {
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid4",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Id"
           },
           "attributes": {
             "type": "object",
             "title": "Attributes",
             "default": {}
+          },
+          "tasks_add": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Tasks Add",
+            "description": "Tasks to add this user to",
+            "default": []
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether this user is allowed to login and submit responses",
+            "default": true
           }
         },
         "type": "object",
-        "required": [
-          "id"
-        ],
         "title": "UserCreate"
       },
       "UserRead": {
@@ -1837,6 +1844,12 @@
             "type": "boolean",
             "title": "Is Admin",
             "default": false
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether this user is allowed to login and submit responses",
+            "default": true
           }
         },
         "type": "object",

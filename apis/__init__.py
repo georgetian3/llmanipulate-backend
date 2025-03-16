@@ -5,19 +5,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from apis.chat import chat_router as chat_router
+from apis.chat import router as router
 from apis.responses import router as response_router
 from apis.tasks import router as task_router
 from apis.users import router as user_router
 from models.database import _DATABASE
 from models.fixtures import load_fixtures
-from services.logging import get_logger
 from services.user import init_admin
 from settings import SETTINGS
 
 
 @asynccontextmanager
-async def lifespan(api: FastAPI):
+async def lifespan(_: FastAPI):
     await _DATABASE.create()
     if SETTINGS.load_fixtures:
         await load_fixtures()
@@ -36,25 +35,19 @@ api.add_middleware(
 )
 
 
-api.include_router(chat_router, tags=["chats"])
+api.include_router(router, tags=["chats"])
 api.include_router(user_router, tags=["users"])
 api.include_router(task_router, tags=["tasks"])
 api.include_router(response_router, tags=["responses"])
 
 """
-Simplify operation IDs so that generated API clients have simpler function
-names.
-
+Simplify operation IDs so that generated API clients have simpler function names.
 Should be called only after all routes have been added.
-
 # https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/#using-the-path-operation-function-name-as-the-operationid
 """
 for route in api.routes:
     if isinstance(route, APIRoute):
         route.operation_id = route.name
-
-
-logger = get_logger(__name__)
 
 
 with open("openapi.json", "w", encoding="utf-8") as f:

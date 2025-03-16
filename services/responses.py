@@ -6,14 +6,13 @@ from sqlalchemy import select
 from models.database import get_session
 from models.task import (
     Task,
-    TaskID,
     TaskParticipant,
     TaskResponse,
     TaskResponseCreate,
     TaskResponseRead,
 )
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
+from models.user import OptionalUserID
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -92,7 +91,7 @@ logger = get_logger(__name__)
 
 
 async def create_response(
-    task_id: UUID4, response: TaskResponseCreate, user_id: UserID | None
+    task_id: UUID4, response: TaskResponseCreate, user_id: OptionalUserID | None
 ) -> tuple[TaskResponseRead | None, bool, bool, bool]:
     """
     :returns:
@@ -106,14 +105,14 @@ async def create_response(
         select(Task, TaskParticipant, TaskResponse)
         .outerjoin(
             TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
+            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
         .outerjoin(
             TaskResponse,
-            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),
+            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),  # type: ignore
         )
         # if this where isn't added, the left join returns extra tasks
-        .where(Task.id == task_id)
+        .where(Task.id == task_id)  # type: ignore
     )
 
     async with get_session() as session:
@@ -154,18 +153,18 @@ async def create_response(
         )
 
 
-async def get_responses(task_id: TaskID | None) -> list[TaskResponseRead]:
+async def get_responses(task_id: UUID4 | None) -> list[TaskResponseRead]:
     if not task_id:
         responses = await TaskResponse.all()
     else:
-        query = select(TaskResponse).where(TaskResponse.task == task_id)
+        query = select(TaskResponse).where(TaskResponse.task == task_id) # type: ignore
         async with get_session() as session:
             responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]
 
 
 async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
-    query = select(TaskResponse).where(TaskResponse.user == user_id)
+    query = select(TaskResponse).where(TaskResponse.user == user_id) # type: ignore
     async with get_session() as session:
         responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]

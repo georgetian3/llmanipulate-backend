@@ -7,11 +7,10 @@ from fastapi.openapi.models import HTTPBearer as HTTPBearerModel
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBase
 from fastapi.security.utils import get_authorization_scheme_param
-from pydantic import UUID4
 from starlette.requests import Request
-from typing_extensions import Annotated, Doc
+from typing_extensions import Doc
 
-from models.user import User, UserID
+from models.user import OptionalUserID, User
 
 
 class OptionalHTTPBearer(HTTPBase):
@@ -85,7 +84,7 @@ EXCEPTION_422 = HTTPException(422, "Invalid format")
 
 def current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-) -> UserID:
+) -> OptionalUserID:
     user_id = credentials.credentials
     if not user_id:
         return None
@@ -95,10 +94,13 @@ def current_user(
         raise EXCEPTION_422
 
 
-async def current_admin(user_id: UserID = Depends(current_user)) -> User:
+async def current_admin(user_id: OptionalUserID = Depends(current_user)) -> User:
     if not user_id:
         raise EXCEPTION_403
     admin = await User.get(user_id)
     if not admin:
         raise EXCEPTION_403
     return admin
+
+
+ADMIN_DEP = [Depends(current_admin)]
