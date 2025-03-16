@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from models.task import TaskResponseCreate
 from services.responses import create_response
-from tests.conftest import sample_data
 
 
 async def test_create_response(sample_data) -> None:

@@ -2,27 +2,26 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from pydantic import UUID4, ValidationInfo, field_validator, model_validator
+from pydantic import UUID4, BaseModel, ValidationInfo, field_validator, model_validator
 from sqlmodel import JSON, Column, Field, SQLModel
 
-from apis.auth import UserID
 from models.mixins import CreatedMixin, OrmMixin, UpdatedMixin
-from models.task_config.base_component import ComponentIdType
 from models.task_config.responses import ComponentResponseType
 from models.task_config.task_config import TaskConfig
+from models.user import OptionalUserID
 
-TaskID = UUID4
 
-
-class TaskBase(OrmMixin):
+class TaskBase(BaseModel):
     config: TaskConfig = Field(sa_column=Column(JSON))
 
+    def parse_config(self):
+        self.config = TaskConfig.model_validate(self.config)
 
 class TaskCreate(TaskBase): ...
 
 
 class TaskRead(TaskBase):
-    id: TaskID = Field(primary_key=True, default_factory=uuid4)
+    id: UUID4
 
 
 class TaskReadParticipant(TaskRead):
@@ -37,22 +36,29 @@ class TaskReadParticipant(TaskRead):
         return config
 
 
-class Task(TaskRead, table=True): ...
+class Task(OrmMixin, TaskBase, table=True):
+
+    id: UUID4 = Field(primary_key=True, default_factory=uuid4)
+    public: bool
 
 
 class TaskParticipantBase(OrmMixin):
-    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
-    user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+    task: UUID4 = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
+    user: UUID4 = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
 
 
 class TaskParticipantRead(TaskParticipantBase):
     completed: bool
 
 
+class TaskParticipantCreate(BaseModel):
+    user: OptionalUserID
+
+
 class TaskParticipant(TaskParticipantBase, table=True): ...
 
 
-TaskResponseType = dict[ComponentIdType, ComponentResponseType]
+TaskResponseType = dict[str, ComponentResponseType]
 
 
 class TaskResponseBase(SQLModel):
@@ -79,14 +85,15 @@ class TaskResponseBase(SQLModel):
                     component.validate_response(component_response)
                 except ValueError as e:
                     raise ValueError(f"Component '{component.id}': {e}") from e
+        return self
 
 
 class TaskResponseCreate(TaskResponseBase): ...
 
 
 class TaskResponseRead(CreatedMixin, UpdatedMixin, TaskResponseBase):
-    task: TaskID = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
-    user: UserID = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+    task: UUID4 = Field(primary_key=True, foreign_key="task.id", ondelete="CASCADE")
+    user: UUID4 = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
 
 
 class TaskResponse(TaskResponseRead, OrmMixin, table=True):

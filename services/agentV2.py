@@ -1,8 +1,4 @@
-import json
-
 from openai import OpenAI
-
-from settings import settings
 
 
 class BaseAgent:
@@ -22,14 +18,16 @@ class Agent:
     def set_attributes(self, model_name, agent_name: str):
         self.model_name = model_name
         #
-        self.model = # OpenAI(api_key="") TODO: add api_key
+        self.model = OpenAI(api_key="")  # TODO: add api_key
         # /agent1 -> AI-Agent-1
         self.agent_name = agent_name.replace("/agent", "AI-Agent-")
 
     def fill_prompt(self):
-        self.prompt = (f"You are part of a discussion where multiple AI agents and users are talking. "
-                       f"Each AI agent should prefix their response with their name (e.g., 'AI-Agent-1: ...'). "
-                       f"The user can also participate.\nYou are the {self.agent_name}")
+        self.prompt = (
+            f"You are part of a discussion where multiple AI agents and users are talking. "
+            f"Each AI agent should prefix their response with their name (e.g., 'AI-Agent-1: ...'). "
+            f"The user can also participate.\nYou are the {self.agent_name}"
+        )
         self.messages.append({"role": "system", "content": self.prompt})
 
     def set_prompt(self, prompt):
@@ -41,7 +39,6 @@ class Agent:
         self.messages.append(msg)
 
     def generate(self):
-
         try:
             chat = self.model.chat.completions.create(
                 model=self.model_name, messages=self.messages

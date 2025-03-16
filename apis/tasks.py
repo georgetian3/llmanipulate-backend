@@ -1,4 +1,3 @@
-import json
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,9 +8,17 @@ import services.responses
 import services.tasks
 from apis.auth import current_admin, current_user
 from apis.utils import create_docs
-from models.task import Task, TaskCreate, TaskParticipantRead, TaskRead, TaskResponseCreate, TaskResponseRead
+from models.task import (
+    Task,
+    TaskCreate,
+    TaskParticipantCreate,
+    TaskParticipantRead,
+    TaskRead,
+    TaskResponseCreate,
+    TaskResponseRead,
+)
 from models.task_config.examples import sample_task_config
-from models.user import User, UserRead
+from models.user import User
 
 router = APIRouter(prefix="/tasks")
 
@@ -40,7 +47,7 @@ async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
         task = await Task.get(task_id)
         if not task:
             raise NOT_FOUND
-        return services.tasks.task_to_task_read(task)
+        return TaskRead.model_validate(task)
 
     task, authorized = await services.tasks.get_participant_task(task_id, user_id)
     if task is None:
@@ -101,10 +108,25 @@ async def create_task_response(
         raise COMPLETED_ERROR
     return response_read
 
-@router.get("/{task_id}/participants", response_model=list[TaskParticipantRead], dependencies=[Depends(current_admin)])
+
+@router.get(
+    "/{task_id}/participants",
+    response_model=list[TaskParticipantRead],
+    dependencies=[Depends(current_admin)],
+)
 async def get_task_participants(task_id: UUID4):
     return await services.tasks.get_task_participants(task_id)
 
-# @router.post("/{id}/response")
-# async def create_response(id: str, response: TaskResponse):
-#     ...
+
+@router.put(
+    "/{task_id}/participants",
+    response_model=TaskParticipantRead,
+    dependencies=[Depends(current_admin)],
+)
+async def create_task_participant(
+    task_id: UUID4, task_participant_create: TaskParticipantCreate
+):
+    tp = await services.tasks.create_participant(task_id, task_participant_create.user)
+    if not tp:
+        raise NOT_FOUND
+    return tp

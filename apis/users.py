@@ -5,28 +5,22 @@ from pydantic import UUID4, BaseModel
 
 import services.responses
 import services.user
-from apis.auth import EXCEPTION_403, current_admin, current_user
+from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
 from models.task import TaskReadParticipant, TaskResponse
-from models.user import User, UserCreate, UserID, UserRead
+from models.user import OptionalUserID, User, UserRead, UserUpsert
 from services.tasks import get_participant_tasks
-from settings import SETTINGS
 
 router = APIRouter(prefix="/users")
 
 
-CREATE_USER_EXCEPTION = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST, detail="User email already taken"
-)
-
-
-@router.put(
+@router.post(
     "",
-    description="Creates a new participant. Requires an admin's user_id for authentication.",
-    response_model=User,
-    dependencies=[Depends(current_admin)],
+    description="Create or update a new user. Requires an admin's user_id for authentication.",
+    response_model=UserRead,
+    dependencies=ADMIN_DEP,
 )
-async def create_user(new_user: UserCreate):
-    return await services.user.create_participant(new_user)
+async def upsert_user(user_create: UserUpsert):
+    return await services.user.upsert_user(user_create)
 
 
 @router.get("", response_model=list[UserRead], dependencies=[Depends(current_admin)])
@@ -53,11 +47,11 @@ class LoginRequired(BaseModel):
 
 @router.get("/login-required", response_model=LoginRequired)
 async def login_required():
-    return LoginRequired(login_required=SETTINGS.login_required)
+    return LoginRequired(login_required=True)
 
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: UserID):
+async def get_user(user_id: OptionalUserID):
     user = await User.get(user_id)
     if user is None:
         raise GET_USER_EXCEPTION
@@ -71,6 +65,4 @@ async def get_user_responses(user_id: UUID4):
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
 async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
-    if SETTINGS.login_required and not user_id:
-        raise EXCEPTION_403
     return await get_participant_tasks(user_id)

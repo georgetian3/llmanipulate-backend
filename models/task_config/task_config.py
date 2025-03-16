@@ -32,7 +32,7 @@ class TaskConfig(BaseModel):
     name: Translations
     description: Translations | None = None
     pages: list[TaskPage]
-    login_required: bool
+    public: bool
 
     @model_validator(mode="after")
     def check_ids_unique(self) -> Self:

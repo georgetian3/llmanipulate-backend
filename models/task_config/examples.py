@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from models.chat import ChatHistoryRead, ChatMessage
+from models.chat import ChatRead, ChatMessage
 from models.task_config.base_component import Translations
-from models.task_config.chat import Chat
+from models.task_config.chat import ChatConfig
 from models.task_config.components import FreeText, MultiChoice, SingleChoice, Slider
 from models.task_config.task_config import (
     ComponentGroup,
@@ -15,7 +15,7 @@ sample_task_config = TaskConfig(
     id="test config",
     name=Translations(languages={"en": "test name", "zh": "测试名字"}, default="en"),
     description=Translations(languages={"en": "test", "zh": "测试描述"}, default="zh"),
-    login_required=True,
+    public=True,
     pages=[
         TaskPage(
             label=Translations(languages={"en": "Page title"}),
@@ -83,7 +83,7 @@ sample_task_config = TaskConfig(
             label=Translations(languages={"en": "Page title"}),
             columns=2,
             component_groups=[
-                ComponentGroup(columns=1, components=[Chat(id="chat", all_users=True)]),
+                ComponentGroup(columns=1, components=[ChatConfig(id="chat", all_users=True)]),
                 ComponentGroup(
                     label=Translations(languages={"en": "Component group label"}),
                     columns=2,
@@ -145,7 +145,7 @@ sample_task_config = TaskConfig(
 )
 
 
-sample_chat_history = ChatHistoryRead(
+sample_chat_history = ChatRead(
     id=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
     messages=[
         ChatMessage(

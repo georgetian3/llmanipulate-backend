@@ -1,14 +1,15 @@
-from pprint import pprint
+from sqlite3 import IntegrityError
+from uuid import uuid4
 
 from pydantic import UUID4
 from sqlalchemy import delete
 from sqlmodel import select
 
 from models.database import get_session
+from models.models import to_model
 from models.task import (
     Task,
     TaskCreate,
-    TaskID,
     TaskParticipant,
     TaskParticipantRead,
     TaskRead,
@@ -16,8 +17,7 @@ from models.task import (
     TaskResponse,
 )
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
-from settings import SETTINGS
+from models.user import OptionalUserID, User
 
 # random.seed(42)
 
@@ -128,81 +128,27 @@ from settings import SETTINGS
 #         self.best_choice = option_letters[list_ids.index(self.best_choice)]
 
 
-def task_to_task_read(task: Task) -> TaskRead:
-    return TaskRead.model_validate(
-        task, update={"config": TaskConfig.model_validate(task.config)}
-    )
-
-
 async def create_task(task_create: TaskCreate) -> TaskRead:
-    task = Task.model_validate(task_create)
+    task = Task(
+        id=uuid4(), **task_create.model_dump(), public=task_create.config.public
+    )
+    # TODO: add agents to separate table
     async with get_session() as session:
         session.add(task)
         await session.commit()
         await session.refresh(task)
-    return task_to_task_read(task)
+    return to_model(task, TaskRead)
 
 
 async def delete_task(task_id: UUID4):
-    query = delete(Task).where(Task.id == task_id)
+    query = delete(Task).where(Task.id == task_id)  # type: ignore
     async with get_session() as session:
         await session.execute(query)
         await session.commit()
 
 
-async def get_participant_tasks(user_id: UserID) -> list[TaskReadParticipant]:
-    if not SETTINGS.login_required:
-        return [
-            TaskReadParticipant(**task.model_dump(), completed=False)
-            for task in await Task.all()
-        ]
-
-    query = (
-        select(Task, TaskResponse)
-        .join(
-            TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
-        )
-        .outerjoin(
-            TaskResponse,
-            (Task.id == TaskResponse.task) & (TaskResponse.user == user_id),  # type: ignore
-        )
-    )
-    async with get_session() as session:
-        results: list[tuple[Task, TaskResponse]] = list(
-            (await session.execute(query)).all()
-        )
-    return [
-        TaskReadParticipant(
-            config=TaskConfig.model_validate(task.config),
-            id=task.id,
-            completed=bool(response),
-        )
-        for task, response in results
-    ]
-
-
-# async def get_user_tasks(user_id: UserID) -> UserTasksWithResponses:
-#     query = select(Task, User, TaskParticipant).outerjoin(
-#         TaskParticipant,
-#         (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
-#     )
-#     async with get_session() as session:
-#         results: list[tuple[Task, User, TaskParticipant]] = list(
-#             (await session.execute(query)).all()
-#         )
-
-#     my_tasks = MyTasks(created=[], participating=[])
-#     for task, user, task_participant in results:
-#         task_read = TaskRead.model_validate(task, update={"creator": user})
-
-#         if task_participant:
-#             my_tasks.participating.append(task_read)
-#     return my_tasks
-
-
 async def get_participant_task(
-    task_id: TaskID, user_id: UserID
+    task_id: UUID4, user_id: OptionalUserID
 ) -> tuple[TaskReadParticipant | None, bool]:
     """
     A user is authorized to to access a task if they are one of the task's participants
@@ -223,12 +169,12 @@ async def get_participant_task(
             TaskParticipant,
             (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
         )
-        .outerjoin(TaskResponse, (Task.id == task_id) & (TaskResponse.user == user_id))
+        .outerjoin(TaskResponse, (Task.id == task_id) & (TaskResponse.user == user_id))  # type: ignore
         .where(Task.id == task_id)
     )
 
     async with get_session() as session:
-        result: tuple[Task | None, UserID | None, TaskResponse | None] = (
+        result: tuple[Task | None, OptionalUserID | None, TaskResponse | None] = (
             await session.execute(query)
         ).first()
 
@@ -238,7 +184,7 @@ async def get_participant_task(
     if not task:
         return None, True
     task.config = TaskConfig.model_validate(task.config)
-    if not task.config.login_required:
+    if not task.config.public:
         return TaskReadParticipant(**task.model_dump(), completed=False), True
     return TaskReadParticipant(**task.model_dump(), completed=bool(completed)), bool(
         is_participant
@@ -250,7 +196,7 @@ async def get_task_participants(task_id: UUID4) -> list[TaskParticipantRead]:
         select(TaskParticipant, TaskResponse)
         .outerjoin(
             TaskResponse,
-            (TaskParticipant.task == task_id) & (TaskResponse.task == task_id),
+            (TaskParticipant.task == task_id) & (TaskResponse.task == task_id),  # type: ignore
         )
         .where(TaskParticipant.task == task_id)
     )

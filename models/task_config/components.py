@@ -1,10 +1,10 @@
 import re
 from typing import Literal, Self
 
-from pydantic import Field, RootModel, model_validator
+from pydantic import Field, model_validator
 
 from models.task_config.base_component import BaseComponent, Translations
-from models.task_config.chat import Chat
+from models.task_config.chat import ChatConfig
 from models.task_config.responses import (
     ComponentResponseType,
     IntResponseType,
@@ -51,14 +51,14 @@ class MultiChoice(Choice):
 
     def validate_response(self, response: ComponentResponseType):
         super().validate_response(response)
-        if len(set(response.root)) != len(response.root):
+        if len(set(response.root)) != len(response.root):  # type: ignore
             raise ValueError("Response cannot contain duplicates")
-        if not self.min_choices <= len(response.root) <= self.max_choices:
+        if not self.min_choices <= len(response.root) <= self.max_choices:  # type: ignore
             raise ValueError(
-                f"Number of choices must be in range [{self.min_choices}, {len(self.max_choices)}]"
+                f"Number of choices must be in range [{self.min_choices}, {len(self.max_choices)}]"  # type: ignore
             )
-        for choice in response.root:
-            if not 0 <= choice < len(self.choices):
+        for choice in response.root:  # type: ignore
+            if not 0 <= choice < len(self.choices):  # type: ignore
                 raise ValueError(f"Choice must be in range [0, {len(self.choices)}]")
 
 
@@ -103,4 +103,4 @@ class FreeText(BaseComponent):
             raise ValueError("Text input does not satisfy regex")
 
 
-ComponentType = SingleChoice | MultiChoice | Slider | FreeText | Chat
+ComponentType = SingleChoice | MultiChoice | Slider | FreeText | ChatConfig
