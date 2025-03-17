@@ -17,11 +17,13 @@ class TaskBase(BaseModel):
     def parse_config(self):
         self.config = TaskConfig.model_validate(self.config)
 
+
 class TaskCreate(TaskBase): ...
 
 
 class TaskRead(TaskBase):
     id: UUID4
+    public: bool
 
 
 class TaskReadParticipant(TaskRead):
@@ -36,10 +38,8 @@ class TaskReadParticipant(TaskRead):
         return config
 
 
-class Task(OrmMixin, TaskBase, table=True):
-
+class Task(OrmMixin, TaskRead, table=True):
     id: UUID4 = Field(primary_key=True, default_factory=uuid4)
-    public: bool
 
 
 class TaskParticipantBase(OrmMixin):

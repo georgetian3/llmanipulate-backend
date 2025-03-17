@@ -43,7 +43,7 @@ async def create_task(task_create: TaskCreate):
 )
 async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
     user = await User.get(user_id)
-    if user and user.is_admin:
+    if user and user.admin:
         task = await Task.get(task_id)
         if not task:
             raise NOT_FOUND
@@ -60,6 +60,10 @@ async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
 @router.delete("/{task_id}", dependencies=[Depends(current_admin)])
 async def delete_task(task_id: UUID4):
     await services.tasks.delete_task(task_id)
+
+@router.put("/{task_id}/participants/{user_id}")
+async def add_participant_to_public_task(task_id: UUID4, user_id: UUID4):
+    await services.tasks.add_participant_to_public_task(task_id, user_id)
 
 
 @router.get("/sample", response_model=TaskRead)

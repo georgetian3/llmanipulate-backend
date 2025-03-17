@@ -6,31 +6,26 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 from models.mixins import OrmMixin
-from models.task_config.chat import AgentConfig
 
 
 class ChatParticipantBase(SQLModel):
-    chat: UUID4 = Field(foreign_key="chathistory.id", ondelete="CASCADE")
+    chat: UUID4 = Field(primary_key=True, foreign_key="chat.id", ondelete="CASCADE")
+    name: str
 
 
 class ChatParticipantRead(ChatParticipantBase):
-    name: str
     active: bool
-
-
-class Agent(AgentConfig, table=True):
-    id: UUID4 = Field(primary_key=True, default_factory=uuid4)
+    typing: bool
 
 
 class ChatParticipant(ChatParticipantBase, table=True):
-    id: UUID4 = Field(primary_key=True, default_factory=uuid4)
-    user: UUID4 | None = Field(foreign_key="user.id")
-    agent: UUID4 | None = Field(foreign_key="agent.id")
+    id: UUID4 = Field(primary_key=True)
+
 
 
 class ChatMessageRead(SQLModel):
     id: UUID4
-    chat: UUID4 = Field(foreign_key="chathistory.id", ondelete="CASCADE")
+    chat: UUID4 = Field(foreign_key="chat.id", ondelete="CASCADE")
     message: str
     sender: UUID4
     timestamp: datetime
@@ -38,7 +33,7 @@ class ChatMessageRead(SQLModel):
 
 class ChatMessage(ChatMessageRead, OrmMixin, table=True):
     id: UUID4 = Field(primary_key=True, default_factory=uuid4)
-    sender: UUID4 = Field(foreign_key="chatparticipant.id")
+    sender: UUID4 = Field(foreign_key="chatparticipant.id", ondelete="CASCADE")
 
 
 class ChatRead(BaseModel):
@@ -54,15 +49,14 @@ class Chat(OrmMixin, table=True):
 
 class WebsocketReceive(BaseModel):
     user: UUID4
-    task: UUID4
-    component: str
+    chat: UUID4
     typing: bool
     message: str
 
 
 class WebsocketSend(BaseModel):
     turn: UUID4 | None = None
+    chat: UUID4
     messages: list[ChatMessageRead] | None = None
-    typing: list[UUID4] | None = None
-    participants: list[ChatParticipant] | None = None
+    participants: list[ChatParticipantRead] | None = None
     error: str | None = None

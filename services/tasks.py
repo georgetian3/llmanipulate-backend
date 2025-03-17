@@ -1,8 +1,8 @@
-from sqlite3 import IntegrityError
 from uuid import uuid4
 
 from pydantic import UUID4
-from sqlalchemy import delete
+from sqlalchemy import delete, exists, insert, literal
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import select
 
 from models.database import get_session
@@ -132,11 +132,25 @@ async def create_task(task_create: TaskCreate) -> TaskRead:
     task = Task(
         id=uuid4(), **task_create.model_dump(), public=task_create.config.public
     )
-    # TODO: add agents to separate table
     async with get_session() as session:
         session.add(task)
         await session.commit()
         await session.refresh(task)
+        # add agents to separate table
+        # session.add_all(
+        #     [
+        #         Agent(
+        #             **agent.model_dump(),
+        #             task=task.id,
+        #             component=component.id,
+        #         )
+        #         for component in task_create.config.components
+        #         if component.type == "chat"
+        #         for agent in component.agents
+        #     ]
+        # )
+        # await session.commit()
+        # await session.refresh(task)
     return to_model(task, TaskRead)
 
 
@@ -144,6 +158,31 @@ async def delete_task(task_id: UUID4):
     query = delete(Task).where(Task.id == task_id)  # type: ignore
     async with get_session() as session:
         await session.execute(query)
+        await session.commit()
+
+
+async def add_participant_to_public_task(task_id: UUID4, user_id: UUID4):
+    # add task participant only if the task is public and the user is not already a task participant
+
+    user_insert_query = (
+        pg_insert(User)
+        .values(id=user_id, attributes={"auto_created": True}, active=True)
+        .on_conflict_do_nothing()
+    )
+
+    task_participant_insert_query = (
+        pg_insert(TaskParticipant)
+        .from_select(
+            ["task", "user"],
+            select(Task.id, literal(user_id)).where(
+                Task.id == task_id, Task.public == True
+            ),
+        )
+        .on_conflict_do_nothing()
+    )
+    async with get_session() as session:
+        await session.execute(user_insert_query)
+        await session.execute(task_participant_insert_query)
         await session.commit()
 
 

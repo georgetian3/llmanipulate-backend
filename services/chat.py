@@ -91,29 +91,73 @@
 # """
 
 
+import asyncio
+from uuid import uuid4
+
 from fastapi import WebSocket
 from pydantic import UUID4, ValidationError
+from sqlalchemy import select
 
-from models.chat import WebsocketReceive, WebsocketSend
+from models.chat import Chat, ChatParticipant, WebsocketReceive, WebsocketSend
 from models.database import get_session
+from models.task import Task, TaskParticipant
 from models.task_config.chat import ChatConfig
 
 
 class WebsocketChatManager:
     def __init__(self):
+        # {
+        #     "user_id": {
+        #         "task_id": {
+        #             "component_id:": ChatConfig()
+        #         }
+        #     }
+        # }
         self.chat_configs: dict[UUID4, dict[str, ChatConfig]] = {}
-        self.chats: dict[UUID4, list[WebSocket]] = {}
+        self.chats: dict[UUID4, set[WebSocket]] = {}
 
     async def connect(
         self, websocket: WebSocket, user: UUID4, task: UUID4, component: str
     ) -> None:
-        query = ()
         # 1. check user is member of task
         # 2. if user is not in this task component's chat
         # 3.    find chat that needs another participant, or create new chat
         # 4. return chat's history
+
+        chat_participant_query = (
+            select(ChatParticipant, Chat, Task, TaskParticipant)
+            .join(Chat, ChatParticipant.chat == Chat.id)
+            .join(Task, Chat.task == Task.id)
+            # outer join as user 
+            .outerjoin(TaskParticipant, TaskParticipant.task == Task.id)
+            .where(
+                Chat.task == task,
+                Chat.component == component,
+            )
+        )
         async with get_session() as session:
-            await session.execute(query)
+            results: tuple[ChatParticipant, Task] = (
+                await session.execute(chat_participant_query)
+            ).first()
+        if results:
+            cp, task = results
+            if cp.chat not in self.chats:
+                self.chats[cp.chat] = []
+            self.chats[cp.chat].append(websocket)
+
+        if not results:
+            ...
+        chat = uuid4()
+        allowed = True
+        if allowed:
+            if chat not in self.chats:
+                self.chats[chat] = set()
+            self.chats[chat].add(websocket)
+            await websocket.accept()
+        else:
+            websocket.close()
+
+
 
     async def receive(
         self, json: dict, websocket: WebSocket, user: UUID4, task: UUID4, component: str
@@ -124,10 +168,16 @@ class WebsocketChatManager:
             await websocket.send_json(WebsocketSend(error=str(e)))
             return
 
+        print(data, websocket, user, task, component)
+        await self.send_to_chat(data, 1)
+
     async def send_to_websocket(self, data: WebsocketSend, websocket: WebSocket):
-        await websocket.send_json(data.model_dump())
+        await websocket.send_text(data.model_dump_json())
 
     async def send_to_chat(self, data: WebsocketSend, chat: UUID4) -> None:
-        futures = []
+        data_json = data.model_dump_json()
+        futures = [ws.send_text(data_json) for ws in self.chats[chat]]
+        await asyncio.gather(*futures)
 
-    async def disconnect(self, websocket): ...
+    async def disconnect(self, websocket: WebSocket) -> None:
+        await websocket.close()

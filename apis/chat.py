@@ -23,7 +23,7 @@ def config_agent(agent_name: str) -> Agent:
 
 
 
-router = APIRouter()
+router = APIRouter(prefix="/chat")
 
 # ✅ In-memory storage
 rooms: Dict[str, List[WebSocket]] = {}
@@ -197,11 +197,11 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
 
 manager = WebsocketChatManager()
 
-@router.websocket("/chat")
+@router.websocket("")
 async def chat(
     websocket: WebSocket,
-    user: UUID4,
-    task: UUID4,
+    user: str,
+    task: str,
     component: str
 ):
     await manager.connect(websocket, user, task, component)

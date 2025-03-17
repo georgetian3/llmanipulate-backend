@@ -8,7 +8,6 @@ import services.user
 from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
 from models.task import TaskReadParticipant, TaskResponse
 from models.user import OptionalUserID, User, UserRead, UserUpsert
-from services.tasks import get_participant_tasks
 
 router = APIRouter(prefix="/users")
 
@@ -65,4 +64,4 @@ async def get_user_responses(user_id: UUID4):
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
 async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
-    return await get_participant_tasks(user_id)
+    return await services.user.get_user_tasks(user_id)

@@ -25,7 +25,7 @@ class Translations(BaseModel):
 
 
 class BaseComponent(BaseModel):
-    id: str
+    id: str = Field(description="An ID unique within this task, used to correlate a component with its response")
     label: Translations | None = None
     optional: bool = False
     response_class: ClassVar[type]

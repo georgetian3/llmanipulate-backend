@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from pydantic import UUID4
-from sqlalchemy import delete, func, insert, literal, literal_column, select, text
+from sqlalchemy import delete, func, literal, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from models.database import get_session
@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 async def create_admin(user_id: UUID4 | None = None) -> User:
     if user_id is None:
         user_id = uuid4()
-    return await User(id=user_id, is_admin=True).save()
+    return await User(id=user_id, admin=True).save()
 
 
 async def init_admin() -> None:
@@ -30,7 +30,7 @@ async def init_admin() -> None:
             logger.info("ID in settings already exists in DB")
     async with get_session() as session:
         admin_count = await session.execute(
-            select(func.count()).select_from(User).where(User.is_admin == True)  # type: ignore
+            select(func.count()).select_from(User).where(User.admin == True)  # type: ignore
         )
     if admin_count == 0:
         logger.info("No admin account, creating a new one")
