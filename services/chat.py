@@ -92,91 +92,200 @@
 
 
 import asyncio
+from dataclasses import dataclass
 from uuid import uuid4
 
 from fastapi import WebSocket
-from pydantic import UUID4, ValidationError
-from sqlalchemy import select
+from pydantic import UUID4, BaseModel, ValidationError
+from sqlalchemy import func, null, select
 
-from models.chat import Chat, ChatParticipant, WebsocketReceive, WebsocketSend
+from models.chat import (
+    Chat,
+    ChatMessage,
+    ChatMessageRead,
+    ChatParticipant,
+    ChatParticipantRead,
+    WebsocketReceive,
+    WebsocketSend,
+)
 from models.database import get_session
 from models.task import Task, TaskParticipant
 from models.task_config.chat import ChatConfig
+from services.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+@dataclass
+class ChatWebsocket:
+    websocket: WebSocket
+    user_id: UUID4
+    task_id: UUID4
+    component_id: str
+    chat_id: UUID4 | None = None
 
 
 class WebsocketChatManager:
     def __init__(self):
-        # {
-        #     "user_id": {
-        #         "task_id": {
-        #             "component_id:": ChatConfig()
-        #         }
-        #     }
-        # }
         self.chat_configs: dict[UUID4, dict[str, ChatConfig]] = {}
         self.chats: dict[UUID4, set[WebSocket]] = {}
 
-    async def connect(
-        self, websocket: WebSocket, user: UUID4, task: UUID4, component: str
-    ) -> None:
+    async def connect(self, websocket: ChatWebsocket) -> bool:
+        user_id, task_id, component_id = websocket.user_id, websocket.task_id, websocket.component_id
         # 1. check user is member of task
         # 2. if user is not in this task component's chat
         # 3.    find chat that needs another participant, or create new chat
         # 4. return chat's history
 
-        chat_participant_query = (
-            select(ChatParticipant, Chat, Task, TaskParticipant)
-            .join(Chat, ChatParticipant.chat == Chat.id)
-            .join(Task, Chat.task == Task.id)
-            # outer join as user 
-            .outerjoin(TaskParticipant, TaskParticipant.task == Task.id)
+        # chat_participant_query = (
+        #     select(Task, Chat, ChatParticipant)
+        #     .join(TaskParticipant, TaskParticipant.task == task_id)
+        #     .outerjoin(Chat, Chat.task == Task.id)
+        #     .outerjoin(ChatParticipant, ChatParticipant.chat_id == Chat.id)
+        #     .where(
+        #         TaskParticipant.user == user_id,
+        #         TaskParticipant.task == task_id,
+        #         Chat.component == component_id,
+        #     )
+        # )
+        logger.debug(
+            f"Websocket connect user_id={user_id} task_id={task_id} component_id={component_id}"
+        )
+        task_query = (
+            select(Task)
+            .join(TaskParticipant, Task.id == TaskParticipant.task)
+            .where(Task.id == task_id)
+        )
+        async with get_session() as session:
+            task = (await session.scalars(task_query)).first()
+
+        if not task:
+            logger.debug(
+                f"Task {task_id} does not exist or user {user_id} is not a participant"
+            )
+            await websocket.websocket.close()
+            return False
+
+        try:
+            chat_config = [
+                x
+                for x in task.config.components
+                if x.id == component_id and x.type == "chat"
+            ][0]
+        except:  # chat component doesn't exist
+            logger.debug(f"Component {component_id} does not exist for task {task_id}")
+            await websocket.websocket.close()
+            return False
+
+        # user allowed to chat
+        await websocket.websocket.accept()
+
+        existing_chat_select_query = (
+            select(Chat)
+            .join(ChatParticipant, Chat.id == ChatParticipant.chat_id)
             .where(
-                Chat.task == task,
-                Chat.component == component,
+                ChatParticipant.user_id == user_id,
+                Chat.task_id == task_id,
+                Chat.component_id == component_id,
             )
         )
         async with get_session() as session:
-            results: tuple[ChatParticipant, Task] = (
-                await session.execute(chat_participant_query)
-            ).first()
-        if results:
-            cp, task = results
-            if cp.chat not in self.chats:
-                self.chats[cp.chat] = []
-            self.chats[cp.chat].append(websocket)
-
-        if not results:
-            ...
-        chat = uuid4()
-        allowed = True
-        if allowed:
-            if chat not in self.chats:
-                self.chats[chat] = set()
-            self.chats[chat].add(websocket)
-            await websocket.accept()
+            chat = (
+                await session.execute(existing_chat_select_query)
+            ).scalar_one_or_none()
+            if chat:  # already participant of a chat, send chat messages
+                logger.debug(f"User {user_id} already participant in chat {chat.id}")
+                chat_messages_select_query = select(ChatMessage).where(
+                    ChatMessage.chat_id == chat.id
+                )
+                chat_participants_query = select(ChatParticipant).join(
+                    Chat, (ChatParticipant.chat_id == chat.id) & (Chat.id == chat.id)
+                )
+                results: list[tuple[ChatMessage, ChatParticipant]] = (
+                    await session.execute(chat_messages_select_query)
+                ).all()
+                chat_participants = (
+                    await session.scalars(chat_participants_query)
+                ).all()
+                chat_messages = []
+                for result in results:
+                    chat_message, chat_participant = result
+                    chat_messages.append(
+                        ChatMessageRead(
+                            id=chat_message.id,
+                            chat_id=chat.id,
+                            message=chat_message.message,
+                            timestamp=chat_message.timestamp,
+                            sender=chat_participant.name,
+                        )
+                    )
+                await self.send_to_websocket(
+                    WebsocketSend(
+                        chat_id=chat.id,
+                        messages=chat_messages,
+                        participants=[
+                            ChatParticipantRead(name=cp.name)
+                            for cp in chat_participants
+                        ],
+                    ),
+                    websocket,
+                )
+                return True
+        if chat_config.humans_required is None:  # task-wide chat, only one should exist
+            pending_chat_select_query = select(Chat).where(
+                Chat.task_id == task_id, Chat.component_id == component_id
+            )
+        elif (
+            chat_config.humans_required == 1
+        ):  # one human chat, there should not be an existing one
+            pending_chat_select_query = select(null())
         else:
-            websocket.close()
+            pending_chat_select_query = (
+                select(Chat)
+                .join(ChatParticipant, Chat.id == ChatParticipant.chat_id)
+                .group_by(Chat.id)
+                .having(func.count(ChatParticipant) < chat_config.humans_required)
+                .limit(1)
+            )
+        async with get_session() as session:
+            pending_chat: Chat | None = (
+                await session.execute(pending_chat_select_query)
+            ).scalar_one_or_none()
+            if not pending_chat:
+                pending_chat = Chat(task_id=task_id, component_id=component_id)
+                session.add(pending_chat)
+            session.add(
+                ChatParticipant(name="", user_id=user_id, chat_id=pending_chat.id)
+            )
+            await session.commit()
+            await session.refresh(pending_chat)
+            await self.send_to_websocket(
+                WebsocketSend(
+                    chat_id=pending_chat.id,
+                    messages=[],
+                    participants=[ChatParticipantRead(name="self")],
+                ),
+                websocket,
+            )
+        return True
 
-
-
-    async def receive(
-        self, json: dict, websocket: WebSocket, user: UUID4, task: UUID4, component: str
-    ) -> None:
+    async def receive(self, json: dict, websocket: ChatWebsocket) -> None:
         try:
             data = WebsocketReceive.model_validate(json)
         except ValidationError as e:
-            await websocket.send_json(WebsocketSend(error=str(e)))
+            await websocket.websocket.send_json(WebsocketSend(error=str(e)))
             return
-
-        print(data, websocket, user, task, component)
+        logger.debug(f"Websocket {websocket} received: {data}")
         await self.send_to_chat(data, 1)
 
-    async def send_to_websocket(self, data: WebsocketSend, websocket: WebSocket):
-        await websocket.send_text(data.model_dump_json())
+    async def send_to_websocket(self, data: WebsocketSend, websocket: ChatWebsocket):
+        logger.debug(f"Sending to websocket {websocket} data {data}")
+        await websocket.websocket.send_text(data.model_dump_json())
 
-    async def send_to_chat(self, data: WebsocketSend, chat: UUID4) -> None:
+    async def send_to_chat(self, data: WebsocketSend, chat_id: UUID4) -> None:
+        logger.debug(f"Sending to chat {chat_id} data {data}")
         data_json = data.model_dump_json()
-        futures = [ws.send_text(data_json) for ws in self.chats[chat]]
+        futures = [ws.send_text(data_json) for ws in self.chats[chat_id]]
         await asyncio.gather(*futures)
 
     async def disconnect(self, websocket: WebSocket) -> None:

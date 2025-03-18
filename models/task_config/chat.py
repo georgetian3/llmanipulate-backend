@@ -33,8 +33,7 @@ class ChatConfig(BaseComponent):
     )
     min_messages: int = Field(0, ge=0)
     max_messages: int = Field(99999, ge=0)
-    min_humans: int = Field(0, ge=0)
-    max_humans: int = Field(99999, ge=0)
+    humans_required: int | None = Field(None, ge=0, description="Number of humans per chat, leave None for no limit")
 
     @model_validator(mode="after")
     def validate_model(self) -> Self:

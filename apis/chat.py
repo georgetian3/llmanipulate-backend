@@ -11,7 +11,7 @@ from starlette.websockets import WebSocketState
 from models.chat import Chat, ChatMessage
 from models.database import get_async_session, get_session
 from services.agentV2 import Agent
-from services.chat import WebsocketChatManager
+from services.chat import ChatWebsocket, WebsocketChatManager
 
 
 def config_agent(agent_name: str) -> Agent:
@@ -172,7 +172,7 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
         # store in DB
         async with session.begin():
             chat_message = ChatMessage(
-                chat=room_id,
+                chat_id=room_id,
                 sender_agent=next_speaker,
                 message=agent_message,
                 timestamp=datetime.utcnow(),
@@ -200,15 +200,17 @@ manager = WebsocketChatManager()
 @router.websocket("")
 async def chat(
     websocket: WebSocket,
-    user: str,
-    task: str,
+    user: UUID4,
+    task: UUID4,
     component: str
 ):
-    await manager.connect(websocket, user, task, component)
+    chat_websocket = ChatWebsocket(user_id=user, task_id=task, component_id=component, websocket=websocket)
+    connected = await manager.connect(chat_websocket)
+    if not connected:
+        return
     try:
         while True:
-            data = await websocket.receive_json()
-            await manager.receive(data, websocket, user, task, component)
+            await manager.receive(await websocket.receive_json(), chat_websocket)
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
 
@@ -273,7 +275,7 @@ async def join_room(
             # Store user message
             async with session.begin():
                 chat_message = ChatMessage(
-                    chat=room_id,
+                    chat_id=room_id,
                     sender_uuid=uuid.UUID(sender_id),
                     message=data,
                     timestamp=datetime.utcnow(),

@@ -480,6 +480,57 @@
         }
       }
     },
+    "/tasks/{task_id}/participants/{user_id}": {
+      "put": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Add Participant To Public Task",
+        "operationId": "add_participant_to_public_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid4",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tasks/sample": {
       "get": {
         "tags": [
@@ -911,17 +962,18 @@
             "title": "Max Messages",
             "default": 99999
           },
-          "min_humans": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Min Humans",
-            "default": 0
-          },
-          "max_humans": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Max Humans",
-            "default": 99999
+          "humans_required": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Humans Required",
+            "description": "Number of humans per chat, leave None for no limit"
           }
         },
         "type": "object",
