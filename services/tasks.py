@@ -210,9 +210,10 @@ async def get_task(
             session.add(TaskParticipant(task_id=task_id, user_id=user_id))
             await session.commit()
             is_participant = True
-    return TaskReadParticipant(
-        id=task.id, config=task.config, completed=bool(completed)
-    ), bool(is_participant)
+        await session.refresh(task)
+        return TaskReadParticipant(
+            id=task.id, config=task.config, completed=bool(completed)
+        ), bool(is_participant)
 
 
 async def get_task_participants(task_id: UUID4) -> list[TaskParticipantRead]:

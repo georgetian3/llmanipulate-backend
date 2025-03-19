@@ -45,6 +45,84 @@
         }
       }
     },
+    "/chat/example/send": {
+      "get": {
+        "tags": [
+          "chats"
+        ],
+        "summary": "Example Send",
+        "operationId": "example_send",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebsocketSend"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/example/receive": {
+      "get": {
+        "tags": [
+          "chats"
+        ],
+        "summary": "Example Receive",
+        "operationId": "example_receive",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebsocketReceive"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "tags": [
@@ -867,6 +945,65 @@
           "id"
         ],
         "title": "ChatConfig"
+      },
+      "ChatMessageRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "chat_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "message",
+          "timestamp",
+          "sender",
+          "chat_id"
+        ],
+        "title": "ChatMessageRead"
+      },
+      "ChatParticipantRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "typing": {
+            "type": "boolean",
+            "title": "Typing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "active",
+          "typing"
+        ],
+        "title": "ChatParticipantRead"
       },
       "ComponentGroup-Input": {
         "properties": {
@@ -1800,6 +1937,67 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WebsocketReceive": {
+        "properties": {
+          "typing": {
+            "type": "boolean",
+            "title": "Typing"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "typing",
+          "message"
+        ],
+        "title": "WebsocketReceive"
+      },
+      "WebsocketSend": {
+        "properties": {
+          "chat_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat Id",
+            "default": ""
+          },
+          "turn": {
+            "type": "string",
+            "title": "Turn",
+            "default": ""
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageRead"
+            },
+            "type": "array",
+            "title": "Messages",
+            "default": []
+          },
+          "me": {
+            "type": "string",
+            "title": "Me",
+            "default": ""
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantRead"
+            },
+            "type": "array",
+            "title": "Participants",
+            "default": []
+          },
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "WebsocketSend"
       }
     },
     "securitySchemes": {

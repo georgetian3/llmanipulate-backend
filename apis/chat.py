@@ -8,10 +8,10 @@ from pydantic import UUID4, BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketState
 
-from models.chat import Chat, ChatMessage
-from models.database import get_async_session, get_session
+from models.chat import Chat, ChatMessage, WebsocketReceive, WebsocketSend
+from models.database import get_async_session
 from services.agentV2 import Agent
-from services.chat import ChatWebsocket, WebsocketChatManager
+from services.chat import  WebsocketChatManager
 
 
 def config_agent(agent_name: str) -> Agent:
@@ -20,7 +20,6 @@ def config_agent(agent_name: str) -> Agent:
     agent.set_attributes(model_name, agent_name)
     agent.fill_prompt()
     return agent
-
 
 
 router = APIRouter(prefix="/chat")
@@ -195,25 +194,28 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
     # notify all clients about who can speak now
     await notify_turn_change(room_id)
 
+
 manager = WebsocketChatManager()
 
+
 @router.websocket("")
-async def chat(
-    websocket: WebSocket,
-    user: UUID4,
-    task: UUID4,
-    component: str
-):
-    chat_websocket = ChatWebsocket(user_id=user, task_id=task, component_id=component, websocket=websocket)
-    connected = await manager.connect(chat_websocket)
+async def chat(websocket: WebSocket, user: UUID4, task: UUID4, component: str):
+    connected = await manager.connect(websocket, user_id=user, task_id=task, component_id=component)
     if not connected:
         return
     try:
         while True:
-            await manager.receive(await websocket.receive_json(), chat_websocket)
+            await manager.receive(await websocket.receive_json(), websocket)
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
 
+
+@router.get("/example/send")
+async def example_send(_: WebsocketSend): ...
+
+
+@router.get("/example/receive")
+async def example_receive(_: WebsocketReceive): ...
 
 
 @router.websocket("/join/{room_id}/{user_id}")
