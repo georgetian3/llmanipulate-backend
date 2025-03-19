@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 import services.responses
 from apis.auth import current_admin
-from models.task import TaskResponseRead
+from models.task_response import TaskResponseRead
 
 router = APIRouter(prefix="/responses")
 

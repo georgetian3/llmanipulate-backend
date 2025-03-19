@@ -8,16 +8,10 @@ import services.responses
 import services.tasks
 from apis.auth import current_admin, current_user
 from apis.utils import create_docs
-from models.task import (
-    Task,
-    TaskCreate,
-    TaskParticipantCreate,
-    TaskParticipantRead,
-    TaskRead,
-    TaskResponseCreate,
-    TaskResponseRead,
-)
+from models.task import Task, TaskCreate, TaskRead
 from models.task_config.examples import sample_task_config
+from models.task_participant import TaskParticipantRead
+from models.task_response import TaskResponseCreate, TaskResponseRead
 from models.user import User
 
 router = APIRouter(prefix="/tasks")
@@ -49,7 +43,7 @@ async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
             raise NOT_FOUND
         return TaskRead.model_validate(task)
 
-    task, authorized = await services.tasks.get_participant_task(task_id, user_id)
+    task, authorized = await services.tasks.get_task(task_id, user_id)
     if task is None:
         raise NOT_FOUND
     if not authorized:
@@ -60,10 +54,6 @@ async def get_task(task_id: UUID4, user_id: UUID4 = Depends(current_user)):
 @router.delete("/{task_id}", dependencies=[Depends(current_admin)])
 async def delete_task(task_id: UUID4):
     await services.tasks.delete_task(task_id)
-
-@router.put("/{task_id}/participants/{user_id}")
-async def add_participant_to_public_task(task_id: UUID4, user_id: UUID4):
-    await services.tasks.add_participant_to_public_task(task_id, user_id)
 
 
 @router.get("/sample", response_model=TaskRead)
@@ -122,15 +112,15 @@ async def get_task_participants(task_id: UUID4):
     return await services.tasks.get_task_participants(task_id)
 
 
-@router.put(
-    "/{task_id}/participants",
-    response_model=TaskParticipantRead,
-    dependencies=[Depends(current_admin)],
-)
-async def create_task_participant(
-    task_id: UUID4, task_participant_create: TaskParticipantCreate
-):
-    tp = await services.tasks.create_participant(task_id, task_participant_create.user)
-    if not tp:
-        raise NOT_FOUND
-    return tp
+# @router.put(
+#     "/{task_id}/participants",
+#     response_model=TaskParticipantRead,
+#     dependencies=[Depends(current_admin)],
+# )
+# async def create_task_participant(
+#     task_id: UUID4, task_participant_create: TaskParticipantCreate
+# ):
+#     tp = await services.tasks.create_participant(task_id, task_participant_create.user)
+#     if not tp:
+#         raise NOT_FOUND
+#     return tp

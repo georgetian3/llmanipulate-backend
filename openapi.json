@@ -180,15 +180,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid4"
-                },
-                {
-                  "type": "null"
-                }
-              ],
+              "type": "string",
+              "format": "uuid4",
               "title": "User Id"
             }
           }
@@ -480,57 +473,6 @@
         }
       }
     },
-    "/tasks/{task_id}/participants/{user_id}": {
-      "put": {
-        "tags": [
-          "tasks"
-        ],
-        "summary": "Add Participant To Public Task",
-        "operationId": "add_participant_to_public_task",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid4",
-              "title": "Task Id"
-            }
-          },
-          {
-            "name": "user_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid4",
-              "title": "User Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/tasks/sample": {
       "get": {
         "tags": [
@@ -727,62 +669,6 @@
                     "$ref": "#/components/schemas/TaskParticipantRead"
                   },
                   "title": "Response Get Task Participants Tasks  Task Id  Participants Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "tasks"
-        ],
-        "summary": "Create Task Participant",
-        "operationId": "create_task_participant",
-        "security": [
-          {
-            "OptionalHTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid4",
-              "title": "Task Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TaskParticipantCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TaskParticipantRead"
                 }
               }
             }
@@ -1540,38 +1426,17 @@
         ],
         "title": "TaskPage"
       },
-      "TaskParticipantCreate": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user"
-        ],
-        "title": "TaskParticipantCreate"
-      },
       "TaskParticipantRead": {
         "properties": {
-          "task": {
+          "task_id": {
             "type": "string",
             "format": "uuid4",
-            "title": "Task"
+            "title": "Task Id"
           },
-          "user": {
+          "user_id": {
             "type": "string",
             "format": "uuid4",
-            "title": "User"
+            "title": "User Id"
           },
           "completed": {
             "type": "boolean",
@@ -1580,8 +1445,8 @@
         },
         "type": "object",
         "required": [
-          "task",
-          "user",
+          "task_id",
+          "user_id",
           "completed"
         ],
         "title": "TaskParticipantRead"
@@ -1595,17 +1460,12 @@
             "type": "string",
             "format": "uuid4",
             "title": "Id"
-          },
-          "public": {
-            "type": "boolean",
-            "title": "Public"
           }
         },
         "type": "object",
         "required": [
           "config",
-          "id",
-          "public"
+          "id"
         ],
         "title": "TaskRead"
       },
@@ -1619,10 +1479,6 @@
             "format": "uuid4",
             "title": "Id"
           },
-          "public": {
-            "type": "boolean",
-            "title": "Public"
-          },
           "completed": {
             "type": "boolean",
             "title": "Completed"
@@ -1632,7 +1488,6 @@
         "required": [
           "config",
           "id",
-          "public",
           "completed"
         ],
         "title": "TaskReadParticipant"
@@ -1656,11 +1511,6 @@
             "type": "object",
             "title": "Response"
           },
-          "updated_timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Timestamp"
-          },
           "created_timestamp": {
             "type": "string",
             "format": "date-time",
@@ -1671,17 +1521,17 @@
             "format": "uuid4",
             "title": "Task"
           },
-          "user": {
+          "user_id": {
             "type": "string",
             "format": "uuid4",
-            "title": "User"
+            "title": "User Id"
           }
         },
         "type": "object",
         "required": [
           "response",
           "task",
-          "user"
+          "user_id"
         ],
         "title": "TaskResponse"
       },
@@ -1730,11 +1580,6 @@
             "type": "object",
             "title": "Response"
           },
-          "updated_timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Timestamp"
-          },
           "created_timestamp": {
             "type": "string",
             "format": "date-time",
@@ -1745,17 +1590,17 @@
             "format": "uuid4",
             "title": "Task"
           },
-          "user": {
+          "user_id": {
             "type": "string",
             "format": "uuid4",
-            "title": "User"
+            "title": "User Id"
           }
         },
         "type": "object",
         "required": [
           "response",
           "task",
-          "user"
+          "user_id"
         ],
         "title": "TaskResponseRead"
       },
@@ -1822,6 +1667,11 @@
             "title": "Active",
             "description": "Whether this user is allowed to login and submit responses",
             "default": true
+          },
+          "autogenerated": {
+            "type": "boolean",
+            "title": "Autogenerated",
+            "default": false
           }
         },
         "type": "object",

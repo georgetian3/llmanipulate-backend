@@ -93,10 +93,9 @@
 
 import asyncio
 from dataclasses import dataclass
-from uuid import uuid4
 
 from fastapi import WebSocket
-from pydantic import UUID4, BaseModel, ValidationError
+from pydantic import UUID4, ValidationError
 from sqlalchemy import func, null, select
 
 from models.chat import (
@@ -109,8 +108,9 @@ from models.chat import (
     WebsocketSend,
 )
 from models.database import get_session
-from models.task import Task, TaskParticipant
+from models.task import Task
 from models.task_config.chat import ChatConfig
+from models.task_participant import TaskParticipant
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -131,7 +131,11 @@ class WebsocketChatManager:
         self.chats: dict[UUID4, set[WebSocket]] = {}
 
     async def connect(self, websocket: ChatWebsocket) -> bool:
-        user_id, task_id, component_id = websocket.user_id, websocket.task_id, websocket.component_id
+        user_id, task_id, component_id = (
+            websocket.user_id,
+            websocket.task_id,
+            websocket.component_id,
+        )
         # 1. check user is member of task
         # 2. if user is not in this task component's chat
         # 3.    find chat that needs another participant, or create new chat
@@ -153,7 +157,7 @@ class WebsocketChatManager:
         )
         task_query = (
             select(Task)
-            .join(TaskParticipant, Task.id == TaskParticipant.task)
+            .join(TaskParticipant, Task.id == TaskParticipant.task_id)
             .where(Task.id == task_id)
         )
         async with get_session() as session:

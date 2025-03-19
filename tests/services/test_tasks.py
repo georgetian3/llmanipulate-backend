@@ -59,33 +59,33 @@ async def test_create_task() -> None:
     # ) == set(agent.display_name for agent in agents)
 
 
-async def test_add_participant_to_public_task() -> None:
-    await _DATABASE.reset()
+# async def test_add_participant_to_public_task() -> None:
+#     await _DATABASE.reset()
 
-    task_public = await create_task(TaskCreate(
-        config=TaskConfig(
-            name=Translations(languages={"en": "sample task name"}),
-            pages=[],
-            public=True,
-        )
-    ))
-    task_private = await create_task(TaskCreate(
-        config=TaskConfig(
-            name=Translations(languages={"en": "sample task name"}),
-            pages=[],
-            public=False,
-        )
-    ))
+#     task_public = await create_task(TaskCreate(
+#         config=TaskConfig(
+#             name=Translations(languages={"en": "sample task name"}),
+#             pages=[],
+#             public=True,
+#         )
+#     ))
+#     task_private = await create_task(TaskCreate(
+#         config=TaskConfig(
+#             name=Translations(languages={"en": "sample task name"}),
+#             pages=[],
+#             public=False,
+#         )
+#     ))
 
-    existing_user = await upsert_user(UserUpsert())
-    public_user_id = uuid4()
+#     existing_user = await upsert_user(UserUpsert())
+#     public_user_id = uuid4()
 
-    await add_participant_to_public_task(task_private.id, existing_user.id)
-    assert len(await TaskParticipant.all()) == 0
-    await add_participant_to_public_task(task_private.id, public_user_id)
-    assert len(await TaskParticipant.all()) == 0
-    await add_participant_to_public_task(task_public.id, existing_user.id)
-    assert len(await TaskParticipant.all()) == 1
-    await add_participant_to_public_task(task_public.id, public_user_id)
-    assert len(await TaskParticipant.all()) == 2
+#     await add_participant_to_public_task(task_private.id, existing_user.id)
+#     assert len(await TaskParticipant.all()) == 0
+#     await add_participant_to_public_task(task_private.id, public_user_id)
+#     assert len(await TaskParticipant.all()) == 0
+#     await add_participant_to_public_task(task_public.id, existing_user.id)
+#     assert len(await TaskParticipant.all()) == 1
+#     await add_participant_to_public_task(task_public.id, public_user_id)
+#     assert len(await TaskParticipant.all()) == 2
 
