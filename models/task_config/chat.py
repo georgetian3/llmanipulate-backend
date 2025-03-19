@@ -8,16 +8,19 @@ from models.task_config.base_component import BaseComponent, Translations
 
 
 class AgentConfig(SQLModel):
+    id: str = Field(
+        description="Similar to component ID, must be unique within this task, used to correlate chat messages with the agent that produced it."
+    )
     display_name: str | None = Field(
         description="The name that will be displayed in chat, leave empty to make the agent look like a human user"
     )
-    model_name: str
-    endpoint: str
-    api_key: str
+    model_name: str = ""
+    endpoint: str = ""
+    api_key: str = ""
     attributes: dict = Field({}, sa_column=Column(JSON))
-    base_prompt: str
+    base_prompt: str = ""
     # the chat history will be substituted into the string {chat_history}
-    prompt: str
+    prompt: str = ""
 
 
 class ChatConfig(BaseComponent):
@@ -30,13 +33,13 @@ class ChatConfig(BaseComponent):
     )
     min_messages: int = Field(0, ge=0)
     max_messages: int = Field(99999, ge=0)
-    min_humans: int = Field(0, ge=0)
-    max_humans: int = Field(99999, ge=0)
+    humans_required: int | None = Field(None, ge=0, description="Number of humans per chat, leave None for no limit")
 
-    @model_validator("after")
+    @model_validator(mode="after")
     def validate_model(self) -> Self:
         if self.min_messages > self.max_messages:
             raise ValueError("min_messages cannot be greater than max_messages")
+        return self
 
     def validate_response(self, response):
         return None

@@ -6,9 +6,9 @@ from pydantic import UUID4, BaseModel
 import services.responses
 import services.user
 from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
-from models.task import TaskReadParticipant, TaskResponse
-from models.user import OptionalUserID, User, UserRead, UserUpsert
-from services.tasks import get_participant_tasks
+from models.task import TaskReadParticipant
+from models.task_response import TaskResponse
+from models.user import User, UserRead, UserUpsert
 
 router = APIRouter(prefix="/users")
 
@@ -51,7 +51,7 @@ async def login_required():
 
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: OptionalUserID):
+async def get_user(user_id: UUID4):
     user = await User.get(user_id)
     if user is None:
         raise GET_USER_EXCEPTION
@@ -64,5 +64,5 @@ async def get_user_responses(user_id: UUID4):
 
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
-async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
-    return await get_participant_tasks(user_id)
+async def get_my_tasks(user_id: UUID = Depends(current_user)):
+    return await services.user.get_user_tasks(user_id)

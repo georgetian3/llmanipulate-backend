@@ -7,6 +7,7 @@ from fastapi.openapi.models import HTTPBearer as HTTPBearerModel
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBase
 from fastapi.security.utils import get_authorization_scheme_param
+from pydantic import UUID4
 from starlette.requests import Request
 from typing_extensions import Doc
 
@@ -77,6 +78,7 @@ class OptionalHTTPBearer(HTTPBase):
 
 security = OptionalHTTPBearer()
 
+EXCEPTION_401 = HTTPException(401, "Unauthenticated")
 EXCEPTION_403 = HTTPException(403, "Unauthorized")
 EXCEPTION_404 = HTTPException(404, "Not found")
 EXCEPTION_422 = HTTPException(422, "Invalid format")
@@ -84,10 +86,10 @@ EXCEPTION_422 = HTTPException(422, "Invalid format")
 
 def current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-) -> OptionalUserID:
+) -> UUID4:
     user_id = credentials.credentials
     if not user_id:
-        return None
+        raise EXCEPTION_401
     try:
         return UUID(user_id)
     except:

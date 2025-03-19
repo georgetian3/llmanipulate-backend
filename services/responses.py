@@ -4,15 +4,10 @@ from pydantic import UUID4
 from sqlalchemy import select
 
 from models.database import get_session
-from models.task import (
-    Task,
-    TaskParticipant,
-    TaskResponse,
-    TaskResponseCreate,
-    TaskResponseRead,
-)
+from models.task import Task
 from models.task_config.task_config import TaskConfig
-from models.user import OptionalUserID
+from models.task_participant import TaskParticipant
+from models.task_response import TaskResponse, TaskResponseCreate, TaskResponseRead
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -91,7 +86,7 @@ logger = get_logger(__name__)
 
 
 async def create_response(
-    task_id: UUID4, response: TaskResponseCreate, user_id: OptionalUserID | None
+    task_id: UUID4, response: TaskResponseCreate, user_id: UUID4
 ) -> tuple[TaskResponseRead | None, bool, bool, bool]:
     """
     :returns:
@@ -105,66 +100,56 @@ async def create_response(
         select(Task, TaskParticipant, TaskResponse)
         .outerjoin(
             TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),  # type: ignore
+            (Task.id == TaskParticipant.task_id) & (TaskParticipant.user_id == user_id),  # type: ignore
         )
         .outerjoin(
             TaskResponse,
-            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),  # type: ignore
+            (TaskResponse.task == task_id) & (TaskResponse.user_id == user_id),  # type: ignore
         )
         # if this where isn't added, the left join returns extra tasks
         .where(Task.id == task_id)  # type: ignore
     )
 
     async with get_session() as session:
-        results: tuple[Task | None, TaskParticipant | None, TaskResponse | None] = (
+        results: tuple[Task, TaskParticipant | None, TaskResponse | None] = (
             await session.execute(query)
         ).first()
 
     if not results:
-        return None, False, False
+        return None, False, False, False
 
     task, is_participant, existing_response = results
     task.config = TaskConfig.model_validate(task.config)
 
-    if not task.config.public:
-        if not is_participant:
-            return None, True, False, False
-        if existing_response:
-            return existing_response, True, True, True
-    else:  # if no login required, randomize user_id
-        user_id = uuid4()
+    if not is_participant:
+        return None, True, False, False
+    if existing_response:
+        return existing_response, True, True, True
 
-    response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
+    response_db = TaskResponse(
+        response=response.response, user_id=user_id, task=task.id
+    )
 
-    try:
-        return (
-            TaskResponseRead.model_validate(await response_db.save()),
-            True,
-            True,
-            False,
-        )
-    except Exception as e:
-        logger.info("Error saving response:", e)
-        return (
-            None,
-            True,
-            True,
-            True,
-        )
+    return (
+        TaskResponseRead.model_validate(await response_db.save()),
+        True,
+        True,
+        False,
+    )
 
 
 async def get_responses(task_id: UUID4 | None) -> list[TaskResponseRead]:
     if not task_id:
         responses = await TaskResponse.all()
     else:
-        query = select(TaskResponse).where(TaskResponse.task == task_id) # type: ignore
+        query = select(TaskResponse).where(TaskResponse.task == task_id)  # type: ignore
         async with get_session() as session:
             responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]
 
 
 async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
-    query = select(TaskResponse).where(TaskResponse.user == user_id) # type: ignore
+    query = select(TaskResponse).where(TaskResponse.user_id == user_id)  # type: ignore
     async with get_session() as session:
         responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]

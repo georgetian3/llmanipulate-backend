@@ -5,7 +5,7 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/create_room": {
+    "/chat/create_room": {
       "post": {
         "tags": [
           "chats"
@@ -18,6 +18,84 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RoomConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/example/send": {
+      "get": {
+        "tags": [
+          "chats"
+        ],
+        "summary": "Example Send",
+        "operationId": "example_send",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebsocketSend"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/example/receive": {
+      "get": {
+        "tags": [
+          "chats"
+        ],
+        "summary": "Example Receive",
+        "operationId": "example_receive",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebsocketReceive"
               }
             }
           },
@@ -74,18 +152,18 @@
           }
         ]
       },
-      "put": {
+      "post": {
         "tags": [
           "users"
         ],
-        "summary": "Create User",
-        "description": "Creates a new user. Requires an admin's user_id for authentication.",
-        "operationId": "create_user",
+        "summary": "Upsert User",
+        "description": "Create or update a new user. Requires an admin's user_id for authentication.",
+        "operationId": "upsert_user",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCreate"
+                "$ref": "#/components/schemas/UserUpsert"
               }
             }
           },
@@ -97,7 +175,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserRead"
                 }
               }
             }
@@ -180,15 +258,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid4"
-                },
-                {
-                  "type": "null"
-                }
-              ],
+              "type": "string",
+              "format": "uuid4",
               "title": "User Id"
             }
           }
@@ -691,62 +762,6 @@
             }
           }
         }
-      },
-      "put": {
-        "tags": [
-          "tasks"
-        ],
-        "summary": "Create Task Participant",
-        "operationId": "create_task_participant",
-        "security": [
-          {
-            "OptionalHTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid4",
-              "title": "Task Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TaskParticipantCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TaskParticipantRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/responses": {
@@ -782,58 +797,69 @@
   },
   "components": {
     "schemas": {
-      "Agent": {
+      "AgentConfig": {
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid4",
-            "title": "Id"
+            "title": "Id",
+            "description": "Similar to component ID, must be unique within this task, used to correlate chat messages with the agent that produced it."
           },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "type": {
-            "type": "string",
-            "const": "agent",
-            "title": "Type",
-            "default": "agent"
-          },
-          "endpoint": {
-            "type": "string",
-            "title": "Endpoint"
-          },
-          "api_key": {
-            "type": "string",
-            "title": "Api Key"
-          },
-          "prompt": {
-            "type": "string",
-            "title": "Prompt"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "endpoint",
-          "api_key",
-          "prompt"
-        ],
-        "title": "Agent"
-      },
-      "Chat": {
-        "properties": {
-          "id": {
+          "display_name": {
             "anyOf": [
               {
                 "type": "string"
               },
               {
-                "type": "integer"
+                "type": "null"
               }
             ],
-            "title": "Id"
+            "title": "Display Name",
+            "description": "The name that will be displayed in chat, leave empty to make the agent look like a human user"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "default": ""
+          },
+          "endpoint": {
+            "type": "string",
+            "title": "Endpoint",
+            "default": ""
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key",
+            "default": ""
+          },
+          "attributes": {
+            "type": "object",
+            "title": "Attributes",
+            "default": {}
+          },
+          "base_prompt": {
+            "type": "string",
+            "title": "Base Prompt",
+            "default": ""
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "title": "AgentConfig"
+      },
+      "ChatConfig": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "An ID unique within this task, used to correlate a component with its response"
           },
           "label": {
             "anyOf": [
@@ -858,7 +884,7 @@
           },
           "agents": {
             "items": {
-              "$ref": "#/components/schemas/Agent"
+              "$ref": "#/components/schemas/AgentConfig"
             },
             "type": "array",
             "title": "Agents",
@@ -868,8 +894,15 @@
             "anyOf": [
               {
                 "items": {
-                  "type": "string",
-                  "format": "uuid4"
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string",
+                      "const": "human"
+                    }
+                  ]
                 },
                 "type": "array"
               },
@@ -878,25 +911,99 @@
               }
             ],
             "title": "Order",
+            "description": "Order of conversation, required if any agents are participating in the chat. Elements of this list are either an integer indicating the index (starting from 0) of the agent in the list `agents`, or the string 'human' to indicate a human's turn",
             "default": []
-          },
-          "all_users": {
-            "type": "boolean",
-            "title": "All Users"
           },
           "min_messages": {
             "type": "integer",
             "minimum": 0.0,
             "title": "Min Messages",
             "default": 0
+          },
+          "max_messages": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Messages",
+            "default": 99999
+          },
+          "humans_required": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Humans Required",
+            "description": "Number of humans per chat, leave None for no limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ChatConfig"
+      },
+      "ChatMessageRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "chat_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat Id"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "all_users"
+          "message",
+          "timestamp",
+          "sender",
+          "chat_id"
         ],
-        "title": "Chat"
+        "title": "ChatMessageRead"
+      },
+      "ChatParticipantRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "typing": {
+            "type": "boolean",
+            "title": "Typing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "active",
+          "typing"
+        ],
+        "title": "ChatParticipantRead"
       },
       "ComponentGroup-Input": {
         "properties": {
@@ -932,7 +1039,7 @@
                   "$ref": "#/components/schemas/FreeText"
                 },
                 {
-                  "$ref": "#/components/schemas/Chat"
+                  "$ref": "#/components/schemas/ChatConfig"
                 }
               ]
             },
@@ -980,7 +1087,7 @@
                   "$ref": "#/components/schemas/FreeText"
                 },
                 {
-                  "$ref": "#/components/schemas/Chat"
+                  "$ref": "#/components/schemas/ChatConfig"
                 }
               ]
             },
@@ -1010,15 +1117,9 @@
       "FreeText": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "type": "string",
+            "title": "Id",
+            "description": "An ID unique within this task, used to correlate a component with its response"
           },
           "label": {
             "anyOf": [
@@ -1101,15 +1202,9 @@
       "MultiChoice": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "type": "string",
+            "title": "Id",
+            "description": "An ID unique within this task, used to correlate a component with its response"
           },
           "label": {
             "anyOf": [
@@ -1213,15 +1308,9 @@
       "SingleChoice": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "type": "string",
+            "title": "Id",
+            "description": "An ID unique within this task, used to correlate a component with its response"
           },
           "label": {
             "anyOf": [
@@ -1268,15 +1357,9 @@
       "Slider": {
         "properties": {
           "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
-            ],
-            "title": "Id"
+            "type": "string",
+            "title": "Id",
+            "description": "An ID unique within this task, used to correlate a component with its response"
           },
           "label": {
             "anyOf": [
@@ -1480,45 +1563,17 @@
         ],
         "title": "TaskPage"
       },
-      "TaskParticipantCreate": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user"
-        ],
-        "title": "TaskParticipantCreate"
-      },
       "TaskParticipantRead": {
         "properties": {
-          "task": {
+          "task_id": {
             "type": "string",
             "format": "uuid4",
-            "title": "Task"
+            "title": "Task Id"
           },
-          "user": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User"
+          "user_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "User Id"
           },
           "completed": {
             "type": "boolean",
@@ -1527,8 +1582,8 @@
         },
         "type": "object",
         "required": [
-          "task",
-          "user",
+          "task_id",
+          "user_id",
           "completed"
         ],
         "title": "TaskParticipantRead"
@@ -1542,16 +1597,12 @@
             "type": "string",
             "format": "uuid4",
             "title": "Id"
-          },
-          "public": {
-            "type": "boolean",
-            "title": "Public"
           }
         },
         "type": "object",
         "required": [
           "config",
-          "public"
+          "id"
         ],
         "title": "TaskRead"
       },
@@ -1565,10 +1616,6 @@
             "format": "uuid4",
             "title": "Id"
           },
-          "public": {
-            "type": "boolean",
-            "title": "Public"
-          },
           "completed": {
             "type": "boolean",
             "title": "Completed"
@@ -1577,7 +1624,7 @@
         "type": "object",
         "required": [
           "config",
-          "public",
+          "id",
           "completed"
         ],
         "title": "TaskReadParticipant"
@@ -1601,11 +1648,6 @@
             "type": "object",
             "title": "Response"
           },
-          "updated_timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Timestamp"
-          },
           "created_timestamp": {
             "type": "string",
             "format": "date-time",
@@ -1616,24 +1658,17 @@
             "format": "uuid4",
             "title": "Task"
           },
-          "user": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User"
+          "user_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "User Id"
           }
         },
         "type": "object",
         "required": [
           "response",
           "task",
-          "user"
+          "user_id"
         ],
         "title": "TaskResponse"
       },
@@ -1682,11 +1717,6 @@
             "type": "object",
             "title": "Response"
           },
-          "updated_timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Timestamp"
-          },
           "created_timestamp": {
             "type": "string",
             "format": "date-time",
@@ -1697,24 +1727,17 @@
             "format": "uuid4",
             "title": "Task"
           },
-          "user": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid4"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User"
+          "user_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "User Id"
           }
         },
         "type": "object",
         "required": [
           "response",
           "task",
-          "user"
+          "user_id"
         ],
         "title": "TaskResponseRead"
       },
@@ -1771,9 +1794,9 @@
             "title": "Attributes",
             "default": {}
           },
-          "is_admin": {
+          "admin": {
             "type": "boolean",
-            "title": "Is Admin",
+            "title": "Admin",
             "default": false
           },
           "active": {
@@ -1781,15 +1804,47 @@
             "title": "Active",
             "description": "Whether this user is allowed to login and submit responses",
             "default": true
+          },
+          "autogenerated": {
+            "type": "boolean",
+            "title": "Autogenerated",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "User"
+      },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "attributes": {
+            "type": "object",
+            "title": "Attributes"
+          },
+          "admin": {
+            "type": "boolean",
+            "title": "Admin"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "description": "Whether this user is allowed to login and submit responses"
           }
         },
         "type": "object",
         "required": [
-          "id"
+          "id",
+          "attributes",
+          "admin",
+          "active"
         ],
-        "title": "User"
+        "title": "UserRead"
       },
-      "UserCreate": {
+      "UserUpsert": {
         "properties": {
           "id": {
             "anyOf": [
@@ -1804,9 +1859,27 @@
             "title": "Id"
           },
           "attributes": {
-            "type": "object",
-            "title": "Attributes",
-            "default": {}
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attributes"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active",
+            "description": "Whether this user is allowed to login and submit responses"
           },
           "tasks_add": {
             "items": {
@@ -1818,45 +1891,19 @@
             "description": "Tasks to add this user to",
             "default": []
           },
-          "active": {
-            "type": "boolean",
-            "title": "Active",
-            "description": "Whether this user is allowed to login and submit responses",
-            "default": true
+          "tasks_remove": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Tasks Remove",
+            "description": "Tasks tasks to remove this user from",
+            "default": []
           }
         },
         "type": "object",
-        "title": "UserCreate"
-      },
-      "UserRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid4",
-            "title": "Id"
-          },
-          "attributes": {
-            "type": "object",
-            "title": "Attributes",
-            "default": {}
-          },
-          "is_admin": {
-            "type": "boolean",
-            "title": "Is Admin",
-            "default": false
-          },
-          "active": {
-            "type": "boolean",
-            "title": "Active",
-            "description": "Whether this user is allowed to login and submit responses",
-            "default": true
-          }
-        },
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "title": "UserRead"
+        "title": "UserUpsert"
       },
       "ValidationError": {
         "properties": {
@@ -1890,6 +1937,67 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WebsocketReceive": {
+        "properties": {
+          "typing": {
+            "type": "boolean",
+            "title": "Typing"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "typing",
+          "message"
+        ],
+        "title": "WebsocketReceive"
+      },
+      "WebsocketSend": {
+        "properties": {
+          "chat_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat Id",
+            "default": ""
+          },
+          "turn": {
+            "type": "string",
+            "title": "Turn",
+            "default": ""
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageRead"
+            },
+            "type": "array",
+            "title": "Messages",
+            "default": []
+          },
+          "me": {
+            "type": "string",
+            "title": "Me",
+            "default": ""
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ChatParticipantRead"
+            },
+            "type": "array",
+            "title": "Participants",
+            "default": []
+          },
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "WebsocketSend"
       }
     },
     "securitySchemes": {

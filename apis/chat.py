@@ -8,10 +8,10 @@ from pydantic import UUID4, BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketState
 
-from models.chat import Chat, ChatMessage
-from models.database import get_async_session, get_session
+from models.chat import Chat, ChatMessage, WebsocketReceive, WebsocketSend
+from models.database import get_async_session
 from services.agentV2 import Agent
-from services.chat import WebsocketChatManager
+from services.chat import  WebsocketChatManager
 
 
 def config_agent(agent_name: str) -> Agent:
@@ -22,8 +22,7 @@ def config_agent(agent_name: str) -> Agent:
     return agent
 
 
-
-router = APIRouter()
+router = APIRouter(prefix="/chat")
 
 # ✅ In-memory storage
 rooms: Dict[str, List[WebSocket]] = {}
@@ -172,7 +171,7 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
         # store in DB
         async with session.begin():
             chat_message = ChatMessage(
-                chat=room_id,
+                chat_id=room_id,
                 sender_agent=next_speaker,
                 message=agent_message,
                 timestamp=datetime.utcnow(),
@@ -195,23 +194,28 @@ async def process_turn(room_id: str, session: AsyncSession, advance: bool = True
     # notify all clients about who can speak now
     await notify_turn_change(room_id)
 
+
 manager = WebsocketChatManager()
 
-@router.websocket("/chat")
-async def chat(
-    websocket: WebSocket,
-    user: UUID4,
-    task: UUID4,
-    component: str
-):
-    await manager.connect(websocket, user, task, component)
+
+@router.websocket("")
+async def chat(websocket: WebSocket, user: UUID4, task: UUID4, component: str):
+    connected = await manager.connect(websocket, user_id=user, task_id=task, component_id=component)
+    if not connected:
+        return
     try:
         while True:
-            data = await websocket.receive_json()
-            await manager.receive(data, websocket, user, task, component)
+            await manager.receive(await websocket.receive_json(), websocket)
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
 
+
+@router.get("/example/send")
+async def example_send(_: WebsocketSend): ...
+
+
+@router.get("/example/receive")
+async def example_receive(_: WebsocketReceive): ...
 
 
 @router.websocket("/join/{room_id}/{user_id}")
@@ -273,7 +277,7 @@ async def join_room(
             # Store user message
             async with session.begin():
                 chat_message = ChatMessage(
-                    chat=room_id,
+                    chat_id=room_id,
                     sender_uuid=uuid.UUID(sender_id),
                     message=data,
                     timestamp=datetime.utcnow(),

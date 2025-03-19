@@ -49,8 +49,8 @@ async def test_upsert_user():
         len(task_participants) == 1
     )  # test dedup + only insert private tasks into task_participants
     assert (
-        task_participants[0].user == user_read.id
-        and task_participants[0].task == task1.id
+        task_participants[0].user_id == user_read.id
+        and task_participants[0].task_id == task1.id
     )
 
     await create_response(task1.id, response=TaskResponseCreate(response={}), user_id=user_read.id)

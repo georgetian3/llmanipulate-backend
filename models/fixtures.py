@@ -2,9 +2,10 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
-from models.task import Task, TaskParticipant
+from models.task import Task
 from models.task_config.examples import sample_task_config
 from models.task_config.task_config import TaskConfig
+from models.task_participant import TaskParticipant
 from models.user import User, UserUpsert
 from services.user import upsert_user
 
@@ -58,12 +59,12 @@ async def load_fixtures():
             continue
 
     sample_task_participants = [
-        TaskParticipant(task=sample_tasks[0].id, user=sample_users[0].id),
-        TaskParticipant(task=sample_tasks[0].id, user=sample_users[1].id),
-        TaskParticipant(task=sample_tasks[0].id, user=sample_users[1].id),
-        TaskParticipant(task=sample_tasks[1].id, user=sample_users[1].id),
-        TaskParticipant(task=sample_tasks[1].id, user=sample_users[0].id),
-        TaskParticipant(task=sample_tasks[2].id, user=sample_users[0].id),
+        TaskParticipant(task_id=sample_tasks[0].id, user_id=sample_users[0].id),
+        TaskParticipant(task_id=sample_tasks[0].id, user_id=sample_users[1].id),
+        TaskParticipant(task_id=sample_tasks[0].id, user_id=sample_users[1].id),
+        TaskParticipant(task_id=sample_tasks[1].id, user_id=sample_users[1].id),
+        TaskParticipant(task_id=sample_tasks[1].id, user_id=sample_users[0].id),
+        TaskParticipant(task_id=sample_tasks[2].id, user_id=sample_users[0].id),
     ]
 
     for tp in sample_task_participants:
