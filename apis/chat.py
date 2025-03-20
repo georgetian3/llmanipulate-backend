@@ -8,10 +8,16 @@ from pydantic import UUID4, BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketState
 
-from models.chat import Chat, ChatMessage, WebsocketReceive, WebsocketSend
+from models.chat import (
+    Chat,
+    ChatMessage,
+    ChatMessageRead,
+    WebsocketReceive,
+    WebsocketSend,
+)
 from models.database import get_async_session
 from services.agentV2 import Agent
-from services.chat import  WebsocketChatManager
+from services.chat import WebsocketChatManager
 
 
 def config_agent(agent_name: str) -> Agent:
@@ -200,7 +206,9 @@ manager = WebsocketChatManager()
 
 @router.websocket("")
 async def chat(websocket: WebSocket, user: UUID4, task: UUID4, component: str):
-    connected = await manager.connect(websocket, user_id=user, task_id=task, component_id=component)
+    connected = await manager.connect(
+        websocket, user_id=user, task_id=task, component_id=component
+    )
     if not connected:
         return
     try:
@@ -210,12 +218,23 @@ async def chat(websocket: WebSocket, user: UUID4, task: UUID4, component: str):
         await manager.disconnect(websocket)
 
 
+###############################################################################
+# These endpoints are used for generating OpenAPI client code
+
+
 @router.get("/example/send")
 async def example_send(_: WebsocketSend): ...
 
 
 @router.get("/example/receive")
 async def example_receive(_: WebsocketReceive): ...
+
+
+@router.get("/example/chat-message-read")
+async def example_chat_message_read(_: ChatMessageRead): ...
+
+
+###############################################################################
 
 
 @router.websocket("/join/{room_id}/{user_id}")
