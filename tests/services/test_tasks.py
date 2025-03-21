@@ -2,13 +2,11 @@ from uuid import uuid4
 
 # from models.chat import Agent
 from models.database import _DATABASE
-from models.task import TaskCreate, TaskParticipant
+from models.task import TaskCreate
 from models.task_config.base_component import Translations
 from models.task_config.chat import AgentConfig, ChatConfig
 from models.task_config.task_config import ComponentGroup, TaskConfig, TaskPage
-from models.user import UserUpsert
-from services.tasks import add_participant_to_public_task, create_task
-from services.user import upsert_user
+from services.tasks import create_task
 
 
 async def test_create_task() -> None:

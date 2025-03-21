@@ -1,6 +1,5 @@
 import asyncio
-from dataclasses import astuple, dataclass, field
-from uuid import uuid4
+from dataclasses import dataclass, field
 
 from fastapi import WebSocket
 from pydantic import UUID4, ValidationError
@@ -17,9 +16,9 @@ from models.chat import (
 )
 from models.database import get_session
 from models.task import Task
-from models.task_config.chat import ChatConfig
+from models.task_config.agent import AgentConfig
 from models.task_participant import TaskParticipant
-from services.agentV2 import Agent
+from services.agents.base_agent import BaseAgent
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -28,15 +27,15 @@ logger = get_logger(__name__)
 @dataclass
 class ChatState:
     chat_id: UUID4
-    task_id: UUID4
+    task: Task
     component_id: str
     # map of user id to websocket
     websockets: dict[UUID4, WebSocket] = field(default_factory=dict)
     # map of agent ID (from task config) to agent instance
-    agents: dict[str, Agent] = field(default_factory=dict)
+    agents: dict[str, BaseAgent] = field(default_factory=dict)
 
 
-class WebsocketChatManager:
+class WebsocketManager:
     def __init__(self):
         self.chats: dict[UUID4, ChatState] = {}
 
@@ -88,9 +87,7 @@ class WebsocketChatManager:
             )
         )
         async with get_session() as session:
-            existing_chat = (
-                await session.execute(existing_chat_select_query)
-            ).scalar_one_or_none()
+            existing_chat = (await session.scalars(existing_chat_select_query)).first()
             if existing_chat:  # already participant of a chat, send chat messages
                 logger.debug(
                     f"User {user_id} already participant in chat {existing_chat.id}"
@@ -111,19 +108,20 @@ class WebsocketChatManager:
                 ).all()
 
                 chat_participants_read_map = {
-                    cp.user_id: ChatParticipantRead(
+                    (cp.user_id, cp.agent_id): ChatParticipantRead(
                         name=cp.name, active=True, typing=False
                     )
                     for cp in chat_participants
                 }
-                print(chat_messages)
                 chat_messages_read = [
                     ChatMessageRead(
                         id=chat_message.id,
                         chat_id=existing_chat.id,
                         message=chat_message.message,
                         timestamp=chat_message.timestamp,
-                        sender=chat_participants_read_map[chat_message.sender].name,
+                        sender=chat_participants_read_map[
+                            (chat_message.user_id, chat_message.agent_id)
+                        ].name,
                     )
                     for chat_message in chat_messages
                 ]
@@ -138,12 +136,15 @@ class WebsocketChatManager:
                     websocket,
                 )
                 await self.add_websocket(
-                    websocket, user_id, task_id, component_id, existing_chat.id
+                    websocket, user_id, task, component_id, existing_chat.id
                 )
                 return True
+        logger.debug("User currently not in a chat")
         if chat_config.humans_required is None:  # task-wide chat, only one should exist
-            pending_chat_select_query = select(Chat).where(
-                Chat.task_id == task_id, Chat.component_id == component_id
+            pending_chat_select_query = (
+                select(Chat)
+                .where(Chat.task_id == task_id, Chat.component_id == component_id)
+                .limit(1)
             )
         elif (
             chat_config.humans_required == 1
@@ -154,24 +155,29 @@ class WebsocketChatManager:
                 select(Chat)
                 .join(ChatParticipant, Chat.id == ChatParticipant.chat_id)
                 .group_by(Chat.id)
-                .having(func.count(ChatParticipant) < chat_config.humans_required)
+                .having(
+                    func.count(ChatParticipant.user_id) < chat_config.humans_required
+                )
                 .limit(1)
             )
         async with get_session() as session:
-            pending_chat: Chat | None = (
+            vacant_chat: Chat | None = (
                 await session.execute(pending_chat_select_query)
             ).scalar_one_or_none()
-            if not pending_chat:
-                pending_chat = Chat(task_id=task_id, component_id=component_id)
-                session.add(pending_chat)
+            if not vacant_chat:
+                logger.debug("No vacant chats, creating new chat")
+                vacant_chat = Chat(task_id=task_id, component_id=component_id)
+                session.add(vacant_chat)
+            else:
+                logger.debug(f"Found vacant chat {vacant_chat.id}")
             session.add(
-                ChatParticipant(name="", user_id=user_id, chat_id=pending_chat.id)
+                ChatParticipant(name="", user_id=user_id, chat_id=vacant_chat.id)
             )
             await session.commit()
-            await session.refresh(pending_chat)
+            await session.refresh(vacant_chat)
             await self.send_to_websocket(
                 WebsocketSend(
-                    chat_id=pending_chat.id,
+                    chat_id=vacant_chat.id,
                     messages=[],
                     participants=[
                         ChatParticipantRead(name="self", active=True, typing=False)
@@ -179,25 +185,28 @@ class WebsocketChatManager:
                 ),
                 websocket,
             )
-        await self.add_websocket(
-            websocket, user_id, task_id, component_id, pending_chat.id
-        )
+        await self.add_websocket(websocket, user_id, task, component_id, vacant_chat.id)
         return True
 
     async def add_websocket(
         self,
         websocket: WebSocket,
         user_id: UUID4,
-        task_id: UUID4,
+        task: Task,
         component_id: str,
         chat_id: UUID4,
     ):
         if chat_id not in self.chats:
+            agents: list[AgentConfig] = [
+                component
+                for component in task.config.components
+                if component.id == component_id
+            ][0].agents
             self.chats[chat_id] = ChatState(
-                task_id=task_id,
+                task=task,
                 component_id=component_id,
                 chat_id=chat_id,
-                agents={},  # TODO: init agents by reading task config
+                agents={agent.id: agent.create() for agent in agents},
             )
         self.chats[chat_id].websockets[user_id] = websocket
         # TODO: update Chat.order
@@ -229,8 +238,8 @@ class WebsocketChatManager:
 
         new_chat_message = ChatMessage(
             message=data.message,
-            sender=user_id,
             chat_id=chat_id,
+            user_id=user_id,
         )
         new_chat_message_read = ChatMessageRead(
             id=new_chat_message.id,

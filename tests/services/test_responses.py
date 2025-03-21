@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from models.task import TaskResponseCreate
+from models.task_response import TaskResponseCreate
 from services.responses import create_response
 
 

@@ -4,7 +4,6 @@ from typing import Any, Self
 from pydantic import BaseModel, Field, model_validator
 
 from models.task_config.base_component import Translations
-from models.task_config.chat import AgentConfig
 from models.task_config.components import ComponentType
 
 
@@ -50,10 +49,3 @@ class TaskConfig(BaseModel):
             for group in page.component_groups:
                 for component in group.components:
                     yield component
-
-    @property
-    def agents(self) -> Generator[AgentConfig, None, None]:
-        for component in self.components:
-            if component.type == "chat":
-                for agent in component.agents:
-                    yield agent

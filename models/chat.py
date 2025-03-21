@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Final
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel
@@ -7,6 +8,7 @@ from sqlmodel import Field, SQLModel
 
 from models.mixins import OrmMixin
 
+NULL_UUID4: Final[UUID4] = UUID4("00000000-0000-4000-8000-000000000000")
 
 # ChatParticipant
 class ChatParticipantBase(SQLModel):
@@ -18,8 +20,9 @@ class ChatParticipantRead(ChatParticipantBase):
     typing: bool
 
 
-class ChatParticipant(ChatParticipantBase, table=True):
-    user_id: UUID4 = Field(primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+class ChatParticipant(OrmMixin, ChatParticipantBase, table=True):
+    user_id: UUID4 = Field(NULL_UUID4, primary_key=True, foreign_key="user.id", ondelete="CASCADE")
+    agent_id: str = Field("", primary_key=True)
     chat_id: UUID4 = Field(primary_key=True, foreign_key="chat.id", ondelete="CASCADE")
 
 
@@ -32,27 +35,38 @@ class ChatMessageRead(SQLModel):
     chat_id: UUID4
 
 
-class ChatMessage(ChatMessageRead, OrmMixin, table=True):
-    id: UUID4 = Field(primary_key=True, default_factory=uuid4)
+class ChatMessageReadAdmin(SQLModel):
+    id: UUID4
+    message: str
+    timestamp: datetime
+    sender_id: str
+    sender_display_name: str
     chat_id: UUID4
-    sender: UUID4
+
+
+class ChatMessage(OrmMixin, table=True):
+    id: UUID4 = Field(primary_key=True, default_factory=uuid4)
+    message: str
+    chat_id: UUID4
+    user_id: UUID4 = NULL_UUID4
+    agent_id: str = ""
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
         sa_column=Column(DateTime(timezone=True)),
     )
     __table_args__ = (
         ForeignKeyConstraint(
-            ["chat_id", "sender"],
-            ["chatparticipant.chat_id", "chatparticipant.user_id"],
+            ["chat_id", "user_id", "agent_id"],
+            ["chatparticipant.chat_id", "chatparticipant.user_id", "chatparticipant.agent_id"],
             ondelete="CASCADE",
         ),
     )
 
-
 # Chat
-class ChatRead(BaseModel):
+class ChatReadAdmin(BaseModel): # for admin view
     id: UUID4
-    messages: list[ChatMessageRead]
+    component_id: str
+    messages: list[ChatMessageReadAdmin]
 
 
 class Chat(OrmMixin, table=True):

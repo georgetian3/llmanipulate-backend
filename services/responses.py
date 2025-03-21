@@ -1,8 +1,16 @@
+import json
 from uuid import uuid4
 
 from pydantic import UUID4
 from sqlalchemy import select
 
+from models.chat import (
+    Chat,
+    ChatMessage,
+    ChatMessageReadAdmin,
+    ChatParticipant,
+    ChatReadAdmin,
+)
 from models.database import get_session
 from models.task import Task
 from models.task_config.task_config import TaskConfig
@@ -146,6 +154,42 @@ async def get_responses(task_id: UUID4 | None) -> list[TaskResponseRead]:
         async with get_session() as session:
             responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]
+
+
+async def get_task_chats(task_id: UUID4) -> list[ChatReadAdmin] | None:
+    query = (
+        select(Chat, ChatMessage, ChatParticipant)
+        .join(ChatMessage, Chat.id == ChatMessage.chat_id)
+        .join(
+            ChatParticipant,
+            (ChatParticipant.user_id == ChatMessage.user_id)
+            & (ChatParticipant.agent_id == ChatMessage.agent_id),
+        )
+        .where(Chat.task_id == task_id)
+    )
+    async with get_session() as session:
+        results: list[tuple[Chat, ChatMessage, ChatParticipant]] = (
+            await session.execute(query)
+        ).all()
+    chats: dict[str, list[ChatMessageReadAdmin]] = {}
+    for chat, cm, cp in results:
+        logger.info(f"{chat.id}, {cm.user_id}, {cm.agent_id}, {cm.message}, {cp.user_id}, {cp.agent_id}")
+        cmra = ChatMessageReadAdmin(
+            id=cm.id,
+            message=cm.message,
+            timestamp=cm.timestamp,
+            sender_id=cm.agent_id or str(cm.user_id),
+            sender_display_name=cp.name,
+            chat_id=cm.chat_id,
+        )
+        if (cm.chat_id, chat.component_id) not in chats:
+            chats[(cm.chat_id, chat.component_id)] = []
+        chats[(cm.chat_id, chat.component_id)].append(cmra)
+    print(chats)
+    return [
+        ChatReadAdmin(id=chat_id, component_id=component_id, messages=messages)
+        for (chat_id, component_id), messages in chats.items()
+    ]
 
 
 async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
