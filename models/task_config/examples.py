@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from models.chat import ChatMessage
+from models.task_config.agent import AgentConfig
 from models.task_config.base_component import Translations
 from models.task_config.chat import ChatConfig
 from models.task_config.task_config import (
@@ -82,7 +83,22 @@ sample_task_config = TaskConfig(
             label=Translations(languages={"en": "Page title"}),
             columns=2,
             component_groups=[
-                ComponentGroup(columns=1, components=[ChatConfig(id="chat", all_users=True)]),
+                ComponentGroup(
+                    columns=1,
+                    components=[
+                        ChatConfig(
+                            id="chat",
+                            humans_required=1,
+                            agents=[
+                                AgentConfig(
+                                    id="test-agent",
+                                    type="TestAgent",
+                                )
+                            ],
+                            order=["human", "test-agent"]
+                        )
+                    ],
+                ),
                 # ComponentGroup(
                 #     label=Translations(languages={"en": "Component group label"}),
                 #     columns=2,
@@ -146,3 +162,5 @@ sample_task_config = TaskConfig(
     ],
 )
 
+
+sample_task_config.model_dump_json()

@@ -34,28 +34,6 @@ async def create_chat_test_task(chat_config: ChatConfig) -> TaskRead:
     )
 
 
-# async def test_chat_1_human_1_agent() -> None:
-#     await _DATABASE.reset()
-#     task = await create_chat_test_task(
-#         ChatConfig(
-#             id="chat",
-#             agents=[AgentConfig(id="agent", type="TestAgent", display_name="Agent")],
-#             humans_required=1,
-#             order=["human", "agent"],
-#         )
-#     )
-#     user_id = uuid4()
-#     await get_task(task.id, user_id)
-#     async with httpx.AsyncClient(
-#         transport=ASGIWebSocketTransport(api), base_url="http://test"
-#     ) as client:
-#         async with aconnect_ws(
-#             f"http://test/chat?user={user_id}&task={task.id}&component=chat", client
-#         ) as ws:
-#             message = WebsocketSend.model_validate_json(await ws.receive_text())
-
-#     # TODO: continue assertions after chat order logic is implemented
-
 
 async def test_chat_2_humans() -> None:
     await _DATABASE.reset()
@@ -68,7 +46,7 @@ async def test_chat_2_humans() -> None:
         )
     )
     user_ids = [uuid4() for _ in range(3)]
-    for user_id in user_ids:
+    for user_id in user_ids: # add public users to task
         await get_task(task.id, user_id)
 
     async with httpx.AsyncClient(
@@ -77,36 +55,38 @@ async def test_chat_2_humans() -> None:
         # 1st user joins, creates new chat
         async with aconnect_ws(
             f"http://test/chat?user={user_ids[0]}&task={task.id}&component=chat", client
-        ) as ws:
-            message = WebsocketSend.model_validate_json(await ws.receive_text())
+        ) as ws1:
+            message = WebsocketSend.model_validate_json(await ws1.receive_text())
 
-        chats = await Chat.all()
-        assert len(chats) == 1
-        chat = chats[0]
-        assert chat.task_id == task.id
-        assert chat.id == message.chat_id
-        assert len(await ChatMessage.all()) == 0
-        chat_participants = await ChatParticipant.all()
-        assert len(chat_participants) == 1
-        chat_participant = chat_participants[0]
-        assert chat_participant.user_id == user_ids[0]
+            # expect 1 chat
+            chats = await Chat.all()
+            assert len(chats) == 1
+            chat = chats[0]
+            assert chat.task_id == task.id
+            assert chat.id == message.chat_id
+            # expect no messages
+            assert len(await ChatMessage.all()) == 0
+            # expect 1 human and 1 agent participants
+            chat_participants = await ChatParticipant.all()
+            assert len(chat_participants) == 2
 
-        # 2nd user joins the same chat
-        async with aconnect_ws(
-            f"http://test/chat?user={user_ids[1]}&task={task.id}&component=chat", client
-        ) as ws:
-            message = WebsocketSend.model_validate_json(await ws.receive_text())
 
-        assert len(await Chat.all()) == 1
-        assert len(await ChatParticipant.all()) == 2
+            # 2nd user joins the same chat
+            async with aconnect_ws(
+                f"http://test/chat?user={user_ids[1]}&task={task.id}&component=chat", client
+            ) as ws2:
+                # message = WebsocketSend.model_validate_json(await ws2.receive_text())
 
-        # 3rd user joins new chat
-        async with aconnect_ws(
-            f"http://test/chat?user={user_ids[2]}&task={task.id}&component=chat", client
-        ) as ws:
-            message = WebsocketSend.model_validate_json(await ws.receive_text())
+                assert len(await Chat.all()) == 1
+                assert len(await ChatParticipant.all()) == 3
 
-        assert len(await Chat.all()) == 2
-        assert len(await ChatParticipant.all()) == 3
+                # 3rd user joins new chat
+                async with aconnect_ws(
+                    f"http://test/chat?user={user_ids[2]}&task={task.id}&component=chat", client
+                ) as ws:
+                    # message = WebsocketSend.model_validate_json(await ws.receive_text())
 
-        # TODO: continue assertions after chat order logic is implemented
+                    assert len(await Chat.all()) == 2
+                    assert len(await ChatParticipant.all()) == 4
+
+                    # TODO: continue assertions after chat order logic is implemented

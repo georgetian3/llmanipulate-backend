@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from functools import cached_property
 from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -49,3 +50,10 @@ class TaskConfig(BaseModel):
             for group in page.component_groups:
                 for component in group.components:
                     yield component
+
+    @cached_property
+    def component_map(self) -> dict[str, ComponentType]:
+        map = {}
+        for component in self.components:
+            map[component.id] = component
+        return map

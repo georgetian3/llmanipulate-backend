@@ -22,14 +22,13 @@ class AgentConfig(BaseModel):
         description="Similar to component ID, must be unique within a task, used to correlate chat messages with the agent that produced it."
     )
     type: Literal[tuple(AGENT_TYPE_MAP.keys())]  # type: ignore
-    display_name: str | None = Field(
+    display_name: str | None = Field(None,
         description="The name that will be displayed in chat, leave empty to make the agent look like a human user"
     )
     attributes: dict = Field({}, description="Attributes specific to the agent type")
 
     def create(self) -> BaseAgent:
         return AGENT_TYPE_MAP[self.type](self)
-
 
     @model_validator(mode="after")
     def validate_response(self) -> Self:

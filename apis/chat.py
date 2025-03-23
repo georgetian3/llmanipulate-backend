@@ -25,8 +25,7 @@ async def chat(websocket: WebSocket, user: UUID4, task: UUID4, component: str):
     try:
         while True:
             await manager.receive(await websocket.receive_json(), websocket)
-    except Exception:
-        logger.exception("Chat websocket exception")
+    except WebSocketDisconnect:
         await manager.disconnect(websocket)
 
 

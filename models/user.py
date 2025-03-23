@@ -30,6 +30,7 @@ class UserUpsert(SQLModel):
 
 
 class User(OrmMixin, table=True):
+    __tablename__ = "user"
     id: UUID4 = Field(primary_key=True, default_factory=uuid4)
     attributes: dict = Field({}, sa_column=Column(JSON))
     admin: bool = False

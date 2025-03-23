@@ -864,8 +864,7 @@
         "type": "object",
         "required": [
           "id",
-          "type",
-          "display_name"
+          "type"
         ],
         "title": "AgentConfig"
       },
@@ -1975,14 +1974,20 @@
             "title": "Typing"
           },
           "message": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Message"
           }
         },
         "type": "object",
         "required": [
-          "typing",
-          "message"
+          "typing"
         ],
         "title": "WebsocketReceive"
       },

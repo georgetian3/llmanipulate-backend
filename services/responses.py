@@ -185,7 +185,6 @@ async def get_task_chats(task_id: UUID4) -> list[ChatReadAdmin] | None:
         if (cm.chat_id, chat.component_id) not in chats:
             chats[(cm.chat_id, chat.component_id)] = []
         chats[(cm.chat_id, chat.component_id)].append(cmra)
-    print(chats)
     return [
         ChatReadAdmin(id=chat_id, component_id=component_id, messages=messages)
         for (chat_id, component_id), messages in chats.items()

@@ -13,4 +13,5 @@ class TaskParticipantRead(TaskParticipantBase):
     completed: bool
 
 
-class TaskParticipant(TaskParticipantBase, table=True): ...
+class TaskParticipant(TaskParticipantBase, table=True):
+    __tablename__ = "task_participant"
