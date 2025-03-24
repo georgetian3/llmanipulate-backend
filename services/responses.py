@@ -1,19 +1,21 @@
+import json
 from uuid import uuid4
 
 from pydantic import UUID4
 from sqlalchemy import select
 
-from models.database import get_session
-from models.task import (
-    Task,
-    TaskID,
-    TaskParticipant,
-    TaskResponse,
-    TaskResponseCreate,
-    TaskResponseRead,
+from models.chat import (
+    Chat,
+    ChatMessage,
+    ChatMessageReadAdmin,
+    ChatParticipant,
+    ChatReadAdmin,
 )
+from models.database import get_session
+from models.task import Task
 from models.task_config.task_config import TaskConfig
-from models.user import UserID
+from models.task_participant import TaskParticipant
+from models.task_response import TaskResponse, TaskResponseCreate, TaskResponseRead
 from services.logging import get_logger
 
 logger = get_logger(__name__)
@@ -92,7 +94,7 @@ logger = get_logger(__name__)
 
 
 async def create_response(
-    task_id: UUID4, response: TaskResponseCreate, user_id: UserID | None
+    task_id: UUID4, response: TaskResponseCreate, user_id: UUID4
 ) -> tuple[TaskResponseRead | None, bool, bool, bool]:
     """
     :returns:
@@ -106,66 +108,91 @@ async def create_response(
         select(Task, TaskParticipant, TaskResponse)
         .outerjoin(
             TaskParticipant,
-            (Task.id == TaskParticipant.task) & (TaskParticipant.user == user_id),
+            (Task.id == TaskParticipant.task_id) & (TaskParticipant.user_id == user_id),  # type: ignore
         )
         .outerjoin(
             TaskResponse,
-            (TaskResponse.task == task_id) & (TaskResponse.user == user_id),
+            (TaskResponse.task == task_id) & (TaskResponse.user_id == user_id),  # type: ignore
         )
         # if this where isn't added, the left join returns extra tasks
-        .where(Task.id == task_id)
+        .where(Task.id == task_id)  # type: ignore
     )
 
     async with get_session() as session:
-        results: tuple[Task | None, TaskParticipant | None, TaskResponse | None] = (
+        results: tuple[Task, TaskParticipant | None, TaskResponse | None] = (
             await session.execute(query)
         ).first()
 
     if not results:
-        return None, False, False
+        return None, False, False, False
 
     task, is_participant, existing_response = results
     task.config = TaskConfig.model_validate(task.config)
 
-    if task.config.login_required:
-        if not is_participant:
-            return None, True, False, False
-        if existing_response:
-            return existing_response, True, True, True
-    else:  # if no login required, randomize user_id
-        user_id = uuid4()
+    if not is_participant:
+        return None, True, False, False
+    if existing_response:
+        return existing_response, True, True, True
 
-    response_db = TaskResponse(response=response.response, user=user_id, task=task.id)
+    response_db = TaskResponse(
+        response=response.response, user_id=user_id, task=task.id
+    )
 
-    try:
-        return (
-            TaskResponseRead.model_validate(await response_db.save()),
-            True,
-            True,
-            False,
-        )
-    except Exception as e:
-        logger.info("Error saving response:", e)
-        return (
-            None,
-            True,
-            True,
-            True,
-        )
+    return (
+        TaskResponseRead.model_validate(await response_db.save()),
+        True,
+        True,
+        False,
+    )
 
 
-async def get_responses(task_id: TaskID | None) -> list[TaskResponseRead]:
+async def get_responses(task_id: UUID4 | None) -> list[TaskResponseRead]:
     if not task_id:
         responses = await TaskResponse.all()
     else:
-        query = select(TaskResponse).where(TaskResponse.task == task_id)
+        query = select(TaskResponse).where(TaskResponse.task == task_id)  # type: ignore
         async with get_session() as session:
             responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]
 
 
+async def get_task_chats(task_id: UUID4) -> list[ChatReadAdmin] | None:
+    query = (
+        select(Chat, ChatMessage, ChatParticipant)
+        .join(ChatMessage, Chat.id == ChatMessage.chat_id)
+        .join(
+            ChatParticipant,
+            (ChatParticipant.user_id == ChatMessage.user_id)
+            & (ChatParticipant.agent_id == ChatMessage.agent_id),
+        )
+        .where(Chat.task_id == task_id)
+    )
+    async with get_session() as session:
+        results: list[tuple[Chat, ChatMessage, ChatParticipant]] = (
+            await session.execute(query)
+        ).all()
+    chats: dict[str, list[ChatMessageReadAdmin]] = {}
+    for chat, cm, cp in results:
+        logger.info(f"{chat.id}, {cm.user_id}, {cm.agent_id}, {cm.message}, {cp.user_id}, {cp.agent_id}")
+        cmra = ChatMessageReadAdmin(
+            id=cm.id,
+            message=cm.message,
+            timestamp=cm.timestamp,
+            sender_id=cm.agent_id or str(cm.user_id),
+            sender_display_name=cp.name,
+            chat_id=cm.chat_id,
+        )
+        if (cm.chat_id, chat.component_id) not in chats:
+            chats[(cm.chat_id, chat.component_id)] = []
+        chats[(cm.chat_id, chat.component_id)].append(cmra)
+    return [
+        ChatReadAdmin(id=chat_id, component_id=component_id, messages=messages)
+        for (chat_id, component_id), messages in chats.items()
+    ]
+
+
 async def get_user_responses(user_id: UUID4) -> list[TaskResponseRead]:
-    query = select(TaskResponse).where(TaskResponse.user == user_id)
+    query = select(TaskResponse).where(TaskResponse.user_id == user_id)  # type: ignore
     async with get_session() as session:
         responses = (await session.scalars(query)).all()
     return [TaskResponseRead.model_validate(x) for x in responses]

@@ -1,28 +1,8 @@
-from typing import Any
-from uuid import UUID, uuid4
+from typing import Type, TypeVar
 
-from pydantic import UUID4, BaseModel, field_validator
-from sqlmodel import Field, SQLModel
+from pydantic import BaseModel
 
+T = TypeVar('T', bound=BaseModel)
 
-class UuidId(SQLModel):
-    id: UUID4 = Field(primary_key=True)
-
-    @field_validator("id", mode="before")
-    def default_id(cls, value: Any) -> UUID4:
-        if not isinstance(value, UUID):
-            return uuid4()
-        return value
-
-
-class LLMInput(BaseModel):
-    user_id: str
-    task_id: str
-    message: str
-    map: list
-
-
-class LLMResponse(BaseModel):
-    error: str | None = None
-    response: str
-    agent_data: dict
+def to_model(from_class_instance: BaseModel, to_class: Type[T]) -> T:
+    return to_class(**from_class_instance.model_dump())

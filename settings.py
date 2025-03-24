@@ -7,15 +7,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="allow"
+        env_prefix="", env_file=".env", env_file_encoding="utf-8", extra="allow"
     )
 
     database_host: str | None = None
     database_port: int | None = None
-    database_name: str | None = "llmanipulate.sqlite3"
+    database_name: str | None = None
     database_username: str | None = None
     database_password: str | None = None
-    database_driver: str | None = "sqlite+aiosqlite"
+    database_driver: str | None = None
 
     frontend_url: str = "*"
 
@@ -23,10 +23,7 @@ class Settings(BaseSettings):
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
-    login_required: bool = True
-
     admin_id: UUID4 = uuid4()
 
 
 SETTINGS = Settings()
- 

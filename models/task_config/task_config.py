@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from functools import cached_property
 from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -32,7 +33,7 @@ class TaskConfig(BaseModel):
     name: Translations
     description: Translations | None = None
     pages: list[TaskPage]
-    login_required: bool
+    public: bool
 
     @model_validator(mode="after")
     def check_ids_unique(self) -> Self:
@@ -49,3 +50,10 @@ class TaskConfig(BaseModel):
             for group in page.component_groups:
                 for component in group.components:
                     yield component
+
+    @cached_property
+    def component_map(self) -> dict[str, ComponentType]:
+        map = {}
+        for component in self.components:
+            map[component.id] = component
+        return map

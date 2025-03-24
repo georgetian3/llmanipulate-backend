@@ -24,11 +24,8 @@ class Translations(BaseModel):
         return self
 
 
-ComponentIdType = str | int
-
-
 class BaseComponent(BaseModel):
-    id: ComponentIdType
+    id: str = Field(description="An ID unique within this task, used to correlate a component with its response")
     label: Translations | None = None
     optional: bool = False
     response_class: ClassVar[type]

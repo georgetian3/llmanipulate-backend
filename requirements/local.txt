@@ -7,3 +7,4 @@ pytest-asyncio
 # typing, linting, formatting etc
 ruff
 mypy
+httpx_ws

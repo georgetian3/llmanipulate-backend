@@ -1,32 +1,29 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4
 
 import services.responses
 import services.user
-from apis.auth import EXCEPTION_403, current_admin, current_user
-from models.task import TaskReadParticipant, TaskResponse
-from models.user import User, UserCreate, UserID, UserRead
-from services.tasks import get_participant_tasks
-from settings import SETTINGS
+from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
+from models.models import to_model
+from models.task import TaskReadParticipant
+from models.task_response import TaskResponse
+from models.user import User, UserRead, UserUpsert
+from services.logging import get_logger
 
+logger = get_logger(__name__)
 router = APIRouter(prefix="/users")
 
 
-CREATE_USER_EXCEPTION = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST, detail="User email already taken"
-)
-
-
-@router.put(
+@router.post(
     "",
-    description="Creates a new participant. Requires an admin's user_id for authentication.",
-    response_model=User,
-    dependencies=[Depends(current_admin)],
+    description="Create or update a new user. Requires an admin's user_id for authentication.",
+    response_model=UserRead,
+    dependencies=ADMIN_DEP,
 )
-async def create_user(new_user: UserCreate):
-    return await services.user.create_participant(new_user)
+async def upsert_user(user_create: UserUpsert):
+    return await services.user.upsert_user(user_create)
 
 
 @router.get("", response_model=list[UserRead], dependencies=[Depends(current_admin)])
@@ -42,22 +39,14 @@ GET_USER_EXCEPTION = HTTPException(
 @router.get("/me", response_model=UserRead)
 async def get_me(user_id: UUID | None = Depends(current_user)):
     user = await User.get(user_id)
-    if user:
-        return UserRead.model_validate(user)
-    raise EXCEPTION_403
-
-
-class LoginRequired(BaseModel):
-    login_required: bool
-
-
-@router.get("/login-required", response_model=LoginRequired)
-async def login_required():
-    return LoginRequired(login_required=SETTINGS.login_required)
+    logger.debug(f"Got me {user}")
+    if not user:
+        raise EXCEPTION_403
+    return to_model(user, UserRead)
 
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: UserID):
+async def get_user(user_id: UUID4):
     user = await User.get(user_id)
     if user is None:
         raise GET_USER_EXCEPTION
@@ -70,7 +59,5 @@ async def get_user_responses(user_id: UUID4):
 
 
 @router.get("/me/tasks", response_model=list[TaskReadParticipant])
-async def get_my_tasks(user_id: UUID | None = Depends(current_user)):
-    if SETTINGS.login_required and not user_id:
-        raise EXCEPTION_403
-    return await get_participant_tasks(user_id)
+async def get_my_tasks(user_id: UUID = Depends(current_user)):
+    return await services.user.get_user_tasks(user_id)
