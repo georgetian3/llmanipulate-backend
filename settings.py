@@ -27,3 +27,4 @@ class Settings(BaseSettings):
 
 
 SETTINGS = Settings()
+print("host", SETTINGS.database_host)
