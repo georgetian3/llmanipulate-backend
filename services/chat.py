@@ -244,7 +244,6 @@ class WebsocketManager:
         )
         await self.trigger_agent(vacant_chat.id)
 
-
     async def connect(
         self, websocket: WebSocket, user_id: UUID4, task_id: UUID4, component_id: str
     ) -> bool:
@@ -304,7 +303,7 @@ class WebsocketManager:
                 count += 1
                 if count >= 100:
                     raise e
-                logger.exception(f"DB API Error")
+                logger.info(f"DB API Error: {str(e)}")
                 logger.debug(f"Serializable repeat count: {count}")
                 continue
 
