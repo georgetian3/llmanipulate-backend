@@ -50,5 +50,5 @@ for route in api.routes:
         route.operation_id = route.name
 
 
-with open("openapi.json", "w", encoding="utf-8") as f:
-    json.dump(api.openapi(), f, indent=2, ensure_ascii=False)
+# with open("openapi.json", "w", encoding="utf-8") as f:
+#     json.dump(api.openapi(), f, indent=2, ensure_ascii=False)
