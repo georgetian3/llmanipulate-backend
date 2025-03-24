@@ -28,7 +28,7 @@ class ChatParticipant(OrmMixin, ChatParticipantBase, table=True):
     )
     agent_id: str = Field("", primary_key=True)
     chat_id: UUID4 = Field(primary_key=True, foreign_key="chat.id", ondelete="CASCADE")
-    order: int
+    order: int = Field(unique=True)
 
 
 # ChatMessage

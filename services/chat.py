@@ -1,12 +1,12 @@
 import asyncio
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import Any
 
 from fastapi import WebSocket
 from pydantic import UUID4, ValidationError
-from sqlalchemy import func, insert, null, select, text, update
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy import func, insert, select, text, update
+from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.chat import (
     Chat,
@@ -125,7 +125,12 @@ class WebsocketManager:
         return chat_messages_read, chat_participants_read_map.values()
 
     async def handle_existing_chat(
-        self, user_id: UUID4, task: Task, chat: Chat, websocket: WebSocket
+        self,
+        session: AsyncSession,
+        user_id: UUID4,
+        task: Task,
+        chat: Chat,
+        websocket: WebSocket,
     ) -> None:
         await self.add_websocket(websocket, user_id, task, chat.component_id, chat.id)
         chat_messages_read, chat_participants_read = await self.get_chat_history(
@@ -134,8 +139,7 @@ class WebsocketManager:
         me_query = select(ChatParticipant).where(
             ChatParticipant.user_id == user_id, ChatParticipant.chat_id == chat.id
         )
-        async with get_session() as session:
-            cp = await session.scalar(me_query)
+        cp = await session.scalar(me_query)
         await self.send_to_websocket(
             WebsocketSend(
                 chat_id=chat.id,
@@ -147,7 +151,12 @@ class WebsocketManager:
         )
 
     async def join_new_chat(
-        self, user_id: UUID4, task: Task, chat_config: ChatConfig, websocket: WebSocket
+        self,
+        session: AsyncSession,
+        user_id: UUID4,
+        task: Task,
+        chat_config: ChatConfig,
+        websocket: WebSocket,
     ):
         if chat_config.humans_required is None:  # task-wide chat, only one should exist
             pending_chat_select_query = (
@@ -166,73 +175,75 @@ class WebsocketManager:
                 )
                 .limit(1)
             )
-        async with get_session() as session:
-            vacant_chat: Chat | None = (
-                await session.execute(pending_chat_select_query)
-            ).scalar_one_or_none()
-            if vacant_chat:
-                logger.debug(f"Found vacant chat {vacant_chat.id}")
-            else:
-                logger.debug("No vacant chats, creating new chat")
-                vacant_chat = Chat(task_id=task.id, component_id=chat_config.id)
-                session.add(vacant_chat)
-                # Add agents as chat participants at the creation of every new chat
-                session.add_all(
-                    ChatParticipant(
-                        name=agent.display_name
-                        if agent.display_name
-                        else f"Participant {chat_config.order.index(agent.id) + 1}",
-                        agent_id=agent.id,
-                        chat_id=vacant_chat.id,
-                        order=chat_config.order.index(agent.id),
-                    )
-                    for agent in chat_config.agents
+        vacant_chat: Chat | None = (
+            await session.execute(pending_chat_select_query)
+        ).scalar_one_or_none()
+        if vacant_chat:
+            logger.debug(f"Found vacant chat {vacant_chat.id}")
+        else:
+            logger.debug("No vacant chats, creating new chat")
+            vacant_chat = Chat(task_id=task.id, component_id=chat_config.id)
+            await session.execute(insert(Chat).values(vacant_chat.model_dump()))
+            # Add agents as chat participants at the creation of every new chat
+            await session.execute(
+                insert(ChatParticipant).values(
+                    [
+                        ChatParticipant(
+                            name=agent.display_name
+                            if agent.display_name
+                            else f"Participant {chat_config.order.index(agent.id) + 1}",
+                            agent_id=agent.id,
+                            chat_id=vacant_chat.id,
+                            order=chat_config.order.index(agent.id),
+                        ).model_dump()
+                        for agent in chat_config.agents
+                    ]
                 )
-                await session.commit()
-                await session.refresh(vacant_chat)
-            chat_id = vacant_chat.id
-
+            )
 
         # get the smallest number that does not exist in order, i.e. fill in the order gaps
+        # https://stackoverflow.com/a/31558121
         stmt = text(f"""
-            SELECT MIN(t1.order + 1)
+            SELECT MIN(t1.order) + 1 
             FROM {ChatParticipant.__tablename__} t1
-            LEFT JOIN {ChatParticipant.__tablename__} t2
-            ON t1.order + 1 = t2.order
-            WHERE t1.chat_id = :chat_id
-            AND t2.chat_id = :chat_id
-            AND t2.order IS NULL
+            WHERE NOT EXISTS (
+                SELECT 1 FROM {ChatParticipant.__tablename__} t2
+                WHERE t2.order = t1.order + 1
+            )
         """)
 
-        async with get_session() as session:
-            missing_order = await session.scalar(stmt, {"chat_id": chat_id})
-            next_order = 0 if missing_order is None else missing_order
-            logger.debug(f"next order {next_order}")
-            new_name = f"Participant {occurence_index(chat_config.order, 'human', next_order + 1) + 1}"
-            logger.debug(f"Name: {new_name}")
-            new_participant = ChatParticipant(
-                name=new_name,
-                user_id=user_id,
-                chat_id=chat_id,
-                order=next_order,
+        missing_order_nullable = await session.scalar(stmt, {"chat_id": vacant_chat.id})
+        missing_order = 0 if missing_order_nullable is None else missing_order_nullable
+        new_name = f"Participant {missing_order + 1}"
+        logger.debug(f"Name: {new_name}")
+        await session.execute(
+            insert(ChatParticipant).values(
+                ChatParticipant(
+                    name=new_name,
+                    user_id=user_id,
+                    chat_id=vacant_chat.id,
+                    order=missing_order,
+                ).model_dump()
             )
-            session.add(new_participant)
-            await session.commit()
+        )
+        await session.commit()
 
         await self.send_to_websocket(
             WebsocketSend(
-                chat_id=chat_id,
+                chat_id=vacant_chat.id,
                 messages=[],
                 participants=[
-                    ChatParticipantRead(
-                        name=new_name, active=True, typing=False
-                    )
+                    ChatParticipantRead(name=new_name, active=True, typing=False)
                 ],
                 me=new_name,
             ),
             websocket,
         )
-        await self.add_websocket(websocket, user_id, task, chat_config.id, chat_id)
+        await self.add_websocket(
+            websocket, user_id, task, chat_config.id, vacant_chat.id
+        )
+        await self.trigger_agent(vacant_chat.id)
+
 
     async def connect(
         self, websocket: WebSocket, user_id: UUID4, task_id: UUID4, component_id: str
@@ -248,7 +259,7 @@ class WebsocketManager:
         # user allowed to chat
         await websocket.accept()
 
-        async def _serializable_db_actions():
+        async def _serializable_db_actions(session: AsyncSession):
             existing_chat_select_query = (
                 select(Chat)
                 .join(ChatParticipant, Chat.id == ChatParticipant.chat_id)
@@ -258,31 +269,43 @@ class WebsocketManager:
                     Chat.component_id == component_id,
                 )
             )
-            async with get_session() as session:
-                existing_chat = await session.scalar(existing_chat_select_query)
+            existing_chat = await session.scalar(existing_chat_select_query)
             if existing_chat:
                 # already participant of a chat, send existing chat messages
                 logger.debug(
                     f"User {user_id} already participant in chat {existing_chat.id}"
                 )
-                await self.handle_existing_chat(user_id, task, existing_chat, websocket)
+                await self.handle_existing_chat(
+                    session, user_id, task, existing_chat, websocket
+                )
             else:
                 # user not part of a chat, create new chat
                 logger.debug("User currently not in a chat")
                 await self.join_new_chat(
-                    user_id, task, task.config.component_map[component_id], websocket
+                    session,
+                    user_id,
+                    task,
+                    task.config.component_map[component_id],
+                    websocket,
                 )
+
         # the loop below is needed to catch exceptions raised due to postgres' transaction isolation level being set to serializable
         # it has been recommended to retry the operation if it errors
         # see https://www.postgresql.org/docs/current/transaction-iso.html
         count = 0
         while True:
-            count += 1
-            logger.debug(f"Serializable loop count: {count}")
             try:
-                await _serializable_db_actions()
+                async with get_session() as session:
+                    await _serializable_db_actions(session)
                 break
-            except DBAPIError:
+            # except IntegrityError as e:
+            #     raise e
+            except DBAPIError as e:
+                count += 1
+                if count >= 100:
+                    raise e
+                logger.exception(f"DB API Error")
+                logger.debug(f"Serializable repeat count: {count}")
                 continue
 
         return True
@@ -297,7 +320,6 @@ class WebsocketManager:
     ):
         if chat_id not in self.chats:
             agents: list[AgentConfig] = task.config.component_map[component_id].agents
-            order = task.config.component_map[component_id].order
             self.chats[chat_id] = ChatState(
                 task=task,
                 component_id=component_id,
@@ -380,7 +402,13 @@ class WebsocketManager:
             )
         )
 
-        chat = await Chat.get(chat_state.chat_id)
+        await self.trigger_agent(chat_state.chat_id)
+
+    async def trigger_agent(self, chat_id: UUID4):
+        chat_state = self.chats[chat_id]
+        participant_count = len(
+            chat_state.task.config.component_map[chat_state.component_id].order
+        )
         current_speaker_query = (
             select(ChatParticipant)
             .join(Chat, Chat.id == ChatParticipant.chat_id)
@@ -393,18 +421,18 @@ class WebsocketManager:
             return
 
         agent = chat_state.agents[agent_cp.agent_id]
-        chat_history, _ = await self.get_chat_history(chat.id)
+        chat_history, _ = await self.get_chat_history(chat_id)
         agent.set_chat_history(chat_history)
         response = await agent.get_response()
         agent_chat_message = ChatMessage(
             message=response,
-            chat_id=chat_state.chat_id,
+            chat_id=chat_id,
             agent_id=agent_cp.agent_id,
         )
         await agent_chat_message.save()
         increment_order_query = (
             update(Chat)
-            .where(Chat.id == chat_state.chat_id)
+            .where(Chat.id == chat_id)
             .values(order=(Chat.order + 1) % participant_count)
         )
         async with get_session() as session:

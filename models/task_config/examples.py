@@ -93,9 +93,10 @@ sample_task_config = TaskConfig(
                                 AgentConfig(
                                     id="test-agent",
                                     type="TestAgent",
+                                    display_name="My Test Agent"
                                 )
                             ],
-                            order=["human", "test-agent"]
+                            order=["test-agent", "human"]
                         )
                     ],
                 ),
