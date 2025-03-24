@@ -6,16 +6,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="", env_file=".env", env_file_encoding="utf-8", extra="allow"
-    )
+    # model_config = SettingsConfigDict(
+    #     env_prefix="", env_file=".env", env_file_encoding="utf-8", extra="allow"
+    # )
 
     database_host: str | None = None
     database_port: int | None = None
-    database_name: str | None = None
+    database_name: str | None = "llmanipulate.sqlite3"
     database_username: str | None = None
     database_password: str | None = None
-    database_driver: str | None = None
+    database_driver: str | None = "sqlite+aiosqlite"
 
     frontend_url: str = "*"
 
