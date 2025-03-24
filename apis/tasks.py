@@ -8,6 +8,7 @@ import services.responses
 import services.tasks
 from apis.auth import current_admin, current_user
 from apis.utils import create_docs
+from models.chat import ChatReadAdmin
 from models.task import Task, TaskCreate, TaskRead
 from models.task_config.examples import sample_task_config
 from models.task_participant import TaskParticipantRead
@@ -68,6 +69,17 @@ async def get_sample_task():
 )
 async def get_task_responses(task_id: UUID):
     return await services.responses.get_responses(task_id)
+
+@router.get(
+    "/{task_id}/chats",
+    response_model=list[ChatReadAdmin],
+    dependencies=[Depends(current_admin)],
+)
+async def get_task_chats(task_id: UUID):
+    chats = await services.responses.get_task_chats(task_id)
+    if chats is None:
+        raise NOT_FOUND
+    return chats
 
 
 COMPLETED_ERROR = HTTPException(

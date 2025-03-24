@@ -1,15 +1,18 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4
 
 import services.responses
 import services.user
 from apis.auth import ADMIN_DEP, EXCEPTION_403, current_admin, current_user
+from models.models import to_model
 from models.task import TaskReadParticipant
 from models.task_response import TaskResponse
 from models.user import User, UserRead, UserUpsert
+from services.logging import get_logger
 
+logger = get_logger(__name__)
 router = APIRouter(prefix="/users")
 
 
@@ -36,18 +39,10 @@ GET_USER_EXCEPTION = HTTPException(
 @router.get("/me", response_model=UserRead)
 async def get_me(user_id: UUID | None = Depends(current_user)):
     user = await User.get(user_id)
-    if user:
-        return UserRead.model_validate(user)
-    raise EXCEPTION_403
-
-
-class LoginRequired(BaseModel):
-    login_required: bool
-
-
-@router.get("/login-required", response_model=LoginRequired)
-async def login_required():
-    return LoginRequired(login_required=True)
+    logger.debug(f"Got me {user}")
+    if not user:
+        raise EXCEPTION_403
+    return to_model(user, UserRead)
 
 
 @router.get("/{user_id}", response_model=User)

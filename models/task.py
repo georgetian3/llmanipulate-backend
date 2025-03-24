@@ -36,6 +36,8 @@ class TaskReadParticipant(TaskRead):
 
 
 class Task(OrmMixin, TaskRead, table=True):
+    __tablename__ = "task"
+
     id: UUID4 = Field(primary_key=True, default_factory=uuid4)
     public: bool
     created_timestamp: datetime = Field(

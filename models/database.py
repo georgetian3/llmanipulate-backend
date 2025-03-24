@@ -30,6 +30,7 @@ class Database:
             self._url,
             json_serializer=lambda x: pydantic_core.to_json(x).decode("utf-8"),
             json_deserializer=lambda x: pydantic_core.from_json(x),
+            isolation_level="SERIALIZABLE",
             # echo=True,
         )
         self._async_session_maker: sessionmaker = sessionmaker(

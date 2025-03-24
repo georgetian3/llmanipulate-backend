@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
+from models.chat import NULL_UUID4
 from models.task import Task
 from models.task_config.examples import sample_task_config
 from models.task_config.task_config import TaskConfig
@@ -11,6 +12,12 @@ from services.user import upsert_user
 
 
 async def load_fixtures():
+
+    await upsert_user(UserUpsert(
+        id=NULL_UUID4,
+        active=False
+    ))
+
     user_uuids = [
         "73cf13cc-09a2-4f11-8d9b-50e34a7bbce0",
         "d3e9eaec-3468-406d-af7c-fe1c87f07f1c",

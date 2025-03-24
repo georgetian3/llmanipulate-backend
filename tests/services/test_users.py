@@ -1,14 +1,15 @@
 from uuid import uuid4
 
-from models.database import _DATABASE, get_session
-from models.task import TaskCreate, TaskParticipant, TaskResponseCreate
+from models.database import _DATABASE
+from models.task import TaskCreate
 from models.task_config.base_component import Translations
 from models.task_config.task_config import TaskConfig
+from models.task_participant import TaskParticipant
+from models.task_response import TaskResponseCreate
 from models.user import UserUpsert
 from services.responses import create_response
 from services.tasks import create_task
 from services.user import get_user_tasks, upsert_user
-from tests.services.conftest import SAMPLE_TASK_CONFIG
 
 
 async def test_upsert_user():

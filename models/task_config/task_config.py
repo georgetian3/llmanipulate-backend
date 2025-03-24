@@ -1,10 +1,10 @@
 from collections.abc import Generator
+from functools import cached_property
 from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
 
 from models.task_config.base_component import Translations
-from models.task_config.chat import AgentConfig
 from models.task_config.components import ComponentType
 
 
@@ -51,9 +51,9 @@ class TaskConfig(BaseModel):
                 for component in group.components:
                     yield component
 
-    @property
-    def agents(self) -> Generator[AgentConfig, None, None]:
+    @cached_property
+    def component_map(self) -> dict[str, ComponentType]:
+        map = {}
         for component in self.components:
-            if component.type == "chat":
-                for agent in component.agents:
-                    yield agent
+            map[component.id] = component
+        return map

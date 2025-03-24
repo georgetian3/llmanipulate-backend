@@ -111,11 +111,6 @@ async def get_user_tasks(user_id: UUID4) -> list[TaskReadParticipant]:
 
     async with get_session() as session:
         results: list[tuple[Task, TaskResponse]] = (await session.execute(query)).all()
-    for task, response in results:
-        print(
-            (task.id, task.public) if task else None,
-            response.user_id if response else None,
-        )
 
     return [
         TaskReadParticipant(

@@ -1,10 +1,10 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from models.chat import ChatMessage, ChatRead
+from models.chat import ChatMessage
+from models.task_config.agent import AgentConfig
 from models.task_config.base_component import Translations
 from models.task_config.chat import ChatConfig
-from models.task_config.components import FreeText, MultiChoice, SingleChoice, Slider
 from models.task_config.task_config import (
     ComponentGroup,
     TaskConfig,
@@ -83,7 +83,23 @@ sample_task_config = TaskConfig(
             label=Translations(languages={"en": "Page title"}),
             columns=2,
             component_groups=[
-                ComponentGroup(columns=1, components=[ChatConfig(id="chat", all_users=True)]),
+                ComponentGroup(
+                    columns=1,
+                    components=[
+                        ChatConfig(
+                            id="chat",
+                            humans_required=1,
+                            agents=[
+                                AgentConfig(
+                                    id="test-agent",
+                                    type="TestAgent",
+                                    display_name="My Test Agent"
+                                )
+                            ],
+                            order=["test-agent", "human"]
+                        )
+                    ],
+                ),
                 # ComponentGroup(
                 #     label=Translations(languages={"en": "Component group label"}),
                 #     columns=2,
@@ -148,183 +164,4 @@ sample_task_config = TaskConfig(
 )
 
 
-sample_chat_history = ChatRead(
-    id=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-    messages=[
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 1, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 2, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
-            timestamp=datetime(2025, 1, 1, 1, 1, 3, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
-            timestamp=datetime(2025, 1, 1, 1, 1, 4, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test ",
-            timestamp=datetime(2025, 1, 1, 1, 1, 4, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 5, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 6, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="1aafee69bd724e7cb7c04898581aaf59", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 7, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 8, tzinfo=UTC),
-        ),
-        ChatMessage(
-            sender=UUID(hex="255f1f3227924947980d44328dd8c174", version=4),
-            message="test",
-            timestamp=datetime(2025, 1, 1, 1, 1, 9, tzinfo=UTC),
-        ),
-    ],
-)
+sample_task_config.model_dump_json()

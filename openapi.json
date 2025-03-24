@@ -5,46 +5,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/chat/create_room": {
-      "post": {
-        "tags": [
-          "chats"
-        ],
-        "summary": "Create Room",
-        "description": "✅ Creates a chat room and sets the first speaker for turn-based mode.",
-        "operationId": "create_room",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RoomConfig"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/chat/example/send": {
       "get": {
         "tags": [
@@ -96,6 +56,45 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/WebsocketReceive"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/example/chat-message-read": {
+      "get": {
+        "tags": [
+          "chats"
+        ],
+        "summary": "Example Chat Message Read",
+        "operationId": "example_chat_message_read",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessageRead"
               }
             }
           },
@@ -222,27 +221,6 @@
             "OptionalHTTPBearer": []
           }
         ]
-      }
-    },
-    "/users/login-required": {
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "summary": "Login Required",
-        "operationId": "login_required",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginRequired"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/users/{user_id}": {
@@ -624,6 +602,58 @@
         }
       }
     },
+    "/tasks/{task_id}/chats": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Chats",
+        "operationId": "get_task_chats",
+        "security": [
+          {
+            "OptionalHTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatReadAdmin"
+                  },
+                  "title": "Response Get Task Chats Tasks  Task Id  Chats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tasks/{task_id}/response": {
       "post": {
         "tags": [
@@ -802,7 +832,15 @@
           "id": {
             "type": "string",
             "title": "Id",
-            "description": "Similar to component ID, must be unique within this task, used to correlate chat messages with the agent that produced it."
+            "description": "Similar to component ID, must be unique within a task, used to correlate chat messages with the agent that produced it."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "OpenAIAgent",
+              "TestAgent"
+            ],
+            "title": "Type"
           },
           "display_name": {
             "anyOf": [
@@ -816,41 +854,17 @@
             "title": "Display Name",
             "description": "The name that will be displayed in chat, leave empty to make the agent look like a human user"
           },
-          "model_name": {
-            "type": "string",
-            "title": "Model Name",
-            "default": ""
-          },
-          "endpoint": {
-            "type": "string",
-            "title": "Endpoint",
-            "default": ""
-          },
-          "api_key": {
-            "type": "string",
-            "title": "Api Key",
-            "default": ""
-          },
           "attributes": {
             "type": "object",
             "title": "Attributes",
+            "description": "Attributes specific to the agent type",
             "default": {}
-          },
-          "base_prompt": {
-            "type": "string",
-            "title": "Base Prompt",
-            "default": ""
-          },
-          "prompt": {
-            "type": "string",
-            "title": "Prompt",
-            "default": ""
           }
         },
         "type": "object",
         "required": [
           "id",
-          "display_name"
+          "type"
         ],
         "title": "AgentConfig"
       },
@@ -891,39 +905,26 @@
             "default": []
           },
           "order": {
-            "anyOf": [
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "type": "integer"
-                    },
-                    {
-                      "type": "string",
-                      "const": "human"
-                    }
-                  ]
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
             "title": "Order",
-            "description": "Order of conversation, required if any agents are participating in the chat. Elements of this list are either an integer indicating the index (starting from 0) of the agent in the list `agents`, or the string 'human' to indicate a human's turn",
+            "description": "Order of conversation, required if any agents are participating in the chat.Each element of this list is either an agent ID to indicate that agent's turn,or the string 'human' to indicate a human's turn. The number of `human`s in `ordermust match `humans_required` if `humans_required` is not None.",
             "default": []
           },
           "min_messages": {
             "type": "integer",
             "minimum": 0.0,
             "title": "Min Messages",
+            "description": "Minimum number of messages for a chat to be valid",
             "default": 0
           },
           "max_messages": {
             "type": "integer",
             "minimum": 0.0,
             "title": "Max Messages",
+            "description": "Maximum number of messages for a chat, the conversation will end after this many messages",
             "default": 99999
           },
           "humans_required": {
@@ -982,6 +983,47 @@
         ],
         "title": "ChatMessageRead"
       },
+      "ChatMessageReadAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "sender_id": {
+            "type": "string",
+            "title": "Sender Id"
+          },
+          "sender_display_name": {
+            "type": "string",
+            "title": "Sender Display Name"
+          },
+          "chat_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Chat Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "message",
+          "timestamp",
+          "sender_id",
+          "sender_display_name",
+          "chat_id"
+        ],
+        "title": "ChatMessageReadAdmin"
+      },
       "ChatParticipantRead": {
         "properties": {
           "name": {
@@ -1004,6 +1046,33 @@
           "typing"
         ],
         "title": "ChatParticipantRead"
+      },
+      "ChatReadAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "component_id": {
+            "type": "string",
+            "title": "Component Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageReadAdmin"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "component_id",
+          "messages"
+        ],
+        "title": "ChatReadAdmin"
       },
       "ComponentGroup-Input": {
         "properties": {
@@ -1186,19 +1255,6 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "LoginRequired": {
-        "properties": {
-          "login_required": {
-            "type": "boolean",
-            "title": "Login Required"
-          }
-        },
-        "type": "object",
-        "required": [
-          "login_required"
-        ],
-        "title": "LoginRequired"
-      },
       "MultiChoice": {
         "properties": {
           "id": {
@@ -1257,38 +1313,6 @@
           "choices"
         ],
         "title": "MultiChoice"
-      },
-      "RoomConfig": {
-        "properties": {
-          "all_users": {
-            "type": "boolean",
-            "title": "All Users",
-            "example": true
-          },
-          "order": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Order",
-            "default": [],
-            "examples": [
-              [
-                "/agent1",
-                "human",
-                "/agent2",
-                "human",
-                "/agent3"
-              ]
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "all_users"
-        ],
-        "title": "RoomConfig",
-        "description": "✅ Schema for creating a chat room."
       },
       "RootModel_int_": {
         "type": "integer",
@@ -1833,6 +1857,10 @@
             "type": "boolean",
             "title": "Active",
             "description": "Whether this user is allowed to login and submit responses"
+          },
+          "autogenerated": {
+            "type": "boolean",
+            "title": "Autogenerated"
           }
         },
         "type": "object",
@@ -1840,7 +1868,8 @@
           "id",
           "attributes",
           "admin",
-          "active"
+          "active",
+          "autogenerated"
         ],
         "title": "UserRead"
       },
@@ -1945,14 +1974,20 @@
             "title": "Typing"
           },
           "message": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Message"
           }
         },
         "type": "object",
         "required": [
-          "typing",
-          "message"
+          "typing"
         ],
         "title": "WebsocketReceive"
       },

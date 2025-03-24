@@ -26,8 +26,8 @@ class TaskResponseBase(SQLModel):
             # if the response for this component is missing
             if component_response is None:
                 # new response cannot have less answers than the old response
-                # optional components can be ignored
-                if not component.optional:
+                # chat optional components can be ignored
+                if not component.optional and component.type != "chat":
                     raise ValueError(f"Component '{component.id}': missing response")
             else:
                 # let each component validate the type/structure of its response

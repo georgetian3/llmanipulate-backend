@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from apis.chat import router as router
+from apis.chat import router as chat_router
 from apis.responses import router as response_router
 from apis.tasks import router as task_router
 from apis.users import router as user_router
@@ -35,7 +35,7 @@ api.add_middleware(
 )
 
 
-api.include_router(router, tags=["chats"])
+api.include_router(chat_router, tags=["chats"])
 api.include_router(user_router, tags=["users"])
 api.include_router(task_router, tags=["tasks"])
 api.include_router(response_router, tags=["responses"])

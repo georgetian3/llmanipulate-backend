@@ -1,11 +1,22 @@
 from openai import OpenAI
+from pydantic import BaseModel
+
+from services.agents.base_agent import BaseAgent
 
 
-class BaseAgent:
-    async def get_response(self) -> None: ...
+class OpenAIAgentAttributes(BaseModel):
+    model_name: str = ""
+    endpoint: str = ""
+    api_key: str = ""
+    base_prompt: str = ""
+    # the chat history will be substituted into the string {chat_history}
+    prompt: str = ""
 
 
-class Agent:
+class OpenAIAgent(BaseAgent):
+
+    attribute_model = OpenAIAgentAttributes
+
     def __init__(self):
         self.agent_name = ""
         self.model_name = ""
