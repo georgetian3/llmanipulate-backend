@@ -44,7 +44,8 @@ class ChatMessageReadAdmin(SQLModel):
     id: UUID4
     message: str
     timestamp: datetime
-    sender_id: str
+    user_id: str | None = None
+    agent_id: str | None = None
     sender_display_name: str
     chat_id: UUID4
 

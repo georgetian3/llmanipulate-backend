@@ -5,6 +5,7 @@ from pydantic import UUID4
 from sqlalchemy import select
 
 from models.chat import (
+    NULL_UUID4,
     Chat,
     ChatMessage,
     ChatMessageReadAdmin,
@@ -178,7 +179,8 @@ async def get_task_chats(task_id: UUID4) -> list[ChatReadAdmin] | None:
             id=cm.id,
             message=cm.message,
             timestamp=cm.timestamp,
-            sender_id=cm.agent_id or str(cm.user_id),
+            user_id=None if cm.user_id == NULL_UUID4 else cm.user_id,
+            agent_id=cm.agent_id if cm.agent_id else None,
             sender_display_name=cp.name,
             chat_id=cm.chat_id,
         )

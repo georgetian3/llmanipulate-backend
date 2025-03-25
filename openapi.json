@@ -999,9 +999,27 @@
             "format": "date-time",
             "title": "Timestamp"
           },
-          "sender_id": {
-            "type": "string",
-            "title": "Sender Id"
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
           },
           "sender_display_name": {
             "type": "string",
@@ -1018,7 +1036,6 @@
           "id",
           "message",
           "timestamp",
-          "sender_id",
           "sender_display_name",
           "chat_id"
         ],
