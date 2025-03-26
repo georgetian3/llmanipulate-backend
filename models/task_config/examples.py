@@ -5,6 +5,7 @@ from models.chat import ChatMessage
 from models.task_config.agent import AgentConfig
 from models.task_config.base_component import Translations
 from models.task_config.chat import ChatConfig
+from models.task_config.components import FreeText, MultiChoice, SingleChoice, Slider
 from models.task_config.task_config import (
     ComponentGroup,
     TaskConfig,
@@ -100,64 +101,61 @@ sample_task_config = TaskConfig(
                         )
                     ],
                 ),
-                # ComponentGroup(
-                #     label=Translations(languages={"en": "Component group label"}),
-                #     columns=2,
-                #     components=[
-                #         Slider(
-                #             id="s2",
-                #             label=Translations(
-                #                 languages={"en": "Slider", "zh": "滑动"}, default="en"
-                #             ),
-                #             steps=3,
-                #             labels=[
-                #                 Translations(languages={"en": "1"}),
-                #                 Translations(languages={"en": "2"}),
-                #                 Translations(languages={"en": "3"}),
-                #             ],
-                #         ),
-                #         SingleChoice(
-                #             id="sc2",
-                #             choices=[
-                #                 Translations(languages={"en": "1"}),
-                #                 Translations(languages={"en": "2"}),
-                #                 Translations(languages={"en": "3"}),
-                #             ],
-                #             label=Translations(
-                #                 languages={"en": "Single Choice", "zh": "滑动"},
-                #                 default="en",
-                #             ),
-                #             shuffle=True,
-                #         ),
-                #         MultiChoice(
-                #             id="mc2",
-                #             choices=[
-                #                 Translations(languages={"en": "1"}),
-                #                 Translations(languages={"en": "2"}),
-                #                 Translations(languages={"en": "3"}),
-                #             ],
-                #             label=Translations(
-                #                 languages={"en": "Multi Choice", "zh": "滑动"},
-                #                 default="en",
-                #             ),
-                #             shuffle=True,
-                #         ),
-                #         FreeText(
-                #             id="f2",
-                #             label=Translations(
-                #                 languages={
-                #                     "en": "Free text *with* **markdown** [test](h)",
-                #                     "zh": "滑动",
-                #                 },
-                #                 default="en",
-                #             ),
-                #             regex=".*f.*",
-                #         ),
-                #         ChatConfig(
-                #             id="chat_component_id",
-                #         )
-                #     ],
-                # ),
+                ComponentGroup(
+                    label=Translations(languages={"en": "Component group label"}),
+                    columns=2,
+                    components=[
+                        Slider(
+                            id="s2",
+                            label=Translations(
+                                languages={"en": "Slider", "zh": "滑动"}, default="en"
+                            ),
+                            steps=3,
+                            labels=[
+                                Translations(languages={"en": "1"}),
+                                Translations(languages={"en": "2"}),
+                                Translations(languages={"en": "3"}),
+                            ],
+                        ),
+                        SingleChoice(
+                            id="sc2",
+                            choices=[
+                                Translations(languages={"en": "1"}),
+                                Translations(languages={"en": "2"}),
+                                Translations(languages={"en": "3"}),
+                            ],
+                            label=Translations(
+                                languages={"en": "Single Choice", "zh": "滑动"},
+                                default="en",
+                            ),
+                            shuffle=True,
+                        ),
+                        MultiChoice(
+                            id="mc2",
+                            choices=[
+                                Translations(languages={"en": "1"}),
+                                Translations(languages={"en": "2"}),
+                                Translations(languages={"en": "3"}),
+                            ],
+                            label=Translations(
+                                languages={"en": "Multi Choice", "zh": "滑动"},
+                                default="en",
+                            ),
+                            shuffle=True,
+                        ),
+                        FreeText(
+                            id="f2",
+                            label=Translations(
+                                languages={
+                                    "en": "Free text *with* **markdown** [test](h)",
+                                    "zh": "滑动",
+                                },
+                                default="en",
+                            ),
+                            regex=".*f.*",
+                        ),
+                    ],
+                ),
             ],
         ),
     ],

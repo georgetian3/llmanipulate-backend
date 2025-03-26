@@ -26,9 +26,7 @@ class ChatConfig(BaseComponent):
         ge=0,
         description="Maximum number of messages for a chat, the conversation will end after this many messages",
     )
-    humans_required: int | None = Field(
-        None, ge=0, description="Number of humans per chat, leave None for no limit"
-    )
+    humans_required: int = Field(ge=0, description="Number of humans per chat")
 
     @model_validator(mode="after")
     def validate_model(self) -> Self:
@@ -40,12 +38,7 @@ class ChatConfig(BaseComponent):
         for participant in self.order:
             if participant != "human" and participant not in agent_ids:
                 raise ValueError(f"Invalid agent ID: '{participant}'")
-        if self.humans_required is None:
-            if self.order or self.agents:
-                raise ValueError(
-                    "A chat with unlimited humans cannot have agents nor order"
-                )
-        elif (human_count := self.order.count("human")) != self.humans_required:
+        if (human_count := self.order.count("human")) != self.humans_required:
             raise ValueError(
                 f"Order expected {self.humans_required} humans, got {human_count}"
             )

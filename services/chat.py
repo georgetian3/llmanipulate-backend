@@ -185,21 +185,22 @@ class WebsocketManager:
             vacant_chat = Chat(task_id=task.id, component_id=chat_config.id)
             await session.execute(insert(Chat).values(vacant_chat.model_dump()))
             # Add agents as chat participants at the creation of every new chat
-            await session.execute(
-                insert(ChatParticipant).values(
-                    [
-                        ChatParticipant(
-                            name=agent.display_name
-                            if agent.display_name
-                            else f"Participant {chat_config.order.index(agent.id) + 1}",
-                            agent_id=agent.id,
-                            chat_id=vacant_chat.id,
-                            order=chat_config.order.index(agent.id),
-                        ).model_dump()
-                        for agent in chat_config.agents
-                    ]
+            if chat_config.agents:
+                await session.execute(
+                    insert(ChatParticipant).values(
+                        [
+                            ChatParticipant(
+                                name=agent.display_name
+                                if agent.display_name
+                                else f"Participant {chat_config.order.index(agent.id) + 1}",
+                                agent_id=agent.id,
+                                chat_id=vacant_chat.id,
+                                order=chat_config.order.index(agent.id),
+                            ).model_dump()
+                            for agent in chat_config.agents
+                        ]
+                    )
                 )
-            )
 
         # get the smallest number that does not exist in order, i.e. fill in the order gaps
         # https://stackoverflow.com/a/31558121
