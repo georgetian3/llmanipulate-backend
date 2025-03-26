@@ -3,7 +3,7 @@ from typing import Final
 from uuid import uuid4
 
 from pydantic import UUID4, BaseModel
-from sqlalchemy import JSON, Column, DateTime, ForeignKeyConstraint
+from sqlalchemy import JSON, Column, DateTime, ForeignKeyConstraint, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 from models.mixins import OrmMixin
@@ -28,7 +28,8 @@ class ChatParticipant(OrmMixin, ChatParticipantBase, table=True):
     )
     agent_id: str = Field("", primary_key=True)
     chat_id: UUID4 = Field(primary_key=True, foreign_key="chat.id", ondelete="CASCADE")
-    order: int = Field(unique=True)
+    order: int
+    __table_args__ = (UniqueConstraint("chat_id", "order", name="chat_id_order_unique_constraint"),)
 
 
 # ChatMessage

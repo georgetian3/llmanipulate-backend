@@ -204,11 +204,16 @@ class WebsocketManager:
         # get the smallest number that does not exist in order, i.e. fill in the order gaps
         # https://stackoverflow.com/a/31558121
         stmt = text(f"""
-            SELECT MIN(t1.order) + 1 
-            FROM {ChatParticipant.__tablename__} t1
+            WITH cp AS (
+                SELECT "order"
+                FROM {ChatParticipant.__tablename__}
+                WHERE chat_id = :chat_id
+            )
+            SELECT MIN(t1."order") + 1 
+            FROM cp AS t1
             WHERE NOT EXISTS (
-                SELECT 1 FROM {ChatParticipant.__tablename__} t2
-                WHERE t2.order = t1.order + 1
+                SELECT 1 FROM cp AS t2
+                WHERE t2."order" = t1."order" + 1
             )
         """)
 
